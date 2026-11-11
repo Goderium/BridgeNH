@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
+
+[*.{json,info,mcmeta,md,sh,xml,yaml,yml}]
+indent_size = 2
+
+[*.{lang,md}]
+trim_trailing_whitespace = false
+
+[*.java]
+ij_java_class_count_to_use_import_on_demand = 999
+ij_java_names_count_to_use_import_on_demand = 999

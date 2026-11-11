@@ -1,0 +1,46 @@
+name: Release tagged build
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-and-test.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified release assets
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: bridgenh-release
+          path: dist
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.build.outputs.version }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          test "$RELEASE_TAG" = "v$VERSION"
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+          args=(--verify-tag --generate-notes --title "BridgeNH $VERSION")
+          if [[ "$PRERELEASE" == true ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" dist/* "${args[@]}"

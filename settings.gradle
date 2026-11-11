@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://nexus.gtnewhorizons.com/repository/public/' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_25)) {
+    throw new GradleException('RetroFuturaGradle 2.0.2 requires JDK 25 or newer to run Gradle. '
+        + 'Set JAVA_HOME to JDK 25; the mod is still compiled with a Java 8 toolchain.')
+}
+rootProject.name = providers.gradleProperty('modName').get()

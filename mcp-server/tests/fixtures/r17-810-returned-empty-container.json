@@ -1,0 +1,296 @@
+{
+  "sourceArtifact": "<related-project>\\build\\tmp\\agents-r17-big-coverage\\round-17-810-fluid-return-exact-fixture-v1.json",
+  "sourceArtifactSha256": "9d33dcaac1ef69023c0cee1503d4005f476b4385ef7ae24a13e37d9d38b9d705",
+  "exactReturnedInputTooltip": {
+    "actualRpcIndex": 1752,
+    "call": {
+      "phase": "r17_recipe_810",
+      "operation": "gui.tooltip",
+      "arguments": {
+        "screenId": "44189dce-ec67-4b3b-b3c0-7fec9fc22d87",
+        "slot": 2,
+        "advanced": false
+      },
+      "startedMonotonic": 1063925.578,
+      "result": {
+        "screenId": "44189dce-ec67-4b3b-b3c0-7fec9fc22d87",
+        "advanced": false,
+        "modifiers": {
+          "shift": false,
+          "ctrl": false,
+          "alt": false,
+          "source": "current LWJGL physical keyboard state, read only"
+        },
+        "coverage": {
+          "vanilla": "Forge-captured buttons and ordinary container slots; per-slot tooltip queried on demand",
+          "mui2": "bounded public open panels/widget tree, identities, bounds, enabled state",
+          "text": "Vanilla button displayString, MUI2 TextWidget public IKey.getFormatted; other drawn labels may be unavailable",
+          "richTooltips": "MUI2 public RichTooltip.isEmpty refreshes native dirty builders, then getRichText/getAsStrings; rich icons/clipping/topmost hit state not reconstructed",
+          "textures": "MUI2 public Widget.getOverlay/getBackground, DynamicDrawable.getSupplier and UITexture resource/UV data; no drawing or physical hover changes",
+          "itemSlots": "Public ItemSlot.getSlot/getVanillaSlot and exact native container lookup bind current widget display to a container slot ID; machine/player ownership needs its separate verified binding. Access flags and filter presence are not candidate acceptance.",
+          "aeVirtualSlots": "unavailable; ordinary container slots and public AE button messages only, cached physical hover is never changed",
+          "creativeInventory": "Actual public tabs and inventory-tab player slots are exposed in controls/gui.widgets with screen-bound widget IDs. activate uses native tab callbacks or one fixed left pickup callback; synchronization requires a later inspection.",
+          "modifierPolicy": "Current physical Shift/Ctrl/Alt state only; advanced=true is not Shift expansion. No simulated keys, hover, drawing, or screenshot fallback."
+        },
+        "tooltip": [
+          "空单元"
+        ],
+        "tooltipTotalLines": 1,
+        "tooltipTruncated": false,
+        "slot": 2,
+        "fluidContainer": {
+          "schemaVersion": 1,
+          "source": "public_fluid_container_registry",
+          "scope": "observed_stack_copy_public_api_read",
+          "itemHasTag": false,
+          "probeMutatedCopy": false,
+          "available": true,
+          "empty": true,
+          "fluid": null,
+          "capacity": {
+            "available": false,
+            "reason": "registered_empty_capacity_requires_fluid_identity"
+          }
+        },
+        "item": {
+          "registryName": "IC2:itemCellEmpty",
+          "displayName": "空单元",
+          "count": 3,
+          "metadata": 0,
+          "hasTag": false
+        },
+        "source": "current ItemStack.getTooltip(player, advanced); original NBT preserved",
+        "budget": {
+          "softBudgetMicros": 4000,
+          "actualElapsedMicros": 151,
+          "softBudgetExceeded": false,
+          "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+        }
+      },
+      "elapsedMs": 15.0,
+      "transportTrace": {
+        "request_id": "a4c5bef4-25e0-410e-a90f-241f24676c6c",
+        "dispatched": true
+      }
+    }
+  },
+  "exactInitialInputTooltip": {
+    "actualRpcIndex": 1633,
+    "call": {
+      "phase": "r17_containers_810",
+      "operation": "gui.tooltip",
+      "arguments": {
+        "screenId": "8ee329d2-4ad6-4ee7-84b3-77da4bb6f1ae",
+        "slot": 2
+      },
+      "startedMonotonic": 1063923.406,
+      "result": {
+        "screenId": "8ee329d2-4ad6-4ee7-84b3-77da4bb6f1ae",
+        "advanced": false,
+        "modifiers": {
+          "shift": false,
+          "ctrl": false,
+          "alt": false,
+          "source": "current LWJGL physical keyboard state, read only"
+        },
+        "coverage": {
+          "vanilla": "Forge-captured buttons and ordinary container slots; per-slot tooltip queried on demand",
+          "mui2": "bounded public open panels/widget tree, identities, bounds, enabled state",
+          "text": "Vanilla button displayString, MUI2 TextWidget public IKey.getFormatted; other drawn labels may be unavailable",
+          "richTooltips": "MUI2 public RichTooltip.isEmpty refreshes native dirty builders, then getRichText/getAsStrings; rich icons/clipping/topmost hit state not reconstructed",
+          "textures": "MUI2 public Widget.getOverlay/getBackground, DynamicDrawable.getSupplier and UITexture resource/UV data; no drawing or physical hover changes",
+          "itemSlots": "Public ItemSlot.getSlot/getVanillaSlot and exact native container lookup bind current widget display to a container slot ID; machine/player ownership needs its separate verified binding. Access flags and filter presence are not candidate acceptance.",
+          "aeVirtualSlots": "unavailable; ordinary container slots and public AE button messages only, cached physical hover is never changed",
+          "creativeInventory": "Actual public tabs and inventory-tab player slots are exposed in controls/gui.widgets with screen-bound widget IDs. activate uses native tab callbacks or one fixed left pickup callback; synchronization requires a later inspection.",
+          "modifierPolicy": "Current physical Shift/Ctrl/Alt state only; advanced=true is not Shift expansion. No simulated keys, hover, drawing, or screenshot fallback."
+        },
+        "tooltip": [
+          "氢单元",
+          "H"
+        ],
+        "tooltipTotalLines": 2,
+        "tooltipTruncated": false,
+        "slot": 2,
+        "fluidContainer": {
+          "schemaVersion": 1,
+          "source": "public_fluid_container_registry",
+          "scope": "observed_stack_copy_public_api_read",
+          "itemHasTag": false,
+          "probeMutatedCopy": false,
+          "available": true,
+          "empty": false,
+          "capacity": {
+            "available": true,
+            "value": 1000
+          },
+          "fluid": {
+            "fluidName": "hydrogen",
+            "amount": 1000,
+            "hasTag": false
+          }
+        },
+        "item": {
+          "registryName": "gregtech:gt.metaitem.01",
+          "displayName": "氢单元",
+          "count": 3,
+          "metadata": 30001,
+          "hasTag": false
+        },
+        "source": "current ItemStack.getTooltip(player, advanced); original NBT preserved",
+        "budget": {
+          "softBudgetMicros": 4000,
+          "actualElapsedMicros": 222,
+          "softBudgetExceeded": false,
+          "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+        }
+      },
+      "elapsedMs": 15.0
+    }
+  },
+  "exactInitialOutputTooltip": {
+    "actualRpcIndex": 1635,
+    "call": {
+      "phase": "r17_containers_810",
+      "operation": "gui.tooltip",
+      "arguments": {
+        "screenId": "8ee329d2-4ad6-4ee7-84b3-77da4bb6f1ae",
+        "slot": 3
+      },
+      "startedMonotonic": 1063923.421,
+      "result": {
+        "screenId": "8ee329d2-4ad6-4ee7-84b3-77da4bb6f1ae",
+        "advanced": false,
+        "modifiers": {
+          "shift": false,
+          "ctrl": false,
+          "alt": false,
+          "source": "current LWJGL physical keyboard state, read only"
+        },
+        "coverage": {
+          "vanilla": "Forge-captured buttons and ordinary container slots; per-slot tooltip queried on demand",
+          "mui2": "bounded public open panels/widget tree, identities, bounds, enabled state",
+          "text": "Vanilla button displayString, MUI2 TextWidget public IKey.getFormatted; other drawn labels may be unavailable",
+          "richTooltips": "MUI2 public RichTooltip.isEmpty refreshes native dirty builders, then getRichText/getAsStrings; rich icons/clipping/topmost hit state not reconstructed",
+          "textures": "MUI2 public Widget.getOverlay/getBackground, DynamicDrawable.getSupplier and UITexture resource/UV data; no drawing or physical hover changes",
+          "itemSlots": "Public ItemSlot.getSlot/getVanillaSlot and exact native container lookup bind current widget display to a container slot ID; machine/player ownership needs its separate verified binding. Access flags and filter presence are not candidate acceptance.",
+          "aeVirtualSlots": "unavailable; ordinary container slots and public AE button messages only, cached physical hover is never changed",
+          "creativeInventory": "Actual public tabs and inventory-tab player slots are exposed in controls/gui.widgets with screen-bound widget IDs. activate uses native tab callbacks or one fixed left pickup callback; synchronization requires a later inspection.",
+          "modifierPolicy": "Current physical Shift/Ctrl/Alt state only; advanced=true is not Shift expansion. No simulated keys, hover, drawing, or screenshot fallback."
+        },
+        "tooltip": [
+          "通用流体单元",
+          "< 空 >"
+        ],
+        "tooltipTotalLines": 2,
+        "tooltipTruncated": false,
+        "slot": 3,
+        "fluidContainer": {
+          "schemaVersion": 1,
+          "source": "public_container_item_api",
+          "scope": "observed_stack_copy_public_api_read",
+          "itemHasTag": true,
+          "probeMutatedCopy": false,
+          "available": true,
+          "empty": true,
+          "capacity": {
+            "available": true,
+            "value": 1000
+          },
+          "fluid": null
+        },
+        "item": {
+          "registryName": "IC2:itemFluidCell",
+          "displayName": "通用流体单元",
+          "count": 1,
+          "metadata": 0,
+          "hasTag": true
+        },
+        "source": "current ItemStack.getTooltip(player, advanced); original NBT preserved",
+        "budget": {
+          "softBudgetMicros": 4000,
+          "actualElapsedMicros": 247,
+          "softBudgetExceeded": false,
+          "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+        }
+      },
+      "elapsedMs": 16.0
+    }
+  },
+  "actualRecipeArguments": {
+    "expectedSessionId": "a0db54c8-f2a3-4ab5-8359-0f9cf6baea3e",
+    "expectedWorld": "新的世界",
+    "dimension": 180,
+    "machine": {
+      "x": -580,
+      "y": 2,
+      "z": -245
+    },
+    "input": {
+      "x": -581,
+      "y": 2,
+      "z": -245
+    },
+    "output": {
+      "x": -581,
+      "y": 5,
+      "z": -245
+    },
+    "recipeMode": "public_multi",
+    "recipeLookup": "backend_match",
+    "outputItems": [],
+    "material": {
+      "registryName": "bartworks:gt.bwMetaGenerateddust",
+      "metadata": 10055
+    },
+    "backendInputs": [
+      {
+        "source": "registry",
+        "registryName": "bartworks:gt.bwMetaGenerateddust",
+        "metadata": 10055,
+        "count": 4
+      },
+      {
+        "source": "registry",
+        "registryName": "gregtech:gt.integrated_circuit",
+        "metadata": 1,
+        "count": 1
+      }
+    ],
+    "fluidContainerInputs": [
+      {
+        "owner": {
+          "x": -579,
+          "y": 2,
+          "z": -245
+        },
+        "playerInventoryIndex": 0,
+        "count": 3,
+        "fluid": "hydrogen",
+        "amount": 3000
+      }
+    ],
+    "fluidContainerOutputs": [
+      {
+        "owner": {
+          "x": -581,
+          "y": 5,
+          "z": -245
+        },
+        "playerInventoryIndex": 1,
+        "count": 1,
+        "fluid": "molten.titanium",
+        "amount": 144
+      }
+    ],
+    "executions": 1,
+    "selection": "first_supported",
+    "generateMaterials": true,
+    "inventoryPreparation": "preserve",
+    "catalystMode": "physical",
+    "includeDetails": true,
+    "timeout_ms": 60000
+  },
+  "noReplayOrRecoveryAttempted": true,
+  "capacityUnavailableNotFilledIn": true,
+  "limitation": "Exact R17 failed actual native input return. The modern output IFluidContainerItem was still empty; no successful live output recovery or queried empty-registry tuple capacity is established."
+}

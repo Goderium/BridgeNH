@@ -1,0 +1,215 @@
+{
+  "sourceArtifact": "<related-project>\\build\\tmp\\agents-ten-machine-loop\\main\\r17-partial-small-20261005-compact-v1.json",
+  "sourceArtifactSha256": "15e7c3b2fe69ceeb1a62df3e7d8b627814c7e14cae8f5323f229202cd5e027ff",
+  "sourceReferenceRule": "Every sole-key $ref object resolves to the zero-based pool list entry.",
+  "exactEmptyContainerTooltip": {
+    "ok": true,
+    "data": {
+      "screenId": "b5377ad7-bf13-4d14-9a49-4193c22747f6",
+      "advanced": false,
+      "modifiers": {
+        "shift": false,
+        "ctrl": false,
+        "alt": false,
+        "source": "current LWJGL physical keyboard state, read only"
+      },
+      "coverage": {
+        "vanilla": "Forge-captured buttons and ordinary container slots; per-slot tooltip queried on demand",
+        "mui2": "bounded public open panels/widget tree, identities, bounds, enabled state",
+        "text": "Vanilla button displayString, MUI2 TextWidget public IKey.getFormatted; other drawn labels may be unavailable",
+        "richTooltips": "MUI2 public RichTooltip.isEmpty refreshes native dirty builders, then getRichText/getAsStrings; rich icons/clipping/topmost hit state not reconstructed",
+        "textures": "MUI2 public Widget.getOverlay/getBackground, DynamicDrawable.getSupplier and UITexture resource/UV data; no drawing or physical hover changes",
+        "itemSlots": "Public ItemSlot.getSlot/getVanillaSlot and exact native container lookup bind current widget display to a container slot ID; machine/player ownership needs its separate verified binding. Access flags and filter presence are not candidate acceptance.",
+        "aeVirtualSlots": "unavailable; ordinary container slots and public AE button messages only, cached physical hover is never changed",
+        "creativeInventory": "Actual public tabs and inventory-tab player slots are exposed in controls/gui.widgets with screen-bound widget IDs. activate uses native tab callbacks or one fixed left pickup callback; synchronization requires a later inspection.",
+        "modifierPolicy": "Current physical Shift/Ctrl/Alt state only; advanced=true is not Shift expansion. No simulated keys, hover, drawing, or screenshot fallback."
+      },
+      "tooltip": [
+        "空单元"
+      ],
+      "tooltipTotalLines": 1,
+      "tooltipTruncated": false,
+      "slot": 4,
+      "fluidContainer": {
+        "schemaVersion": 1,
+        "source": "public_fluid_container_registry",
+        "scope": "observed_stack_copy_public_api_read",
+        "itemHasTag": false,
+        "probeMutatedCopy": false,
+        "available": true,
+        "empty": true,
+        "fluid": null,
+        "capacity": {
+          "available": false,
+          "reason": "registered_empty_capacity_requires_fluid_identity"
+        }
+      },
+      "item": {
+        "registryName": "IC2:itemCellEmpty",
+        "displayName": "空单元",
+        "count": 1,
+        "metadata": 0,
+        "hasTag": false
+      },
+      "source": "current ItemStack.getTooltip(player, advanced); original NBT preserved",
+      "budget": {
+        "softBudgetMicros": 4000,
+        "actualElapsedMicros": 181,
+        "softBudgetExceeded": false,
+        "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+      }
+    }
+  },
+  "exactFailedTaskResourceDiagnostics": {
+    "available": true,
+    "cursorItem": null,
+    "owners": [
+      {
+        "declaredOwner": {
+          "x": -566,
+          "y": 2,
+          "z": -156,
+          "dimension": 180
+        },
+        "actualOwner": {
+          "x": -566,
+          "y": 2,
+          "z": -156,
+          "dimension": 180,
+          "source": "integrated_server",
+          "registryName": "gregtech:gt.blockmachines"
+        },
+        "gregtech": {
+          "metaTileId": 435,
+          "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe"
+        },
+        "fluids": {
+          "tanks": [
+            {
+              "index": 0,
+              "capacity": 256000,
+              "fluid": "creosote",
+              "amount": 1000
+            },
+            {
+              "index": 1,
+              "capacity": 256000
+            }
+          ],
+          "totalTanks": 2,
+          "truncated": false,
+          "namedTanks": {
+            "schemaVersion": 1,
+            "source": "integrated_server",
+            "available": true,
+            "scope": "complete_actual_owner_named_tanks_public_api_read",
+            "binding": "public_basic_machine_named_tank_identity",
+            "owner": {
+              "x": -566,
+              "y": 2,
+              "z": -156,
+              "dimension": 180,
+              "registryName": "gregtech:gt.blockmachines",
+              "metaTileId": 435,
+              "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe"
+            },
+            "tanks": [
+              {
+                "role": "input",
+                "publicGetter": "getFluidTank",
+                "capacity": 256000,
+                "empty": false,
+                "fluid": {
+                  "fluid": "creosote",
+                  "amount": 1000,
+                  "hasTag": false
+                }
+              },
+              {
+                "role": "output",
+                "publicGetter": "getFluidOutputTank",
+                "capacity": 256000,
+                "empty": true,
+                "fluid": null
+              }
+            ],
+            "totalTanks": 2,
+            "truncated": false,
+            "publicApi": "gregtech.api.metatileentity.implementations.MTEBasicMachine.getFluidTank/getFluidOutputTank"
+          }
+        },
+        "inventory": {
+          "name": "gt.blockmachines.basicmachine.fluidcanner.tier.05.name",
+          "totalSlots": 8,
+          "slots": [
+            {
+              "index": 0,
+              "item": null
+            },
+            {
+              "index": 1,
+              "item": null
+            },
+            {
+              "index": 2,
+              "item": null
+            },
+            {
+              "index": 3,
+              "item": null
+            },
+            {
+              "index": 4,
+              "item": null
+            },
+            {
+              "index": 5,
+              "item": null
+            },
+            {
+              "index": 6,
+              "item": null
+            },
+            {
+              "index": 7,
+              "item": null
+            }
+          ],
+          "truncated": false
+        },
+        "playerInventoryIndex": 0,
+        "actualPlayerStack": {
+          "registryName": "IC2:itemCellEmpty",
+          "displayName": "空单元",
+          "count": 1,
+          "metadata": 0,
+          "hasTag": false
+        },
+        "lastAcceptedTank": [
+          "creosote",
+          1000
+        ],
+        "lastAcceptedContainerStack": {
+          "registryName": "IC2:itemCellEmpty",
+          "metadata": 0,
+          "count": 1,
+          "hasTag": false
+        }
+      }
+    ],
+    "source": "Fresh read-only current resource observations after failure; accepted checkpoints are separately labelled. No replay or automatic recovery."
+  },
+  "protectedRetainedState": {
+    "point": {
+      "x": -566,
+      "y": 2,
+      "z": -156
+    },
+    "meta": 435,
+    "fluid": "creosote",
+    "amount": 1000,
+    "reason": "owned finite test material after acknowledged native input fill, before recipe feed; retain for public-capacity recovery",
+    "stopped": true
+  },
+  "limitation": "Actual retained R17 failure after one acknowledged native input activation and shell return, before ordinary recipe feed. Offline fixtures cannot establish live recovery or live output tuple capacity."
+}

@@ -1,0 +1,1022 @@
+{
+  "evidenceType": "exact_retained_live_r16_810_public_dtos",
+  "sourceArtifact": "<related-project>\\build\\tmp\\agents-r16-big-coverage\\round-16-big-compact-v1.json",
+  "sourceArtifactSha256": "914e0a7d05310f3ba54a958e6629ebacf4fd9ec87c613bef20943b28e2283018",
+  "actualRpcRange": [
+    1340,
+    1609
+  ],
+  "machineId": 810,
+  "guiWidgetRecords": [
+    {
+      "actualRpcIndex": 1605,
+      "phase": "r16_recipe_810",
+      "operation": "gui.widgets",
+      "arguments": {
+        "screenId": "8db69b05-d5a7-47c3-85bb-cc32222a52a1",
+        "actionableOnly": true,
+        "offset": 0,
+        "limit": 128
+      },
+      "startedMonotonic": 1060746.812,
+      "result": {
+        "screenId": "8db69b05-d5a7-47c3-85bb-cc32222a52a1",
+        "widgets": [
+          {
+            "widgetId": "widget:4336",
+            "parentId": "widget:4295",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.CycleButtonWidget",
+            "name": "null",
+            "kind": "choice",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 99,
+            "width": 18,
+            "height": 18,
+            "selected": 0,
+            "optionCount": 10,
+            "tooltip": [
+              "输出流体、蒸汽和物品",
+              "§7点击以轮循模式"
+            ],
+            "tooltipTotalLines": 2,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.UITexture",
+              "location": "gregtech:textures/gui/overlay_button/screwdriver.png",
+              "u0": 0.0,
+              "v0": 0.0,
+              "u1": 1.0,
+              "v1": 1.0
+            },
+            "supportedActions": [
+              "set_selected",
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:4339",
+            "parentId": "widget:4333",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.FluidSlot",
+            "name": "null",
+            "kind": "fluid_slot",
+            "enabled": true,
+            "valid": true,
+            "x": 183,
+            "y": 77,
+            "width": 18,
+            "height": 18,
+            "fluidSlot": {
+              "canFill": {
+                "available": true,
+                "value": true
+              },
+              "canDrain": {
+                "available": true,
+                "value": true
+              },
+              "phantom": {
+                "available": true,
+                "value": false
+              },
+              "nativeClickAvailable": true,
+              "fluid": {
+                "available": true,
+                "empty": true,
+                "value": null
+              },
+              "capacity": {
+                "available": true,
+                "value": 8000
+              },
+              "available": true,
+              "source": "Current public FluidSlot.getFluidStack/getFluidTank and sync-handler permissions; client display state, not server tank acceptance.",
+              "nativeAction": "Normal public left press and no-op release; native cursor, fill/drain, phantom, filter and synchronization rules decide the effect. No direct tank fill or setter."
+            },
+            "semantic": "fluid_slot",
+            "tooltip": [
+              "空",
+              "§9容量：8,000 L",
+              "",
+              "§b按住Shift"
+            ],
+            "tooltipTotalLines": 4,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "background": {
+              "class": "com.cleanroommc.modularui.drawable.AdaptableUITexture",
+              "location": "gregtech:textures/gui/slot/fluid_tank.png",
+              "u0": 0.0,
+              "v0": 0.0,
+              "u1": 1.0,
+              "v1": 1.0
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:4344",
+            "parentId": "widget:4335",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.FluidLockSlotWidget",
+            "name": "null",
+            "kind": "fluid_slot",
+            "enabled": true,
+            "valid": true,
+            "x": 274,
+            "y": 77,
+            "width": 18,
+            "height": 18,
+            "fluidSlot": {
+              "canFill": {
+                "available": true,
+                "value": true
+              },
+              "canDrain": {
+                "available": true,
+                "value": true
+              },
+              "phantom": {
+                "available": true,
+                "value": true
+              },
+              "nativeClickAvailable": true,
+              "fluid": {
+                "available": true,
+                "empty": true,
+                "value": null
+              },
+              "capacity": {
+                "available": true,
+                "value": 0
+              },
+              "available": true,
+              "source": "Current public FluidSlot.getFluidStack/getFluidTank and sync-handler permissions; client display state, not server tank acceptance.",
+              "nativeAction": "Normal public left press and no-op release; native cursor, fill/drain, phantom, filter and synchronization rules decide the effect. No direct tank fill or setter."
+            },
+            "semantic": "fluid_slot",
+            "tooltip": [
+              "未指定"
+            ],
+            "tooltipTotalLines": 1,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "background": {
+              "class": "com.cleanroommc.modularui.drawable.AdaptableUITexture",
+              "location": "gregtech:textures/gui/slot/fluid_tank.png",
+              "u0": 0.0,
+              "v0": 0.0,
+              "u1": 1.0,
+              "v1": 1.0
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          }
+        ],
+        "offset": 0,
+        "nextOffset": 72,
+        "hasMore": false,
+        "visited": 72,
+        "scanTruncated": false,
+        "byteLimited": false,
+        "nonAtomic": true,
+        "actionableOnly": true,
+        "rawScanned": 72,
+        "partial": false,
+        "budget": {
+          "softBudgetMicros": 4000,
+          "actualElapsedMicros": 998,
+          "softBudgetExceeded": false,
+          "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+        },
+        "coverage": {
+          "source": "Forge-captured vanilla buttons; actual public creative tabs and inventory-tab player slots; fixed AE and vanilla editable fields; public MUI2 panel/widget tree, current tooltips, public textures and supported native controls.",
+          "identity": "Widget IDs identify actual objects for this screenId; native button IDs may repeat. Closed/replaced controls are revalidated before mutation.",
+          "actions": "Native callbacks/value setters/sync; no OS input, drawing, hover-cache selection or caller-selected reflection. Generic activate requires neutral physical modifiers/buttons. Named structure recheck on a native two-state ToggleButton uses its public state setter and normal sync.",
+          "actionableFilter": "Enabled/valid known native controls are filtered before unrelated tooltip generation, then supportedActions are revalidated. Enabled public TextWidget siblings of actionable controls provide contextOnly labels without tooltip building. offset/nextOffset remain raw tree positions; truncated prefixes preserve an issued offset."
+        },
+        "screenOpen": true,
+        "screenKind": "modularui"
+      },
+      "elapsedMs": 16.0,
+      "transportTrace": {
+        "request_id": "c8e72aaf-6799-41bb-8041-94f3297ddc82",
+        "dispatched": true
+      }
+    }
+  ],
+  "actualOutputOwnerServerRecords": [
+    {
+      "actualRpcIndex": 1595,
+      "phase": "r16_recipe_810",
+      "operation": "world.inspect",
+      "arguments": {
+        "x": -581,
+        "y": 5,
+        "z": -265,
+        "dimension": 180
+      },
+      "startedMonotonic": 1060746.578,
+      "result": {
+        "x": -581,
+        "y": 5,
+        "z": -265,
+        "dimension": 180,
+        "source": "integrated_server",
+        "registryName": "gregtech:gt.blockmachines",
+        "metadata": 0,
+        "tileClass": "gregtech.api.metatileentity.BaseMetaTileEntity",
+        "inventory": {
+          "name": "gt.blockmachines.hatch.output.tier.00.name",
+          "totalSlots": 4,
+          "slots": [
+            {
+              "index": 0,
+              "item": null
+            },
+            {
+              "index": 1,
+              "item": null
+            },
+            {
+              "index": 2,
+              "item": null
+            },
+            {
+              "index": 3,
+              "item": null
+            }
+          ],
+          "truncated": false
+        },
+        "fluids": {
+          "tanks": [
+            {
+              "index": 0,
+              "capacity": 8000
+            }
+          ],
+          "totalTanks": 1,
+          "truncated": false
+        },
+        "gregtech": {
+          "metaClass": "gregtech.api.metatileentity.implementations.MTEHatchOutput",
+          "metaTileId": 60,
+          "displayName": "gt.blockmachines.hatch.output.tier.00.name",
+          "orientation": {
+            "facing": {
+              "available": true,
+              "side": 2,
+              "direction": "NORTH",
+              "offsetX": 0,
+              "offsetY": 0,
+              "offsetZ": -1
+            },
+            "energySides": [
+              {
+                "available": true,
+                "side": 0,
+                "direction": "DOWN",
+                "offsetX": 0,
+                "offsetY": -1,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 1,
+                "direction": "UP",
+                "offsetX": 0,
+                "offsetY": 1,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 2,
+                "direction": "NORTH",
+                "offsetX": 0,
+                "offsetY": 0,
+                "offsetZ": -1,
+                "front": true,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 3,
+                "direction": "SOUTH",
+                "offsetX": 0,
+                "offsetY": 0,
+                "offsetZ": 1,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 4,
+                "direction": "WEST",
+                "offsetX": -1,
+                "offsetY": 0,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 5,
+                "direction": "EAST",
+                "offsetX": 1,
+                "offsetY": 0,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              }
+            ],
+            "energySideApi": "Public inputEnergyFrom(ForgeDirection, false)/outputsEnergyTo(ForgeDirection, false); current standard side gates including covers and machine mode, without waiting for cached active-side flags.",
+            "producing": {
+              "available": false,
+              "api": "isProducing",
+              "reason": "public_mode_getter_unavailable"
+            },
+            "laser": {
+              "available": false,
+              "api": "isLASER",
+              "reason": "public_mode_getter_unavailable"
+            },
+            "scope": "Live public getters only; side permission does not prove a connected producer/consumer or flowing energy. No rotation, topology scan, private state or energy mutation."
+          },
+          "progress": 0,
+          "maxProgress": 0,
+          "active": false,
+          "allowedToWork": true,
+          "storedEU": 0,
+          "euCapacity": 0,
+          "inputVoltage": 0,
+          "outputVoltage": 0,
+          "info": [
+            "GT5U.infodata.hatch.output",
+            "GT5U.infodata.hatch.output.fluid\\\\\u0001GT5U.infodata.hatch.output.fluid.none",
+            "§a0 L§r §e8,000 L§r",
+            "GT5U.infodata.hatch.output.fluid.locked_to.none"
+          ]
+        }
+      },
+      "elapsedMs": 47.0,
+      "transportTrace": {
+        "request_id": "d247f20f-f872-4094-b685-f1223ccfeece",
+        "dispatched": true
+      }
+    },
+    {
+      "actualRpcIndex": 1608,
+      "phase": "r16_recipe_810",
+      "operation": "world.inspect",
+      "arguments": {
+        "x": -581,
+        "y": 5,
+        "z": -265,
+        "dimension": 180
+      },
+      "startedMonotonic": 1060746.875,
+      "result": {
+        "x": -581,
+        "y": 5,
+        "z": -265,
+        "dimension": 180,
+        "source": "integrated_server",
+        "registryName": "gregtech:gt.blockmachines",
+        "metadata": 0,
+        "tileClass": "gregtech.api.metatileentity.BaseMetaTileEntity",
+        "inventory": {
+          "name": "gt.blockmachines.hatch.output.tier.00.name",
+          "totalSlots": 4,
+          "slots": [
+            {
+              "index": 0,
+              "item": null
+            },
+            {
+              "index": 1,
+              "item": null
+            },
+            {
+              "index": 2,
+              "item": null
+            },
+            {
+              "index": 3,
+              "item": null
+            }
+          ],
+          "truncated": false
+        },
+        "fluids": {
+          "tanks": [
+            {
+              "index": 0,
+              "capacity": 8000
+            }
+          ],
+          "totalTanks": 1,
+          "truncated": false
+        },
+        "gregtech": {
+          "metaClass": "gregtech.api.metatileentity.implementations.MTEHatchOutput",
+          "metaTileId": 60,
+          "displayName": "gt.blockmachines.hatch.output.tier.00.name",
+          "orientation": {
+            "facing": {
+              "available": true,
+              "side": 2,
+              "direction": "NORTH",
+              "offsetX": 0,
+              "offsetY": 0,
+              "offsetZ": -1
+            },
+            "energySides": [
+              {
+                "available": true,
+                "side": 0,
+                "direction": "DOWN",
+                "offsetX": 0,
+                "offsetY": -1,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 1,
+                "direction": "UP",
+                "offsetX": 0,
+                "offsetY": 1,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 2,
+                "direction": "NORTH",
+                "offsetX": 0,
+                "offsetY": 0,
+                "offsetZ": -1,
+                "front": true,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 3,
+                "direction": "SOUTH",
+                "offsetX": 0,
+                "offsetY": 0,
+                "offsetZ": 1,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 4,
+                "direction": "WEST",
+                "offsetX": -1,
+                "offsetY": 0,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              },
+              {
+                "available": true,
+                "side": 5,
+                "direction": "EAST",
+                "offsetX": 1,
+                "offsetY": 0,
+                "offsetZ": 0,
+                "front": false,
+                "energyInput": {
+                  "available": true,
+                  "value": false
+                },
+                "energyOutput": {
+                  "available": true,
+                  "value": false
+                }
+              }
+            ],
+            "energySideApi": "Public inputEnergyFrom(ForgeDirection, false)/outputsEnergyTo(ForgeDirection, false); current standard side gates including covers and machine mode, without waiting for cached active-side flags.",
+            "producing": {
+              "available": false,
+              "api": "isProducing",
+              "reason": "public_mode_getter_unavailable"
+            },
+            "laser": {
+              "available": false,
+              "api": "isLASER",
+              "reason": "public_mode_getter_unavailable"
+            },
+            "scope": "Live public getters only; side permission does not prove a connected producer/consumer or flowing energy. No rotation, topology scan, private state or energy mutation."
+          },
+          "progress": 0,
+          "maxProgress": 0,
+          "active": false,
+          "allowedToWork": true,
+          "storedEU": 0,
+          "euCapacity": 0,
+          "inputVoltage": 0,
+          "outputVoltage": 0,
+          "info": [
+            "GT5U.infodata.hatch.output",
+            "GT5U.infodata.hatch.output.fluid\\\\\u0001GT5U.infodata.hatch.output.fluid.none",
+            "§a0 L§r §e8,000 L§r",
+            "GT5U.infodata.hatch.output.fluid.locked_to.none"
+          ]
+        }
+      },
+      "elapsedMs": 46.0,
+      "transportTrace": {
+        "request_id": "1cce43f5-768c-4e5c-9437-d96011aeebfa",
+        "dispatched": true
+      }
+    }
+  ],
+  "recipeReport": {
+    "status": "failed",
+    "available": false,
+    "reason": "fluid_slot_binding_unavailable",
+    "error": {
+      "code": "RECIPE_TASK_UNAVAILABLE",
+      "message": "One actual public native FluidSlot is required; no widget or tank offset is guessed.",
+      "reason": "fluid_slot_binding_unavailable"
+    },
+    "failedPhase": "open_fluid_port",
+    "lastActionReceipt": {
+      "operation": "player.interact",
+      "requestId": "a4b8697d-3219-486f-9288-90de24c7fa78",
+      "dispatched": true,
+      "outcomeUnknown": false
+    },
+    "nonAtomic": true,
+    "rolledBack": false,
+    "fallback": "Use the existing sequence for cases outside this task's declared capability.",
+    "taskElapsed_ms": 594,
+    "timings_ms": {
+      "preflight": 47,
+      "recipeDecision": 547,
+      "preparation": 0,
+      "executionAcceptance": 0,
+      "total": 594
+    },
+    "timingsScope": "Non-overlapping declaration/lock/preflight, registered recipe selection, preparation (including native hand preparation), then each finite GUI feed plus execution, real acceptance and final inventory verification or requested native hand restoration; emergency stop is included in the stage that failed. Validation is included. Phase/hand timings are nested detail, not additive totals.",
+    "nativeWorkflowElapsed_ms": 280,
+    "phases": [
+      {
+        "phase": "component_collection",
+        "status": "completed",
+        "timingScope": "registered_component_read_total",
+        "pages": 1,
+        "collectedEntries": 6,
+        "totalRegistered": 6,
+        "coldStartWaits": 0,
+        "elapsed_ms": 30
+      },
+      {
+        "phase": "registered_fluid_preflight",
+        "status": "completed",
+        "registeredCoreStopCoverage": "limited",
+        "coverageReason": "public_modular_interface_unavailable_or_not_implemented"
+      },
+      {
+        "phase": "recipe_query",
+        "status": "completed",
+        "elapsed_ms": 62,
+        "timingScope": "registered_recipe_decision",
+        "selection": "first_supported",
+        "uniqueRecipeClaimed": false,
+        "executionValidated": false,
+        "queryRequested": {
+          "machine": {
+            "x": -580,
+            "y": 2,
+            "z": -265,
+            "dimension": 180
+          },
+          "input": null,
+          "output": null,
+          "mode": "backend_match",
+          "inputs": [
+            {
+              "source": "registry",
+              "registryName": "bartworks:gt.bwMetaGenerateddust",
+              "metadata": 10055,
+              "count": 4
+            },
+            {
+              "source": "registry",
+              "registryName": "gregtech:gt.integrated_circuit",
+              "metadata": 1,
+              "count": 1
+            }
+          ],
+          "fluidInputs": [
+            {
+              "fluid": "hydrogen",
+              "amount": 3000
+            }
+          ]
+        },
+        "observedCandidateCount": 1,
+        "lastQueryPage": {
+          "page": 1,
+          "observedCandidateCount": 1,
+          "complete": false,
+          "hasMore": false
+        },
+        "pages": 1,
+        "enumerationComplete": false,
+        "rejectedReasons": [],
+        "rejectedRecipeCandidates": []
+      },
+      {
+        "status": "completed",
+        "elapsed_ms": 140,
+        "acknowledgedActions": 2,
+        "dispatchedActions": 2,
+        "outcomeUnknown": false,
+        "failedIndex": null,
+        "phase": "open_fluid_port",
+        "timingScope": "native_workflow",
+        "teleportDispatched": false,
+        "positionSource": "Fresh flight, clear loaded body and exact public visible face; native target-view interaction retained."
+      },
+      {
+        "status": "completed",
+        "elapsed_ms": 140,
+        "acknowledgedActions": 3,
+        "dispatchedActions": 3,
+        "outcomeUnknown": false,
+        "failedIndex": null,
+        "phase": "open_fluid_port",
+        "timingScope": "native_workflow",
+        "teleportDispatched": false,
+        "positionSource": "Fresh flight, clear loaded body and exact public visible face; native target-view interaction retained."
+      }
+    ],
+    "sideEffectsPossible": true,
+    "materialGenerationRequested": true,
+    "generatedMaterials": false,
+    "materialGrantsDispatched": 0,
+    "materialSupplyMode": "existing_real_inventory",
+    "materialSupplyConfirmed": false,
+    "timingScope": "Task declaration through final real acceptance, including query/preflight/planning/native waits; native workflow time is a subset.",
+    "approachPlanning": {
+      "operation": "player.plan_approach",
+      "readOnly": true,
+      "nonAtomic": true,
+      "selectedPlans": 2,
+      "selectedUnknownChecks": 0,
+      "earlierUnknownChecks": 0,
+      "searchComplete": false,
+      "scope": "Only each selected candidate's native client/server body and exact target face are verified; other candidates and the surrounding region remain unknown."
+    },
+    "executionsCompleted": 0,
+    "inventoryRestorationRequested": false,
+    "inputGuiSlot": null,
+    "inputGuiSlotSource": "automatic_unresolved",
+    "inputGuiBinding": null,
+    "inventoryPreparation": {
+      "mode": "preserve",
+      "clearConfirmed": false,
+      "requiredEmptyHotbarSlots": 1,
+      "handPreparationElapsed_ms": 0,
+      "handRestorationElapsed_ms": 0,
+      "singleFeedGrants": false,
+      "grantCapacityProof": null,
+      "finalInventoryVerified": false,
+      "finalCursorEmpty": null,
+      "borrowed": [],
+      "allBorrowedStacksRestored": true
+    },
+    "retainedInventoryMoves": [],
+    "pendingInventoryRestoration": [],
+    "selectedRecipe": {
+      "category": "gt.recipe.category.abs_non_alloy_recipes",
+      "material": {
+        "registryName": "bartworks:gt.bwMetaGenerateddust",
+        "metadata": 10055
+      },
+      "materialPerExecution": 4,
+      "output": {},
+      "outputPerExecution": 0,
+      "catalyst": {
+        "registryName": "gregtech:gt.integrated_circuit",
+        "metadata": 1
+      },
+      "rawEUt": 1920,
+      "rawDurationTicks": 96,
+      "candidatePage": 1,
+      "candidateIndex": 0,
+      "machine": {
+        "x": -580,
+        "y": 2,
+        "z": -265,
+        "dimension": 180
+      },
+      "source": "Current recipes.query raw candidate selected within this task; execution remains independently verified.",
+      "voltageEvidence": {
+        "actualInputVoltage": 8589934592,
+        "mapName": "gt.recipe.alloyblastsmelter",
+        "mapAmperage": 1,
+        "nativeVoltageBound": 8589934592,
+        "inputVoltageEvidence": {
+          "schemaVersion": 1,
+          "source": "public_multiblock_controller_api",
+          "scope": "native_lookup_bound_only",
+          "apiClass": "gregtech.api.metatileentity.implementations.MTEMultiBlockBase",
+          "apiMethod": "getMaxInputVoltage",
+          "value": 8589934592,
+          "owner": {
+            "x": -580,
+            "y": 2,
+            "z": -265,
+            "metaTileId": 810,
+            "metaClass": "gtPlusPlus.xmod.gregtech.common.tileentities.machines.multi.production.MTEAlloyBlastSmelter",
+            "currentRecipeMap": "gt.recipe.alloyblastsmelter",
+            "dimension": 180
+          }
+        },
+        "rawVoltageCompatible": true
+      },
+      "candidateOrdinal": 0,
+      "candidateSource": "public_backend_find",
+      "consumedItems": [
+        {
+          "registryName": "bartworks:gt.bwMetaGenerateddust",
+          "metadata": 10055,
+          "perExecution": 4
+        }
+      ],
+      "outputItems": [],
+      "catalysts": [
+        {
+          "registryName": "gregtech:gt.integrated_circuit",
+          "metadata": 1
+        }
+      ],
+      "fluidInputs": [
+        {
+          "fluid": "hydrogen",
+          "amount": 3000
+        }
+      ],
+      "fluidOutputs": [
+        {
+          "fluid": "molten.titanium",
+          "amount": 144
+        }
+      ]
+    },
+    "catalystGuiSlot": null,
+    "catalystGuiSlotSource": "caller",
+    "catalystGuiBinding": null,
+    "detailsIncluded": true,
+    "outcomeUnknown": false,
+    "resourceDiagnostics": {
+      "available": true,
+      "cursorItem": null,
+      "owners": [
+        {
+          "declaredOwner": {
+            "x": -579,
+            "y": 2,
+            "z": -265,
+            "dimension": 180
+          },
+          "actualOwner": {
+            "x": -579,
+            "y": 2,
+            "z": -265,
+            "dimension": 180,
+            "source": "integrated_server",
+            "registryName": "gregtech:gt.blockmachines"
+          },
+          "gregtech": {
+            "metaTileId": 54,
+            "metaClass": "gregtech.api.metatileentity.implementations.MTEHatchInput"
+          },
+          "fluids": {
+            "tanks": [
+              {
+                "index": 0,
+                "capacity": 128000
+              }
+            ],
+            "totalTanks": 1,
+            "truncated": false
+          },
+          "inventory": {
+            "name": "gt.blockmachines.hatch.input.tier.04.name",
+            "totalSlots": 3,
+            "slots": [
+              {
+                "index": 0,
+                "item": null
+              },
+              {
+                "index": 1,
+                "item": null
+              },
+              {
+                "index": 2,
+                "item": null
+              }
+            ],
+            "truncated": false
+          },
+          "playerInventoryIndex": 0,
+          "actualPlayerStack": {
+            "registryName": "gregtech:gt.metaitem.01",
+            "displayName": "氢单元",
+            "count": 3,
+            "metadata": 30001,
+            "hasTag": false
+          },
+          "lastAcceptedTank": [
+            null,
+            0
+          ],
+          "lastAcceptedContainerStack": {
+            "registryName": "gregtech:gt.metaitem.01",
+            "metadata": 30001,
+            "count": 3,
+            "hasTag": false
+          }
+        },
+        {
+          "declaredOwner": {
+            "x": -581,
+            "y": 5,
+            "z": -265,
+            "dimension": 180
+          },
+          "actualOwner": {
+            "x": -581,
+            "y": 5,
+            "z": -265,
+            "dimension": 180,
+            "source": "integrated_server",
+            "registryName": "gregtech:gt.blockmachines"
+          },
+          "gregtech": {
+            "metaTileId": 60,
+            "metaClass": "gregtech.api.metatileentity.implementations.MTEHatchOutput"
+          },
+          "fluids": {
+            "tanks": [
+              {
+                "index": 0,
+                "capacity": 8000
+              }
+            ],
+            "totalTanks": 1,
+            "truncated": false
+          },
+          "inventory": {
+            "name": "gt.blockmachines.hatch.output.tier.00.name",
+            "totalSlots": 4,
+            "slots": [
+              {
+                "index": 0,
+                "item": null
+              },
+              {
+                "index": 1,
+                "item": null
+              },
+              {
+                "index": 2,
+                "item": null
+              },
+              {
+                "index": 3,
+                "item": null
+              }
+            ],
+            "truncated": false
+          },
+          "playerInventoryIndex": 1,
+          "actualPlayerStack": {
+            "registryName": "IC2:itemFluidCell",
+            "displayName": "通用流体单元",
+            "count": 1,
+            "metadata": 0,
+            "hasTag": true
+          },
+          "lastAcceptedTank": [
+            null,
+            0
+          ],
+          "lastAcceptedContainerStack": {
+            "registryName": "IC2:itemFluidCell",
+            "metadata": 0,
+            "count": 1,
+            "hasTag": true
+          }
+        }
+      ],
+      "source": "Fresh read-only current resource observations after failure; accepted checkpoints are separately labelled. No replay or automatic recovery."
+    },
+    "failedNativeWorkflows": []
+  },
+  "noReplay": true,
+  "limitation": "The retained production attempt stopped during preparation. Successful full transfers in new tests remain synthetic."
+}

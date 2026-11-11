@@ -1,0 +1,26 @@
+// Compile against fixed public APIs. The user's modpack supplies runtime mods;
+// these dependencies are never bundled in the BridgeNH JAR.
+// Forge's monolithic ASM 5 artifact otherwise shadows the modpack's ASM 9 API.
+['compileClasspath', 'testCompileClasspath', 'testRuntimeClasspath'].each { name ->
+    configurations.named(name) {
+        exclude group: 'org.ow2.asm', module: 'asm-debug-all'
+    }
+}
+
+dependencies {
+    compileOnly('com.github.GTNewHorizons:StructureLib:1.4.45:dev') { transitive = false }
+    testImplementation('com.github.GTNewHorizons:StructureLib:1.4.45:dev') { transitive = false }
+    compileOnly('io.github.legacymoddingmc:unimixins:0.3.1:dev') { transitive = false }
+    testImplementation('io.github.legacymoddingmc:unimixins:0.3.1:dev') { transitive = false }
+    // Matches the API used by lwjgl3ify 3.0.42.
+    compileOnly('com.gtnewhorizons.retrofuturabootstrap:RetroFuturaBootstrap:1.1.1') { transitive = false }
+    testImplementation('com.gtnewhorizons.retrofuturabootstrap:RetroFuturaBootstrap:1.1.1') { transitive = false }
+    // The same lwjgl3ify distribution supplies this API at runtime; vanilla 1.7.10's
+    // Gson 2.2.4 lacks the public deepCopy/remove methods used by the bridge.
+    compileOnly('com.google.code.gson:gson:2.13.2') { transitive = false }
+    testImplementation('com.google.code.gson:gson:2.13.2') { transitive = false }
+    ['asm', 'asm-tree', 'asm-commons', 'asm-util', 'asm-analysis'].each { module ->
+        compileOnly("org.ow2.asm:${module}:9.10.1") { transitive = false }
+        testImplementation("org.ow2.asm:${module}:9.10.1") { transitive = false }
+    }
+}

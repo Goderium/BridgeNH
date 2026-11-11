@@ -1,0 +1,80 @@
+{
+  "fixturePurpose": "Minimal exact field subset for offline regression only; complete retained DTOs remain in local temporary evidence.",
+  "sourceSha256": "d8639cf8dcd3c3ead73fdbc87603594372343035a87b9b9230d55b7032ef0bb9",
+  "actualFluidExtraction": {
+    "actualEmptyTooltip": {
+      "item": {
+        "registryName": "IC2:itemFluidCell",
+        "metadata": 0,
+        "count": 1,
+        "hasTag": true
+      },
+      "fluidContainer": {
+        "schemaVersion": 1,
+        "source": "public_container_item_api",
+        "scope": "observed_stack_copy_public_api_read",
+        "itemHasTag": true,
+        "probeMutatedCopy": false,
+        "available": true,
+        "empty": true,
+        "capacity": {
+          "available": true,
+          "value": 1000
+        },
+        "fluid": null
+      }
+    },
+    "actualFilledTooltip": {
+      "item": {
+        "registryName": "IC2:itemFluidCell",
+        "metadata": 0,
+        "count": 1,
+        "hasTag": true
+      },
+      "fluidContainer": {
+        "schemaVersion": 1,
+        "source": "public_container_item_api",
+        "scope": "observed_stack_copy_public_api_read",
+        "itemHasTag": true,
+        "probeMutatedCopy": false,
+        "available": true,
+        "empty": false,
+        "capacity": {
+          "available": true,
+          "value": 1000
+        },
+        "fluid": {
+          "fluidName": "molten.titanium",
+          "amount": 144,
+          "hasTag": false
+        }
+      }
+    },
+    "ownerBefore": {
+      "fluids": {
+        "tanks": [
+          {
+            "index": 0,
+            "capacity": 8000,
+            "fluid": "molten.titanium",
+            "amount": 144
+          }
+        ],
+        "totalTanks": 1,
+        "truncated": false
+      }
+    },
+    "tankAfter": {
+      "fluids": {
+        "tanks": [
+          {
+            "index": 0,
+            "capacity": 8000
+          }
+        ],
+        "totalTanks": 1,
+        "truncated": false
+      }
+    }
+  }
+}

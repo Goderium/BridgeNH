@@ -1,0 +1,221 @@
+package com.Goderium.BridgeNH.client.nei;
+
+import com.Goderium.BridgeNH.util.BridgeException;
+import com.Goderium.BridgeNH.util.JsonData;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import com.Goderium.BridgeNH.client.nei.NeiPreviewProvider.Scene;
+
+/** Existing preview candidate models and description strings; reads never scan, build, cycle or draw. */
+final class NeiPreviewDetailProvider {
+    private static final String POSITION = "codechicken.nei.PositionedStack";
+    private static final int BYTE_LIMIT = 112 * 1024;
+    private static final long SOFT_NANOS = 4000000L;
+    private static final List<String> TARGETS = Arrays.asList("preview_block", "preview_hint_text", "preview_candidate_groups", "preview_candidate_items", "preview_candidate_tooltip_lines", "preview_candidate_tooltip_text", "preview_candidate_nbt", "preview_textures");
+
+    static boolean requested(JsonObject args) {
+        return args.has("target") && args.get("target").isJsonPrimitive() && TARGETS.contains(args.get("target").getAsString());
+    }
+
+    static JsonObject read(Object screen, EntityPlayer player, JsonObject args, int offset, int limit, long started, boolean advanced) {
+        Scene scene = NeiPreviewProvider.scene(screen);
+        if (scene == null || !scene.built) return absent("No existing built BlockRenderer6343 preview for this original recipe.");
+        return readModel(scene, player, args, offset, limit, started, advanced);
+    }
+
+    static JsonObject readModel(Scene scene, EntityPlayer player, JsonObject args, int offset, int limit, long started, boolean advanced) {
+        String target = JsonData.string(args, "target");
+        if (!TARGETS.contains(target) || offset < 0 || limit < 1) throw new BridgeException("invalid_args", "Invalid preview detail target or page.");
+        JsonObject result = base(target);
+        JsonObject data = result.getAsJsonObject("data");
+        data.addProperty("resourceContext", NeiPreviewResources.context());
+        data.addProperty("coordinateFrame", "Preview fake-world XYZ; not actual-world or screen/pixel coordinates.");
+        data.addProperty("candidateRulesCoverage", "Existing native preview suggestions only; not an exhaustive legal-hatch rule or machine validator. Reads never call scanCandidates/getBlocksToPlace or predicate callbacks.");
+        boolean characters = "preview_hint_text".equals(target) || "preview_candidate_tooltip_text".equals(target) || "preview_candidate_nbt".equals(target);
+        if (limit > (characters ? 8192 : 64)) throw new BridgeException("invalid_args", "Preview detail page exceeds its bounded object/Unicode limit.");
+        if ("preview_block".equals(target) || "preview_hint_text".equals(target) || "preview_textures".equals(target)) {
+            long packed = selectedPosition(scene, args);
+            JsonObject position = NeiPreviewProvider.coordinates(packed, 0, 64, 0).getAsJsonObject("position");
+            data.add("position", position); data.addProperty("positionSource", args.has("previewBlockSource") ? JsonData.string(args, "previewBlockSource") : "selected");
+            if (!scene.blocks.containsKey(packed)) throw new BridgeException("not_found", "Position is absent from the existing preview block map.");
+            if ("preview_block".equals(target)) {
+                if (offset != 0 || limit != 1) throw new BridgeException("invalid_args", "preview_block requires offset zero and limit one.");
+                data.add("block", NeiPreviewProvider.block(scene, new AbstractMap.SimpleImmutableEntry<Object, Object>(packed, scene.blocks.get(packed)), -1));
+                data.add("selection", NeiPreviewProvider.selection(scene));
+                data.addProperty("selectedCandidateGroupCount", scene.candidates == null ? 0 : scene.candidates.size());
+                data.addProperty("candidateCacheMatchesPosition", isSelected(scene, packed));
+                data.addProperty("candidateCacheSource", "Selected-block existing RecipeCacher.positionedResults; use existing select_block before reading suggestions for another position.");
+                finish(result, 1, 1, false); return result;
+            }
+            if ("preview_hint_text".equals(target)) {
+                Object dot = scene.hatchDots == null ? null : scene.hatchDots.get(packed);
+                Object hint = dot instanceof Number && scene.hatchHints != null ? scene.hatchHints.get(((Number) dot).intValue()) : null;
+                if (dot instanceof Number) data.addProperty("hatchHintDot", ((Number) dot).intValue());
+                data.addProperty("hintProvenance", "Existing GTGuiMultiblockHandler hintForDot, generated by native preview. Preserves its cached language/text; no new structure-description callback.");
+                return text(result, hint instanceof String ? (String) hint : "", offset, limit);
+            }
+            return NeiTextureProvider.read(scene, packed, args.has("textureSide") ? JsonData.integer(args, "textureSide", 0, 5) : -1, offset, limit, started, data);
+        }
+        JsonObject selected = NeiPreviewProvider.selection(scene);
+        data.add("candidateSourcePosition", selected.get("present").getAsBoolean() ? selected.get("position") : JsonNull.INSTANCE);
+        data.addProperty("candidateCacheMatchesSelection", selected.get("present").getAsBoolean());
+        data.addProperty("candidateSource", "Already-generated RecipeCacher.positionedResults and PositionedStack.items; display groups preserve native tooltip-based grouping. No cycling/generatePermutations/read-time scans.");
+        if (scene.candidates == null) return absent(scene.candidateStatus == null ? "Existing candidate cache is unavailable." : scene.candidateStatus);
+        if (!selected.get("present").getAsBoolean()) {
+            data.addProperty("candidateStatus", "no_selected_block"); data.add("entries", new JsonArray()); finish(result, 0, 0, false); return result;
+        }
+        List<?> groups = scene.candidates;
+        if ("preview_candidate_groups".equals(target)) {
+            page(result, groups.size(), offset, limit, started, index -> {
+                Object group = groups.get(index); Object items = alternatives(group);
+                JsonObject value = new JsonObject(); value.addProperty("groupIndex", index);
+                value.addProperty("alternativeCount", Array.getLength(items));
+                value.addProperty("x", numericField(group, "relx")); value.addProperty("y", numericField(group, "rely"));
+                value.addProperty("width", numericField(group, "width")); value.addProperty("height", numericField(group, "height"));
+                value.add("currentItem", NeiPreviewProvider.stack(NeiPreviewProvider.field(group, POSITION, "item", true)));
+                value.addProperty("provenance", "Native stored candidate group for current selected position; no claim of complete runtime legality.");
+                return value;
+            }); return result;
+        }
+        int groupIndex = JsonData.integer(args, "groupIndex", 0, Integer.MAX_VALUE);
+        if (groupIndex >= groups.size()) throw new BridgeException("not_found", "groupIndex is absent from the current candidate cache.");
+        Object alternatives = alternatives(groups.get(groupIndex)); int total = Array.getLength(alternatives);
+        data.addProperty("groupIndex", groupIndex); data.addProperty("alternativeCount", total);
+        if ("preview_candidate_items".equals(target)) {
+            page(result, total, offset, limit, started, index -> {
+                JsonObject value = new JsonObject(); value.addProperty("alternativeIndex", index); value.add("item", NeiPreviewProvider.stack(Array.get(alternatives, index))); return value;
+            }); return result;
+        }
+        int alternativeIndex = JsonData.integer(args, "alternativeIndex", 0, Integer.MAX_VALUE);
+        if (alternativeIndex >= total) throw new BridgeException("not_found", "alternativeIndex is absent from the stored group.");
+        Object value = Array.get(alternatives, alternativeIndex);
+        if (!(value instanceof ItemStack)) return absent("The stored alternative is not an ItemStack.");
+        ItemStack stack = (ItemStack) value; data.addProperty("alternativeIndex", alternativeIndex);
+        if ("preview_candidate_nbt".equals(target)) return text(result, stack.hasTagCompound() ? stack.getTagCompound().toString() : "", offset, limit);
+        List<String> lines;
+        try (TooltipModifiers.Scope scope = TooltipModifiers.enter(args)) {
+            lines = stack.getTooltip(player, advanced);
+            data.add("modifierContext", scope.data);
+        }
+        catch (BridgeException error) { throw error; }
+        catch (RuntimeException | LinkageError error) { throw new BridgeException("adapter_error", "Actual candidate ItemStack tooltip failed: " + error.getClass().getSimpleName()); }
+        data.addProperty("tooltipSource", "Actual cached candidate ItemStack.getTooltip(player,advanced); physical or explicitly scoped virtual modifiers supplied by the common tooltip adapter.");
+        if ("preview_candidate_tooltip_text".equals(target)) {
+            int line = JsonData.integer(args, "lineIndex", 0, Integer.MAX_VALUE);
+            if (line >= lines.size()) throw new BridgeException("not_found", "lineIndex exceeds the actual candidate tooltip.");
+            data.addProperty("lineIndex", line); return text(result, lines.get(line), offset, limit);
+        }
+        page(result, lines.size(), offset, limit, started, index -> {
+            String line = lines.get(index); int length = line.codePointCount(0, line.length());
+            JsonObject entry = new JsonObject(); entry.addProperty("lineIndex", index); entry.addProperty("characters", length);
+            entry.addProperty("text", line.substring(0, line.offsetByCodePoints(0, Math.min(length, 512))));
+            entry.addProperty("textTruncated", length > 512); entry.addProperty("fullTextTarget", "preview_candidate_tooltip_text"); return entry;
+        }); return result;
+    }
+
+    private static Object alternatives(Object group) {
+        Object items = NeiPreviewProvider.field(group, POSITION, "items", true);
+        if (items == null || !items.getClass().isArray()) throw new BridgeException("unsupported", "Existing PositionedStack.items is not an array.");
+        return items;
+    }
+
+    private static int numericField(Object group, String name) {
+        return ((Number) NeiPreviewProvider.field(group, POSITION, name, true)).intValue();
+    }
+
+    static String candidateContext(Scene scene) {
+        List<?> groups = scene.candidates;
+        if (groups == null) return "candidates:unavailable";
+        StringBuilder result = new StringBuilder("candidates:").append(System.identityHashCode(groups)).append(':').append(groups.size());
+        int remaining = 256;
+        for (int i = 0; i < groups.size() && remaining > 0; i++) {
+            Object group = groups.get(i), items = alternatives(group);
+            result.append(':').append(System.identityHashCode(group)).append(':').append(System.identityHashCode(items)).append(':').append(Array.getLength(items));
+            for (int j = 0; j < Array.getLength(items) && remaining-- > 0; j++) {
+                Object item = Array.get(items, j);
+                if (item instanceof ItemStack) {
+                    ItemStack stack = (ItemStack) item;
+                    result.append(':').append(System.identityHashCode(stack.getItem())).append(':').append(stack.getMetadata()).append(':').append(stack.stackSize)
+                        .append(':').append(System.identityHashCode(stack.getTagCompound()));
+                } else result.append(":null");
+            }
+            if (Array.getLength(items) == 0) remaining--;
+        }
+        if (remaining <= 0) result.append(":tail_unfingerprinted");
+        return result.toString();
+    }
+
+    static long selectedPosition(Scene scene, JsonObject args) {
+        String source = args.has("previewBlockSource") ? JsonData.string(args, "previewBlockSource") : "selected";
+        JsonObject position;
+        if ("position".equals(source)) {
+            if (!args.has("previewPosition") || !args.get("previewPosition").isJsonObject()) throw new BridgeException("invalid_args", "previewPosition requires a complete XYZ object.");
+            position = args.getAsJsonObject("previewPosition");
+            for (Map.Entry<String, JsonElement> entry : position.entrySet()) if (!Arrays.asList("x", "y", "z").contains(entry.getKey())) throw new BridgeException("invalid_args", "Unsupported previewPosition field.");
+        } else {
+            if (args.has("previewPosition")) throw new BridgeException("invalid_args", "previewPosition is only allowed for explicit position source.");
+            if ("selected".equals(source)) {
+                JsonObject selected = NeiPreviewProvider.selection(scene);
+                if (!selected.get("present").getAsBoolean()) throw new BridgeException("not_present", "No preview block is selected.");
+                position = selected.getAsJsonObject("position");
+            } else if ("hover".equals(source)) {
+                JsonObject hover = NeiPreviewProvider.hover(scene);
+                if (hover.get("position").isJsonNull()) throw new BridgeException("not_present", "The existing preview render has no hover trace.");
+                position = hover.getAsJsonObject("position");
+            } else throw new BridgeException("invalid_args", "Unknown previewBlockSource.");
+        }
+        return NeiPreviewProvider.pack(JsonData.integer(position, "x", -33554432, 33554431), JsonData.integer(position, "y", -2048, 2047), JsonData.integer(position, "z", -33554432, 33554431));
+    }
+
+    private static boolean isSelected(Scene scene, long packed) {
+        JsonObject selection = NeiPreviewProvider.selection(scene);
+        if (!selection.get("present").getAsBoolean()) return false;
+        JsonObject pos = selection.getAsJsonObject("position");
+        return packed == NeiPreviewProvider.pack(pos.get("x").getAsInt(), pos.get("y").getAsInt(), pos.get("z").getAsInt());
+    }
+
+    interface Entry { JsonElement read(int index); }
+    static void page(JsonObject result, int total, int offset, int limit, long started, Entry reader) {
+        JsonArray entries = new JsonArray(); result.getAsJsonObject("data").add("entries", entries);
+        int next = Math.min(offset, total), bytes = utf8(result) + 4096;
+        while (next < total && entries.size() < limit) {
+            if (entries.size() > 0 && System.nanoTime() - started > SOFT_NANOS) { result.addProperty("softBudgetPartial", true); break; }
+            JsonElement entry = reader.read(next); int size = entry.toString().getBytes(StandardCharsets.UTF_8).length + 2;
+            if (bytes + size > BYTE_LIMIT) { result.addProperty("byteLimited", true); break; }
+            entries.add(entry); bytes += size; next++;
+        }
+        finish(result, total, next, result.get("byteLimited").getAsBoolean());
+    }
+
+    static JsonObject text(JsonObject result, String text, int offset, int limit) {
+        if (text == null) text = "";
+        int total = text.codePointCount(0, text.length()), start = Math.min(offset, total), next = (int) Math.min((long) total, (long) start + limit);
+        result.getAsJsonObject("data").addProperty("unit", "unicode_codepoints");
+        result.getAsJsonObject("data").addProperty("offsetUnit", "unicode_codepoints");
+        result.getAsJsonObject("data").addProperty("text", text.substring(text.offsetByCodePoints(0, start), text.offsetByCodePoints(0, next)));
+        finish(result, total, next, false); return result;
+    }
+
+    static JsonObject base(String target) {
+        JsonObject result = new JsonObject(); result.addProperty("status", "ok"); result.addProperty("total", 0); result.addProperty("nextOffset", 0);
+        result.addProperty("hasMore", false); result.addProperty("complete", false); result.addProperty("byteLimited", false); result.addProperty("softBudgetPartial", false);
+        JsonObject data = new JsonObject(); data.addProperty("target", target); data.addProperty("unit", "entries"); result.add("data", data); return result;
+    }
+
+    static void finish(JsonObject result, int total, int next, boolean incomplete) {
+        result.addProperty("total", total); result.addProperty("nextOffset", next); result.addProperty("hasMore", next < total); result.addProperty("complete", next >= total && !incomplete);
+    }
+    static JsonObject absent(String reason) { JsonObject result = base(""); result.addProperty("status", "not_present"); result.addProperty("reason", reason); return result; }
+    private static int utf8(JsonObject value) { return value.toString().getBytes(StandardCharsets.UTF_8).length; }
+}

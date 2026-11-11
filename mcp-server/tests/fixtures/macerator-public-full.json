@@ -1,0 +1,3519 @@
+{
+  "gui": {
+    "ok": true,
+    "data": {
+      "screen": "com.cleanroommc.modularui.screen.GuiContainerWrapper",
+      "screenId": "9e253ea8-4ed7-46eb-aa06-94ce3957f479",
+      "screenOpen": true,
+      "screenKind": "modularui",
+      "width": 427,
+      "height": 240,
+      "buttons": [],
+      "buttonSource": "Forge GuiScreenEvent.InitGuiEvent.Post; custom widget systems may expose no buttons.",
+      "windowId": 24,
+      "totalSlots": 43,
+      "slotCoordinates": "relative to container origin",
+      "slots": [
+        {
+          "slot": 0,
+          "inventoryIndex": 3,
+          "x": 125,
+          "y": 63,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 1,
+          "inventoryIndex": 1,
+          "x": 80,
+          "y": 63,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 2,
+          "inventoryIndex": 5,
+          "x": 53,
+          "y": 25,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 3,
+          "inventoryIndex": 6,
+          "x": 107,
+          "y": 16,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "minecraft:pumpkin_seeds",
+            "displayName": "南瓜种子",
+            "count": 4,
+            "metadata": 0,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 4,
+          "inventoryIndex": 7,
+          "x": 125,
+          "y": 16,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 5,
+          "inventoryIndex": 8,
+          "x": 107,
+          "y": 34,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 6,
+          "inventoryIndex": 9,
+          "x": 125,
+          "y": 34,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 7,
+          "inventoryIndex": 0,
+          "x": 8,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "structurelib:item.structurelib.constructableTrigger",
+            "displayName": "多方块机器全息投影仪",
+            "count": 64,
+            "metadata": 0,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 8,
+          "inventoryIndex": 1,
+          "x": 26,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "§8§l不可视之触§r原型机MK-II",
+            "count": 1,
+            "metadata": 19056,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 9,
+          "inventoryIndex": 2,
+          "x": 44,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "输入总线（ZPM）",
+            "count": 1,
+            "metadata": 77,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 10,
+          "inventoryIndex": 3,
+          "x": 62,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "Debug能源仓",
+            "count": 1,
+            "metadata": 11304,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 11,
+          "inventoryIndex": 4,
+          "x": 80,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "minecraft:stone",
+            "displayName": "石头",
+            "count": 2,
+            "metadata": 0,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 12,
+          "inventoryIndex": 5,
+          "x": 98,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "Debug维护仓",
+            "count": 1,
+            "metadata": 15497,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 13,
+          "inventoryIndex": 6,
+          "x": 116,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 14,
+          "inventoryIndex": 7,
+          "x": 134,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.metatool.01",
+            "displayName": "螺丝刀",
+            "count": 1,
+            "metadata": 22,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 15,
+          "inventoryIndex": 8,
+          "x": 152,
+          "y": 141,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "输出总线（LV）",
+            "count": 1,
+            "metadata": 81,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 16,
+          "inventoryIndex": 9,
+          "x": 8,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "personalspace:personalPortal",
+            "displayName": "私人维度传送门",
+            "count": 1,
+            "metadata": 0,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 17,
+          "inventoryIndex": 10,
+          "x": 26,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "ae2fc:fluid_storage.Universe",
+            "displayName": "ME人造宇宙流体存储元件",
+            "count": 1,
+            "metadata": 0,
+            "hasTag": true
+          }
+        },
+        {
+          "slot": 18,
+          "inventoryIndex": 11,
+          "x": 44,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "appliedenergistics2:item.ItemExtremeStorageCell.Universe",
+            "displayName": "人造宇宙ME存储元件",
+            "count": 1,
+            "metadata": 0,
+            "hasTag": true
+          }
+        },
+        {
+          "slot": 19,
+          "inventoryIndex": 12,
+          "x": 62,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "精英矿石粉碎机",
+            "count": 1,
+            "metadata": 10940,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 20,
+          "inventoryIndex": 13,
+          "x": 80,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "Debug输入仓",
+            "count": 2,
+            "metadata": 11306,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 21,
+          "inventoryIndex": 14,
+          "x": 98,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.metaitem.01",
+            "displayName": "便携式扫描仪",
+            "count": 1,
+            "metadata": 32762,
+            "hasTag": true
+          }
+        },
+        {
+          "slot": 22,
+          "inventoryIndex": 15,
+          "x": 116,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "巨型砖高炉",
+            "count": 1,
+            "metadata": 19022,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 23,
+          "inventoryIndex": 16,
+          "x": 134,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "砖高炉",
+            "count": 1,
+            "metadata": 140,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 24,
+          "inventoryIndex": 17,
+          "x": 152,
+          "y": 83,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "questbook:ItemQuestBook",
+            "displayName": "任务书",
+            "count": 1,
+            "metadata": 0,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 25,
+          "inventoryIndex": 18,
+          "x": 8,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "完美执行核心模块",
+            "count": 64,
+            "metadata": 18845,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 26,
+          "inventoryIndex": 19,
+          "x": 26,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "微型时空发生器",
+            "count": 1,
+            "metadata": 19060,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 27,
+          "inventoryIndex": 20,
+          "x": 44,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 28,
+          "inventoryIndex": 21,
+          "x": 62,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "加工中心",
+            "count": 1,
+            "metadata": 19063,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 29,
+          "inventoryIndex": 22,
+          "x": 80,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.metaitem.01",
+            "displayName": "钨锭",
+            "count": 5,
+            "metadata": 11081,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 30,
+          "inventoryIndex": 23,
+          "x": 98,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "minecraft:wooden_axe",
+            "displayName": "木斧",
+            "count": 1,
+            "metadata": 0,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 31,
+          "inventoryIndex": 24,
+          "x": 116,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "自动维护仓",
+            "count": 1,
+            "metadata": 111,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 32,
+          "inventoryIndex": 25,
+          "x": 134,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "真空冷冻机",
+            "count": 1,
+            "metadata": 1002,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 33,
+          "inventoryIndex": 26,
+          "x": 152,
+          "y": 101,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "Debug发电机",
+            "count": 1,
+            "metadata": 15498,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 34,
+          "inventoryIndex": 27,
+          "x": 8,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "戴森球模块发射场",
+            "count": 1,
+            "metadata": 19013,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 35,
+          "inventoryIndex": 28,
+          "x": 26,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "戴森球射线接收站",
+            "count": 1,
+            "metadata": 19014,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 36,
+          "inventoryIndex": 29,
+          "x": 44,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "精英电炉",
+            "count": 1,
+            "metadata": 10840,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 37,
+          "inventoryIndex": 30,
+          "x": 62,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "奇异物质聚合器",
+            "count": 1,
+            "metadata": 19059,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 38,
+          "inventoryIndex": 31,
+          "x": 80,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "纳米蜂群收容总线",
+            "count": 1,
+            "metadata": 9415,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 39,
+          "inventoryIndex": 32,
+          "x": 98,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": {
+            "registryName": "gregtech:gt.blockmachines",
+            "displayName": "输出总线（ME）",
+            "count": 1,
+            "metadata": 2710,
+            "hasTag": false
+          }
+        },
+        {
+          "slot": 40,
+          "inventoryIndex": 33,
+          "x": 116,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 41,
+          "inventoryIndex": 34,
+          "x": 134,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        },
+        {
+          "slot": 42,
+          "inventoryIndex": 35,
+          "x": 152,
+          "y": 119,
+          "inventoryClass": "net.minecraft.inventory.InventoryBasic",
+          "item": null
+        }
+      ],
+      "truncated": false,
+      "widgets": [
+        {
+          "class": "com.cleanroommc.modularui.screen.ModularPanel",
+          "name": "basicmachine.macerator.tier.06",
+          "identity": "mui:305bf1a3",
+          "enabled": true,
+          "valid": true,
+          "x": 125,
+          "y": 37,
+          "width": 176,
+          "height": 166,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widget.SingleChildWidget",
+          "name": "null",
+          "identity": "mui:24e8267",
+          "enabled": true,
+          "valid": true,
+          "x": 125,
+          "y": 22,
+          "width": 73,
+          "height": 15,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:4e93ce",
+          "enabled": true,
+          "valid": true,
+          "x": 108,
+          "y": 38,
+          "width": 20,
+          "height": 130,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:c298958",
+          "enabled": true,
+          "valid": true,
+          "x": 125,
+          "y": 37,
+          "width": 176,
+          "height": 166,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:6310b797",
+          "enabled": true,
+          "valid": true,
+          "x": 130,
+          "y": 27,
+          "width": 63,
+          "height": 9,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "gregtech.common.modularui2.widget.CoverTabButton",
+          "name": "null",
+          "identity": "mui:153b4c28",
+          "enabled": false,
+          "valid": true,
+          "x": 108,
+          "y": 38,
+          "width": 20,
+          "height": 20,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [],
+          "tooltipTotalLines": 0,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "overlay": {
+            "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+            "current": {
+              "class": "com.cleanroommc.modularui.drawable.Icon"
+            },
+            "source": "public DynamicDrawable.getSupplier; current display value"
+          }
+        },
+        {
+          "class": "gregtech.common.modularui2.widget.CoverTabButton",
+          "name": "null",
+          "identity": "mui:611f6da2",
+          "enabled": false,
+          "valid": true,
+          "x": 108,
+          "y": 60,
+          "width": 20,
+          "height": 20,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [],
+          "tooltipTotalLines": 0,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "overlay": {
+            "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+            "current": {
+              "class": "com.cleanroommc.modularui.drawable.Icon"
+            },
+            "source": "public DynamicDrawable.getSupplier; current display value"
+          }
+        },
+        {
+          "class": "gregtech.common.modularui2.widget.CoverTabButton",
+          "name": "null",
+          "identity": "mui:213c4b90",
+          "enabled": false,
+          "valid": true,
+          "x": 108,
+          "y": 82,
+          "width": 20,
+          "height": 20,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [],
+          "tooltipTotalLines": 0,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "overlay": {
+            "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+            "current": {
+              "class": "com.cleanroommc.modularui.drawable.Icon"
+            },
+            "source": "public DynamicDrawable.getSupplier; current display value"
+          }
+        },
+        {
+          "class": "gregtech.common.modularui2.widget.CoverTabButton",
+          "name": "null",
+          "identity": "mui:47f6ec2f",
+          "enabled": false,
+          "valid": true,
+          "x": 108,
+          "y": 104,
+          "width": 20,
+          "height": 20,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [],
+          "tooltipTotalLines": 0,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "overlay": {
+            "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+            "current": {
+              "class": "com.cleanroommc.modularui.drawable.Icon"
+            },
+            "source": "public DynamicDrawable.getSupplier; current display value"
+          }
+        },
+        {
+          "class": "gregtech.common.modularui2.widget.CoverTabButton",
+          "name": "null",
+          "identity": "mui:8e3b2f5",
+          "enabled": false,
+          "valid": true,
+          "x": 108,
+          "y": 126,
+          "width": 20,
+          "height": 20,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [],
+          "tooltipTotalLines": 0,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "overlay": {
+            "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+            "current": {
+              "class": "com.cleanroommc.modularui.drawable.Icon"
+            },
+            "source": "public DynamicDrawable.getSupplier; current display value"
+          }
+        },
+        {
+          "class": "gregtech.common.modularui2.widget.CoverTabButton",
+          "name": "null",
+          "identity": "mui:120bbc36",
+          "enabled": false,
+          "valid": true,
+          "x": 108,
+          "y": 148,
+          "width": 20,
+          "height": 20,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [],
+          "tooltipTotalLines": 0,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "overlay": {
+            "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+            "current": {
+              "class": "com.cleanroommc.modularui.drawable.Icon"
+            },
+            "source": "public DynamicDrawable.getSupplier; current display value"
+          }
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:51a8052c",
+          "enabled": true,
+          "valid": true,
+          "x": 129,
+          "y": 41,
+          "width": 168,
+          "height": 78,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:21cf0ca2",
+          "enabled": true,
+          "valid": true,
+          "x": 285,
+          "y": 41,
+          "width": 12,
+          "height": 24,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:34ae7674",
+          "enabled": true,
+          "valid": true,
+          "x": 129,
+          "y": 119,
+          "width": 168,
+          "height": 76,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.TextWidget",
+          "name": "null",
+          "identity": "mui:7b8b86db",
+          "enabled": true,
+          "valid": true,
+          "x": 130,
+          "y": 27,
+          "width": 63,
+          "height": 9,
+          "coordinates": "screen pixels; geometric bounds only",
+          "text": "精英矿石粉碎机"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widget.ParentWidget",
+          "name": "null",
+          "identity": "mui:f2f543e",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 43,
+          "width": 162,
+          "height": 54,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widget.ParentWidget",
+          "name": "null",
+          "identity": "mui:418a27ff",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 99,
+          "width": 162,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.ToggleButton",
+          "name": "null",
+          "identity": "mui:459c6668",
+          "enabled": true,
+          "valid": true,
+          "x": 285,
+          "y": 41,
+          "width": 12,
+          "height": 12,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "静音"
+          ],
+          "tooltipTotalLines": 1,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.ToggleButton",
+          "name": "null",
+          "identity": "mui:11deb1e1",
+          "enabled": true,
+          "valid": true,
+          "x": 285,
+          "y": 53,
+          "width": 12,
+          "height": 12,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "电源"
+          ],
+          "tooltipTotalLines": 1,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+          "semantic": "power_switch",
+          "semanticSource": "GT shared public tooltip/texture resource; current screen object identity required for mutation"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.SlotGroupWidget",
+          "name": "player_inventory",
+          "identity": "mui:64259940",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 119,
+          "width": 162,
+          "height": 76,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:7480ffe4",
+          "enabled": true,
+          "valid": true,
+          "x": 141,
+          "y": 43,
+          "width": 144,
+          "height": 54,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:5209783a",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 99,
+          "width": 36,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:36bc9a23",
+          "enabled": true,
+          "valid": true,
+          "x": 249,
+          "y": 99,
+          "width": 45,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+          "name": "null",
+          "identity": "mui:7e1bfa2d",
+          "enabled": true,
+          "valid": true,
+          "x": 204,
+          "y": 81,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_0",
+          "identity": "mui:d1745d5",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f多方块机器全息投影仪 (#6316)",
+            "§7触发可构造界面§r",
+            "§7§9显示多方块结构全息投影,§r",
+            "§7§9请对多方块控制器使用.§r",
+            "§7§9(潜行右键控制器方块可直接构造)§r",
+            "§7§9堆叠数量影响等级/模式/类型§r"
+          ],
+          "tooltipTotalLines": 6,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_1",
+          "identity": "mui:14c634e5",
+          "enabled": true,
+          "valid": true,
+          "x": 150,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f§8§l不可视之触§r原型机MK-II (#3003/19056)",
+            "§7机器类型: §e§f模块化机械 §7- §e巨型装配线 | 部件装配线 | 组装机 | 精密组装机§r§r",
+            "§7§6§l§o只有无知， 没有不满。§r",
+            "§7§8§l不可视之触§r§7的升级版.§r",
+            "§7直接使用无线EU网络中的能量, 无需能源仓.§r",
+            "§7在主机附近安装模块仓室可以显著提升机器性能.§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§z11938§Z§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 9,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_2",
+          "identity": "mui:46f9c9dc",
+          "enabled": true,
+          "valid": true,
+          "x": 168,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f输入总线（ZPM） (#3003/77)",
+            "§7多方块机器的物品输入端§r",
+            "§7使用螺丝刀Shift+右键点击开启/关闭自动整理§r",
+            "§7容量：64组§r"
+          ],
+          "tooltipTotalLines": 4,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_3",
+          "identity": "mui:671289bc",
+          "enabled": true,
+          "valid": true,
+          "x": 186,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§fDebug能源仓 (#3003/11304)",
+            "§7§7在内部缓存 EU§r",
+            "§7§7在UI中配置电流和电压§r",
+            "§7§o/gt global_energy_set 开发... 走开！§r",
+            "§7作者：§a§a§lChrom§r§7§r",
+            "§7电压输入：§e8,589,934,592§7 (Invalid Voltage Tier)§r",
+            "§7容量：§99.22e18§7 EU§r"
+          ],
+          "tooltipTotalLines": 7,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_4",
+          "identity": "mui:501c4166",
+          "enabled": true,
+          "valid": true,
+          "x": 204,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f石头 (#0001)"
+          ],
+          "tooltipTotalLines": 1,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_5",
+          "identity": "mui:75d8269c",
+          "enabled": true,
+          "valid": true,
+          "x": 222,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§fDebug维护仓 (#3003/15497)",
+            "§7§9Tec§1Tech§9：θ运动§r",
+            "§7自动维护多方块机器§r",
+            "§7它能修好一切，除了自己.§r",
+            "§7§b为人民服务!§r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_6",
+          "identity": "mui:7d67b6d2",
+          "enabled": true,
+          "valid": true,
+          "x": 240,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_7",
+          "identity": "mui:e4b8fab",
+          "enabled": true,
+          "valid": true,
+          "x": 258,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f螺丝刀 (#7628/22)",
+            "§7§f耐久: 0/0§7§r",
+            "§7§fNULL 等级 0§7§r",
+            "§7§f攻击伤害: 1.5§7§r",
+            "§7§f挖掘速度: 1§7§r",
+            "§7调整机器与覆盖板§r"
+          ],
+          "tooltipTotalLines": 6,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_8",
+          "identity": "mui:3c6ee875",
+          "enabled": true,
+          "valid": true,
+          "x": 276,
+          "y": 177,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f输出总线（LV） (#3003/81)",
+            "§7多方块机器的物品输出端§r",
+            "§7容量：4组§r",
+            "§7手持闪存左键以保存过滤配置§r",
+            "§7手持闪存右键以加载过滤配置 §r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_9",
+          "identity": "mui:836c5a2",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f私人维度传送门 (#10604)"
+          ],
+          "tooltipTotalLines": 1,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_10",
+          "identity": "mui:48a72350",
+          "enabled": true,
+          "valid": true,
+          "x": 150,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§fME人造宇宙流体存储元件 (#4682)",
+            "§7§f0§7 / §24,503,599,627,370,495 §7字节已使用§r",
+            "§7§f0§7 / §263 §7类型§r"
+          ],
+          "tooltipTotalLines": 3,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_11",
+          "identity": "mui:1ac3db38",
+          "enabled": true,
+          "valid": true,
+          "x": 168,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f人造宇宙ME存储元件 (#4615)",
+            "§7§f0§7 / §2576,460,752,303,423,487 §7字节已使用§r",
+            "§7§f0§7 / §263 §7类型§r"
+          ],
+          "tooltipTotalLines": 3,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_12",
+          "identity": "mui:51a5a555",
+          "enabled": true,
+          "valid": true,
+          "x": 186,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f精英矿石粉碎机 (#3003/10940)",
+            "§7粉碎你的矿物§r",
+            "§7机器类型: §e研磨机§r§r",
+            "§7电压输入：§e32,768§7 (§dLuV§7)§r",
+            "§7容量：§92,097,152§7 EU§r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_13",
+          "identity": "mui:6f807116",
+          "enabled": true,
+          "valid": true,
+          "x": 204,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§fDebug输入仓 (#3003/11306)",
+            "§7§7内部存储流体§r",
+            "§7§7在GUI中配置流体§r",
+            "§7§7所配置的流体在处理过程中不会被消耗§r",
+            "§7§o谁知道原来这么简单？？？§r",
+            "§7作者：§a§a§lChrom§r§7§r"
+          ],
+          "tooltipTotalLines": 6,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_14",
+          "identity": "mui:1ecc7215",
+          "enabled": true,
+          "valid": true,
+          "x": 222,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f便携式扫描仪 (#7618/32762)",
+            "§7三录仪§r",
+            "§7§b400,000 / 400,000 EU - 电压: 128§7§r",
+            "§7§9方块扫描数据结果：§r",
+            "§7§r§b§m---------------§r §r§b方块信息§r §b§m---------------§r§r",
+            "§7§r位置 X:§r§619§r Y:§r§614§r Z:§r§692§r§r",
+            "§7§r名称：§r§6赫菲斯托斯的工坊§r 元数据：§r§62§r§r",
+            "§7§rMeta-ID: §r§6namehephaestusatelier§r§r",
+            "§7§r硬度：§r§61.0§r 爆炸抗性：§r§610.0§r§r",
+            "§7§r§b§m---------------§r §r§b侧边信息§r §b§m---------------§r§r",
+            "§7§r扩展朝向：§r§6WEST_NORMAL_NONE§r§r",
+            "§7§r§b§m---------------§r §r§b机器信息§r §b§m---------------§r§r",
+            "§7§r所有者：§6ExamplePlayer§r§r",
+            "§7§rMeta-ID: §619037 §a有效§r§r",
+            "§7§r问题：§c0§r§r",
+            "§7§r效率：§e§r100§r§r§r%§r§r",
+            "§7§r配方已完成：§a19,327,353,751§r§r§r",
+            "§7§r总运行时长：§631§r 分钟§r§r",
+            "§7§r§b并行: §62147483647§r§r",
+            "§7§r§b耗时倍率: §6100.000§r%§r§r",
+            "§7§r§b耗电倍率: §6100.000§r%§r§r",
+            "§7§r§b线圈等级: §63§r§r",
+            "§7§r§c§l已启用无线模式§r§r",
+            "§7§r§r",
+            "§7§r§b§m---------------§r §r§b区块信息§r §b§m---------------§r§r",
+            "§7§r§a区块中没有污染！HAYO！§r§r",
+            "§7§r无内容物: §60§rL§r§r",
+            "§7§r§b§m---------------§r §r§b调试信息§r §b§m---------------§r§r",
+            "§7§rMeta-ID: §b19037 §a有效§r§r",
+            "§7§r§6109,464§r刻内平均CPU负载约为~§625§r纳秒，最差情况为§61,306,900§r纳秒。§r§r",
+            "§7§r可访问§r§r",
+            "§7§r在§60§r刻中记录到了§64§r次声音请求§r§r"
+          ],
+          "tooltipTotalLines": 34,
+          "tooltipTruncated": true,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_15",
+          "identity": "mui:1a5270ef",
+          "enabled": true,
+          "valid": true,
+          "x": 240,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f巨型砖高炉 (#3003/19022)",
+            "§7机器类型: §e高炉§r§r",
+            "§7巨型砖高炉的控制器方块§r",
+            "§7§f谁能想象出蒸汽时代之伟力?§r",
+            "§7消耗铁/锻铁锭与焦煤/焦煤块炼钢(与灰烬副产物).§r",
+            "§7初始配方时间为§6240s§7. 输入更多锻铁与焦煤以减少处理时间.§r",
+            "§7实际处理时间 = 初始值 x 并行 / ((1 + 4 x 输入锻铁比例) x sqrt(输入焦煤))§r",
+            "§7一次性消耗输入的(锻)铁锭的§c50%§7与输入的全部焦煤.§r",
+            "§7焦煤的最低需求量: 2 x 处理的(锻)铁锭的量§r",
+            "§7需要连续运行§c8§7小时来达到最大效率.§r",
+            "§7最多可使焦煤的使用效率提高至§c800%§7,降低焦煤最低需求量并计入处理时间计算§r",
+            "§7§e建议在你有充足的资源之前不要强迫自己建造它!§r",
+            "§7切换到原始高炉模式可处理原始高炉配方, 不再通过锻铁加速.§r",
+            "§7§7点污染每秒§r",
+            "§7可以使用§9信道:§echisel§7进行搭建时自动转换凿子方块，可以查看nei进行预览可用方块§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§z11939§Z§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 18,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_16",
+          "identity": "mui:6621e1fd",
+          "enabled": true,
+          "valid": true,
+          "x": 258,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f砖高炉 (#3003/140)",
+            "§7机器类型：§e高炉，BBF§r§r",
+            "§7用于炼钢或常规的热冶金§r",
+            "§7仅能通过控制器手动进行输入输出§r",
+            "§7每秒产生§5200§7点污染§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 7,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_17",
+          "identity": "mui:ac524ee",
+          "enabled": true,
+          "valid": true,
+          "x": 276,
+          "y": 119,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f任务书 (#6222)"
+          ],
+          "tooltipTotalLines": 1,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_18",
+          "identity": "mui:77e4b379",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f完美执行核心模块 (#3003/18845)",
+            "§7为你的模块化机器添加第二个自我, 但更加强大.§r",
+            "§7使用机器的逻辑参数, 但不受能源限制, 并且并行无限.§r",
+            "§7直接使用无线EU能源.§r",
+            "§7任何任务都在 1 秒内完成.§r",
+            "§7§z11940§Z§r"
+          ],
+          "tooltipTotalLines": 6,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_19",
+          "identity": "mui:7e387062",
+          "enabled": true,
+          "valid": true,
+          "x": 150,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f微型时空发生器 (#3003/19060)",
+            "§7机器类型: §e人造时空发生器§r§r",
+            "§7§5§l创生之始§r",
+            "§7激活原始奇点以开始宇宙的创建过程, 当然, 在可控范围内.§r",
+            "§7升级2级力场方块启用无损超频, 继续升级可大幅提升运行速度.§r",
+            "§7但使用高级力场方块的需要同时使用高级结构外壳. 否则将引起§c§l灾难§r§7.§r",
+            "§7可以在专用输入总线内提供时空之种, 每次运行消耗1个时空之种, 并将产物翻倍.§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§z11941§Z§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 10,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_20",
+          "identity": "mui:177f4851",
+          "enabled": true,
+          "valid": true,
+          "x": 168,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_21",
+          "identity": "mui:343eec04",
+          "enabled": true,
+          "valid": true,
+          "x": 186,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f加工中心 (#3003/19063)",
+            "§7机器类型: §e加工中心 | 九合一§r§r",
+            "§7一些机器的组合。§r",
+            "§7§a多功能核心§7限制配方电压等级。§r",
+            "§7加工中心不能制作§4§nUHV§7及以上的配方。§r",
+            "§7比单方块机器快§b20%§7。§r",
+            "§7每级超过§9IV§7的核心等级获得§b§b50.00%§r§7的速度提升。§r",
+            "§7每级超过§9IV§7的核心等级获得§b§b15.00%§r§7的能量减免。§r",
+            "§7最大并行为§b2x§7最大电压等级。§r",
+            "§7§7点污染每秒§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§z11942§Z§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 13,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_22",
+          "identity": "mui:6693ee81",
+          "enabled": true,
+          "valid": true,
+          "x": 204,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f钨锭 (#7618/11081)",
+            "§7W§r"
+          ],
+          "tooltipTotalLines": 2,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_23",
+          "identity": "mui:5b152951",
+          "enabled": true,
+          "valid": true,
+          "x": 222,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f木斧 (#0271)",
+            "§7§r",
+            "§7§9攻击伤害 +3§r"
+          ],
+          "tooltipTotalLines": 3,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_24",
+          "identity": "mui:3645cfa2",
+          "enabled": true,
+          "valid": true,
+          "x": 240,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f自动维护仓 (#3003/111)",
+            "§7用于自动维护多方块机器§r",
+            "§7每次消耗4个航空胶带，2个润滑油单元§r",
+            "§74个钢螺丝和2个高级电路板§r",
+            "§7以自动维护多方块机器。§r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_25",
+          "identity": "mui:75d84ba2",
+          "enabled": true,
+          "valid": true,
+          "x": 258,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f真空冷冻机 (#3003/1002)",
+            "§7机器类型: §e真空冷冻机，VF§r§r",
+            "§7Cools hot ingots and cells§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_26",
+          "identity": "mui:c46447e",
+          "enabled": true,
+          "valid": true,
+          "x": 276,
+          "y": 137,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§fDebug发电机 (#3003/15498)",
+            "§7§9Tec§1Tech§9：维度穿越§r",
+            "§7凭空而生的能量§r",
+            "§7§b使用螺丝刀切换为激光模式§r",
+            "§7§9无限能源的生产/消耗设备§r",
+            "§7§9因为我就想要一个...§r",
+            "§7电压输出：§e8§7 (§cULV§7)§r",
+            "§7容量：§932§7 EU§r"
+          ],
+          "tooltipTotalLines": 8,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_27",
+          "identity": "mui:7e6bbb06",
+          "enabled": true,
+          "valid": true,
+          "x": 132,
+          "y": 155,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f戴森球模块发射场 (#3003/19013)",
+            "§7机器类型: §e戴森球计划: 垂直发射井§r§r",
+            "§7戴森球模块发射场的控制器方块§r",
+            "§7§9\"低空飞行 ...\"§r",
+            "§7发射装载有戴森球组件的小型运载火箭到戴森球轨道上组建戴森球.§r",
+            "§7不会超频且没有额外并行.§r",
+            "§7更高级的加速轨道可以减少发射耗时.§r",
+            "§7输入空间翘曲器可以进入过载模式. 减少发射时间间隔.§r",
+            "§7未安装能源仓时自动进入无线电力网络模式.§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§z11943§Z§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 12,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_28",
+          "identity": "mui:66cb53b6",
+          "enabled": true,
+          "valid": true,
+          "x": 150,
+          "y": 155,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f戴森球射线接收站 (#3003/19014)",
+            "§7机器类型: §e戴森球计划: 射线接收站§r§r",
+            "§7戴森球射线接收站的控制器方块.§r",
+            "§7§5§l你的手中掌握着星云法师真正的力量 ...§r",
+            "§7接收从戴森云或戴森球上传输回来的高能射线.§r",
+            "§7可以将接收到的能量直接输出到无线EU电网或动力仓, 或者存储为临界状态的光子.§r",
+            "§7在控制器方块内放置编程电路可以限制请求功率的比率.§r",
+            "§7同时, 最大请求功率 §61024§7A Max (默认).§r",
+            "§7实际输出功率受恒星系数和行星系数影响.§r",
+            "§7输入引力透镜将启用增强模式. 提高实际输出功率.§r",
+            "§7未安装动力仓时自动进入无线电力网络模式.§r",
+            "§7§7§m-----------------------------------------§r",
+            "§7§z11944§Z§r",
+            "§7§!shift§r"
+          ],
+          "tooltipTotalLines": 14,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_29",
+          "identity": "mui:51f99196",
+          "enabled": true,
+          "valid": true,
+          "x": 168,
+          "y": 155,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f精英电炉 (#3003/10840)",
+            "§7这和Commodore64可不一样§r",
+            "§7机器类型: §e熔炉§r§r",
+            "§7电压输入：§e32,768§7 (§dLuV§7)§r",
+            "§7容量：§92,097,152§7 EU§r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_30",
+          "identity": "mui:6fa24a63",
+          "enabled": true,
+          "valid": true,
+          "x": 186,
+          "y": 155,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f奇异物质聚合器 (#3003/19059)",
+            "§7机器类型: §e§f模块化机械 §7- §e奇异物质聚合器§r§r",
+            "§7§o§1寄蜉蝣于天地，渺沧海之一粟。§r",
+            "§7创建专用的时空, 高效地操作奇异物质.§r",
+            "§7机器是叠层结构, 每层可以安装一种时空操作器方块.§r",
+            "§7更高等级, 更多层数, 更多收益, 同时也有代价.§r",
+            "§7    §9---------------- §6时空振荡器 §9----------------§r",
+            "§7基础运行耗时：等级越高, 耗时越短§r",
+            "§7基础原料消耗：层数越多, 消耗量越少§r",
+            "§7时空维护流体消耗：层数越多, 消耗量越多§r",
+            "§7核心素和湮灭约束器消耗：等级越高, 层数越多, 消耗率越低§r",
+            "§7    §9---------------- §6时空约束器 §9----------------§r",
+            "§7辅助材料消耗率：等级越高, 消耗率越低§r",
+            "§7实际运行耗时：等级越高, 实际运行耗时越长§r",
+            "§7时空维护流体消耗：层数越多, 消耗量越少§r",
+            "§7    §9---------------- §6时空归并器 §9----------------§r",
+            "§7最大连续运行点数：等级越高, 连续运行点数上限越高§r",
+            "§7副产物产出：层数越多, 产量越大§r",
+            "§7耗电：等级越高层数越多耗电越高§r",
+            "§7    §9---------------- §b§l时空维护流体 §r§9----------------§r",
+            "§7在主机UI内设置使用的时空维护流体:§r",
+            "§7 T1 = 576L 熔融时空 | T2 = 96L 熔融宇宙素 | T3 = 16L 熔融磁流体约束恒星物质§r",
+            "§7使用高级时空维护流体可以提高每个湮灭约束器和核心素可以制作的燃料棒数量,§r",
+            "§7 并降低辅助材料和流体原料的消耗量. 副产物类型取决于使用的时空维护流体.§r",
+            "§7T1: 熔融无尽和熔融海珀珍; T2: 熔融时空和熔融调律源金; T3: 熔融宇宙素;§r",
+            "§7§6§6-----------------------------------------§r",
+            "§7§f§l连续运行§r§f时将产出副产物和更多的主产物.§r",
+            "§7每次成功运行时, §f连续运行点数§7加一.§r",
+            "§7持续提供充足的时空维护流体可保持连续运行状态. 否则中断运行.§r",
+            "§7§f提供§e§l核心素§f获得二级产物§r",
+            "§7如果有核心素输入则会消耗核心素并将一部分主产物替换为二级产物.§r",
+            "§7同时副产物产量翻倍.§r"
+          ],
+          "tooltipTotalLines": 36,
+          "tooltipTruncated": true,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_31",
+          "identity": "mui:4c327f1a",
+          "enabled": true,
+          "valid": true,
+          "x": 204,
+          "y": 155,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f纳米蜂群收容总线 (#3003/9415)",
+            "§7存储用于多方块结构的纳米蜂群§r",
+            "§7拆卸后保留其内容物§r",
+            "§7Capacity: §62147483647§7 Items§r"
+          ],
+          "tooltipTotalLines": 4,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        },
+        {
+          "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+          "name": "slot_32",
+          "identity": "mui:70d8c3c9",
+          "enabled": true,
+          "valid": true,
+          "x": 222,
+          "y": 155,
+          "width": 18,
+          "height": 18,
+          "coordinates": "screen pixels; geometric bounds only",
+          "tooltip": [
+            "§f输出总线（ME） (#3003/2710)",
+            "§7多方块机器的物品输出端§r",
+            "§7容量：25组§r",
+            "§7手持闪存左键以保存过滤配置§r",
+            "§7手持闪存右键以加载过滤配置§r"
+          ],
+          "tooltipTotalLines": 5,
+          "tooltipTruncated": false,
+          "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed"
+        }
+      ],
+      "coverage": {
+        "vanilla": "Forge-captured buttons and ordinary container slots; per-slot tooltip queried on demand",
+        "mui2": "bounded public open panels/widget tree, identities, bounds, enabled state",
+        "text": "Vanilla button displayString, MUI2 TextWidget public IKey.getFormatted; other drawn labels may be unavailable",
+        "richTooltips": "MUI2 public RichTooltip.isEmpty refreshes native dirty builders, then getRichText/getAsStrings; rich icons/clipping/topmost hit state not reconstructed",
+        "textures": "MUI2 public Widget.getOverlay/getBackground, DynamicDrawable.getSupplier and UITexture resource/UV data; no drawing or physical hover changes",
+        "aeVirtualSlots": "unavailable; ordinary container slots and public AE button messages only, cached physical hover is never changed",
+        "creativeInventory": "Actual public tabs and inventory-tab player slots are exposed in controls/gui.widgets with screen-bound widget IDs. activate uses native tab callbacks or one fixed left pickup callback; synchronization requires a later inspection.",
+        "modifierPolicy": "Current physical Shift/Ctrl/Alt state only; advanced=true is not Shift expansion. No simulated keys, hover, drawing, or screenshot fallback."
+      },
+      "widgetVisited": 57,
+      "widgetTruncated": true,
+      "widgetLimit": 128,
+      "budget": {
+        "softBudgetMicros": 4000,
+        "actualElapsedMicros": 4005,
+        "softBudgetExceeded": true,
+        "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+      },
+      "controls": {
+        "screenId": "9e253ea8-4ed7-46eb-aa06-94ce3957f479",
+        "widgets": [
+          {
+            "widgetId": "widget:6969",
+            "parentId": null,
+            "childIds": [
+              "widget:6970",
+              "widget:6971",
+              "widget:6972"
+            ],
+            "childCount": 3,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.screen.ModularPanel",
+            "name": "basicmachine.macerator.tier.06",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 125,
+            "y": 37,
+            "width": 176,
+            "height": 166,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6970",
+            "parentId": "widget:6969",
+            "childIds": [
+              "widget:6973"
+            ],
+            "childCount": 1,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widget.SingleChildWidget",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 125,
+            "y": 22,
+            "width": 73,
+            "height": 15,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6971",
+            "parentId": "widget:6969",
+            "childIds": [
+              "widget:6974",
+              "widget:6975",
+              "widget:6976",
+              "widget:6977",
+              "widget:6978",
+              "widget:6979"
+            ],
+            "childCount": 6,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 108,
+            "y": 38,
+            "width": 20,
+            "height": 130,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6972",
+            "parentId": "widget:6969",
+            "childIds": [
+              "widget:6980",
+              "widget:6981",
+              "widget:6982"
+            ],
+            "childCount": 3,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 125,
+            "y": 37,
+            "width": 176,
+            "height": 166,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6973",
+            "parentId": "widget:6970",
+            "childIds": [
+              "widget:6983"
+            ],
+            "childCount": 1,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 130,
+            "y": 27,
+            "width": 63,
+            "height": 9,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6974",
+            "parentId": "widget:6971",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.CoverTabButton",
+            "name": "null",
+            "kind": "button",
+            "enabled": false,
+            "valid": true,
+            "x": 108,
+            "y": 38,
+            "width": 20,
+            "height": 20,
+            "tooltip": [],
+            "tooltipTotalLines": 0,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+              "current": {
+                "class": "com.cleanroommc.modularui.drawable.Icon"
+              },
+              "source": "public DynamicDrawable.getSupplier; current display value"
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6975",
+            "parentId": "widget:6971",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.CoverTabButton",
+            "name": "null",
+            "kind": "button",
+            "enabled": false,
+            "valid": true,
+            "x": 108,
+            "y": 60,
+            "width": 20,
+            "height": 20,
+            "tooltip": [],
+            "tooltipTotalLines": 0,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+              "current": {
+                "class": "com.cleanroommc.modularui.drawable.Icon"
+              },
+              "source": "public DynamicDrawable.getSupplier; current display value"
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6976",
+            "parentId": "widget:6971",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.CoverTabButton",
+            "name": "null",
+            "kind": "button",
+            "enabled": false,
+            "valid": true,
+            "x": 108,
+            "y": 82,
+            "width": 20,
+            "height": 20,
+            "tooltip": [],
+            "tooltipTotalLines": 0,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+              "current": {
+                "class": "com.cleanroommc.modularui.drawable.Icon"
+              },
+              "source": "public DynamicDrawable.getSupplier; current display value"
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6977",
+            "parentId": "widget:6971",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.CoverTabButton",
+            "name": "null",
+            "kind": "button",
+            "enabled": false,
+            "valid": true,
+            "x": 108,
+            "y": 104,
+            "width": 20,
+            "height": 20,
+            "tooltip": [],
+            "tooltipTotalLines": 0,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+              "current": {
+                "class": "com.cleanroommc.modularui.drawable.Icon"
+              },
+              "source": "public DynamicDrawable.getSupplier; current display value"
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6978",
+            "parentId": "widget:6971",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.CoverTabButton",
+            "name": "null",
+            "kind": "button",
+            "enabled": false,
+            "valid": true,
+            "x": 108,
+            "y": 126,
+            "width": 20,
+            "height": 20,
+            "tooltip": [],
+            "tooltipTotalLines": 0,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+              "current": {
+                "class": "com.cleanroommc.modularui.drawable.Icon"
+              },
+              "source": "public DynamicDrawable.getSupplier; current display value"
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6979",
+            "parentId": "widget:6971",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "gregtech.common.modularui2.widget.CoverTabButton",
+            "name": "null",
+            "kind": "button",
+            "enabled": false,
+            "valid": true,
+            "x": 108,
+            "y": 148,
+            "width": 20,
+            "height": 20,
+            "tooltip": [],
+            "tooltipTotalLines": 0,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "overlay": {
+              "class": "com.cleanroommc.modularui.drawable.DynamicDrawable",
+              "current": {
+                "class": "com.cleanroommc.modularui.drawable.Icon"
+              },
+              "source": "public DynamicDrawable.getSupplier; current display value"
+            },
+            "supportedActions": [
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6980",
+            "parentId": "widget:6972",
+            "childIds": [
+              "widget:6984",
+              "widget:6985"
+            ],
+            "childCount": 2,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 129,
+            "y": 41,
+            "width": 168,
+            "height": 78,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6981",
+            "parentId": "widget:6972",
+            "childIds": [
+              "widget:6986",
+              "widget:6987"
+            ],
+            "childCount": 2,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 285,
+            "y": 41,
+            "width": 12,
+            "height": 24,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6982",
+            "parentId": "widget:6972",
+            "childIds": [
+              "widget:6988"
+            ],
+            "childCount": 1,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 129,
+            "y": 119,
+            "width": 168,
+            "height": 76,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6983",
+            "parentId": "widget:6973",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.TextWidget",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 130,
+            "y": 27,
+            "width": 63,
+            "height": 9,
+            "text": "精英矿石粉碎机",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6984",
+            "parentId": "widget:6980",
+            "childIds": [
+              "widget:6989"
+            ],
+            "childCount": 1,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widget.ParentWidget",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 43,
+            "width": 162,
+            "height": 54,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6985",
+            "parentId": "widget:6980",
+            "childIds": [
+              "widget:6990",
+              "widget:6991",
+              "widget:6992"
+            ],
+            "childCount": 3,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widget.ParentWidget",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 99,
+            "width": 162,
+            "height": 18,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6986",
+            "parentId": "widget:6981",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.ToggleButton",
+            "name": "null",
+            "kind": "choice",
+            "enabled": true,
+            "valid": true,
+            "x": 285,
+            "y": 41,
+            "width": 12,
+            "height": 12,
+            "selected": 0,
+            "optionCount": 2,
+            "tooltip": [
+              "静音"
+            ],
+            "tooltipTotalLines": 1,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": [
+              "set_selected",
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6987",
+            "parentId": "widget:6981",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.ToggleButton",
+            "name": "null",
+            "kind": "choice",
+            "enabled": true,
+            "valid": true,
+            "x": 285,
+            "y": 53,
+            "width": 12,
+            "height": 12,
+            "selected": 0,
+            "optionCount": 2,
+            "tooltip": [
+              "电源"
+            ],
+            "tooltipTotalLines": 1,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "semantic": "power_switch",
+            "semanticSource": "GT shared public tooltip/texture resource; current screen object identity required for mutation",
+            "supportedActions": [
+              "set_selected",
+              "activate"
+            ]
+          },
+          {
+            "widgetId": "widget:6988",
+            "parentId": "widget:6982",
+            "childIds": [
+              "widget:6993",
+              "widget:6994",
+              "widget:6995",
+              "widget:6996",
+              "widget:6997",
+              "widget:6998",
+              "widget:6999",
+              "widget:7000",
+              "widget:7001",
+              "widget:7002",
+              "widget:7003",
+              "widget:7004",
+              "widget:7005",
+              "widget:7006",
+              "widget:7007",
+              "widget:7008",
+              "widget:7009",
+              "widget:7010",
+              "widget:7011",
+              "widget:7012",
+              "widget:7013",
+              "widget:7014",
+              "widget:7015",
+              "widget:7016",
+              "widget:7017",
+              "widget:7018",
+              "widget:7019",
+              "widget:7020",
+              "widget:7021",
+              "widget:7022",
+              "widget:7023",
+              "widget:7024",
+              "widget:7025",
+              "widget:7026",
+              "widget:7027",
+              "widget:7028"
+            ],
+            "childCount": 36,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.SlotGroupWidget",
+            "name": "player_inventory",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 119,
+            "width": 162,
+            "height": 76,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6989",
+            "parentId": "widget:6984",
+            "childIds": [
+              "widget:7029",
+              "widget:7030",
+              "widget:7031"
+            ],
+            "childCount": 3,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 141,
+            "y": 43,
+            "width": 144,
+            "height": 54,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6990",
+            "parentId": "widget:6985",
+            "childIds": [
+              "widget:7032",
+              "widget:7033"
+            ],
+            "childCount": 2,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 99,
+            "width": 36,
+            "height": 18,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6991",
+            "parentId": "widget:6985",
+            "childIds": [
+              "widget:7034",
+              "widget:7035"
+            ],
+            "childCount": 2,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 249,
+            "y": 99,
+            "width": 45,
+            "height": 18,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6992",
+            "parentId": "widget:6985",
+            "childIds": [
+              "widget:7036",
+              "widget:7037"
+            ],
+            "childCount": 2,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.layout.Flow",
+            "name": "null",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 204,
+            "y": 81,
+            "width": 18,
+            "height": 18,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6993",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_0",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f多方块机器全息投影仪 (#6316)",
+              "§7触发可构造界面§r",
+              "§7§9显示多方块结构全息投影,§r",
+              "§7§9请对多方块控制器使用.§r",
+              "§7§9(潜行右键控制器方块可直接构造)§r",
+              "§7§9堆叠数量影响等级/模式/类型§r"
+            ],
+            "tooltipTotalLines": 6,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6994",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_1",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 150,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f§8§l不可视之触§r原型机MK-II (#3003/19056)",
+              "§7机器类型: §e§f模块化机械 §7- §e巨型装配线 | 部件装配线 | 组装机 | 精密组装机§r§r",
+              "§7§6§l§o只有无知， 没有不满。§r",
+              "§7§8§l不可视之触§r§7的升级版.§r",
+              "§7直接使用无线EU网络中的能量, 无需能源仓.§r",
+              "§7在主机附近安装模块仓室可以显著提升机器性能.§r",
+              "§7§7§m-----------------------------------------§r",
+              "§7§z11946§Z§r",
+              "§7§!shift§r"
+            ],
+            "tooltipTotalLines": 9,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6995",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_2",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 168,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f输入总线（ZPM） (#3003/77)",
+              "§7多方块机器的物品输入端§r",
+              "§7使用螺丝刀Shift+右键点击开启/关闭自动整理§r",
+              "§7容量：64组§r"
+            ],
+            "tooltipTotalLines": 4,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6996",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_3",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 186,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§fDebug能源仓 (#3003/11304)",
+              "§7§7在内部缓存 EU§r",
+              "§7§7在UI中配置电流和电压§r",
+              "§7§o/gt global_energy_set 开发... 走开！§r",
+              "§7作者：§a§a§lChrom§r§7§r",
+              "§7电压输入：§e8,589,934,592§7 (Invalid Voltage Tier)§r",
+              "§7容量：§99.22e18§7 EU§r"
+            ],
+            "tooltipTotalLines": 7,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6997",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_4",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 204,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f石头 (#0001)"
+            ],
+            "tooltipTotalLines": 1,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6998",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_5",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 222,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§fDebug维护仓 (#3003/15497)",
+              "§7§9Tec§1Tech§9：θ运动§r",
+              "§7自动维护多方块机器§r",
+              "§7它能修好一切，除了自己.§r",
+              "§7§b为人民服务!§r"
+            ],
+            "tooltipTotalLines": 5,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:6999",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_6",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 240,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7000",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_7",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 258,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f螺丝刀 (#7628/22)",
+              "§7§f耐久: 0/0§7§r",
+              "§7§fNULL 等级 0§7§r",
+              "§7§f攻击伤害: 1.5§7§r",
+              "§7§f挖掘速度: 1§7§r",
+              "§7调整机器与覆盖板§r"
+            ],
+            "tooltipTotalLines": 6,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7001",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_8",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 276,
+            "y": 177,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f输出总线（LV） (#3003/81)",
+              "§7多方块机器的物品输出端§r",
+              "§7容量：4组§r",
+              "§7手持闪存左键以保存过滤配置§r",
+              "§7手持闪存右键以加载过滤配置 §r"
+            ],
+            "tooltipTotalLines": 5,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7002",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_9",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f私人维度传送门 (#10604)"
+            ],
+            "tooltipTotalLines": 1,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7003",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_10",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 150,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§fME人造宇宙流体存储元件 (#4682)",
+              "§7§f0§7 / §24,503,599,627,370,495 §7字节已使用§r",
+              "§7§f0§7 / §263 §7类型§r"
+            ],
+            "tooltipTotalLines": 3,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7004",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_11",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 168,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f人造宇宙ME存储元件 (#4615)",
+              "§7§f0§7 / §2576,460,752,303,423,487 §7字节已使用§r",
+              "§7§f0§7 / §263 §7类型§r"
+            ],
+            "tooltipTotalLines": 3,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7005",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_12",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 186,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f精英矿石粉碎机 (#3003/10940)",
+              "§7粉碎你的矿物§r",
+              "§7机器类型: §e研磨机§r§r",
+              "§7电压输入：§e32,768§7 (§dLuV§7)§r",
+              "§7容量：§92,097,152§7 EU§r"
+            ],
+            "tooltipTotalLines": 5,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7006",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_13",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 204,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§fDebug输入仓 (#3003/11306)",
+              "§7§7内部存储流体§r",
+              "§7§7在GUI中配置流体§r",
+              "§7§7所配置的流体在处理过程中不会被消耗§r",
+              "§7§o谁知道原来这么简单？？？§r",
+              "§7作者：§a§a§lChrom§r§7§r"
+            ],
+            "tooltipTotalLines": 6,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7007",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_14",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 222,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f便携式扫描仪 (#7618/32762)",
+              "§7三录仪§r",
+              "§7§b400,000 / 400,000 EU - 电压: 128§7§r",
+              "§7§9方块扫描数据结果：§r",
+              "§7§r§b§m---------------§r §r§b方块信息§r §b§m---------------§r§r",
+              "§7§r位置 X:§r§619§r Y:§r§614§r Z:§r§692§r§r",
+              "§7§r名称：§r§6赫菲斯托斯的工坊§r 元数据：§r§62§r§r",
+              "§7§rMeta-ID: §r§6namehephaestusatelier§r§r",
+              "§7§r硬度：§r§61.0§r 爆炸抗性：§r§610.0§r§r",
+              "§7§r§b§m---------------§r §r§b侧边信息§r §b§m---------------§r§r",
+              "§7§r扩展朝向：§r§6WEST_NORMAL_NONE§r§r",
+              "§7§r§b§m---------------§r §r§b机器信息§r §b§m---------------§r§r",
+              "§7§r所有者：§6ExamplePlayer§r§r",
+              "§7§rMeta-ID: §619037 §a有效§r§r",
+              "§7§r问题：§c0§r§r",
+              "§7§r效率：§e§r100§r§r§r%§r§r",
+              "§7§r配方已完成：§a19,327,353,751§r§r§r",
+              "§7§r总运行时长：§631§r 分钟§r§r",
+              "§7§r§b并行: §62147483647§r§r",
+              "§7§r§b耗时倍率: §6100.000§r%§r§r",
+              "§7§r§b耗电倍率: §6100.000§r%§r§r",
+              "§7§r§b线圈等级: §63§r§r",
+              "§7§r§c§l已启用无线模式§r§r",
+              "§7§r§r",
+              "§7§r§b§m---------------§r §r§b区块信息§r §b§m---------------§r§r",
+              "§7§r§a区块中没有污染！HAYO！§r§r",
+              "§7§r无内容物: §60§rL§r§r",
+              "§7§r§b§m---------------§r §r§b调试信息§r §b§m---------------§r§r",
+              "§7§rMeta-ID: §b19037 §a有效§r§r",
+              "§7§r§6109,464§r刻内平均CPU负载约为~§625§r纳秒，最差情况为§61,306,900§r纳秒。§r§r",
+              "§7§r可访问§r§r",
+              "§7§r在§60§r刻中记录到了§64§r次声音请求§r§r"
+            ],
+            "tooltipTotalLines": 34,
+            "tooltipTruncated": true,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7008",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_15",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 240,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f巨型砖高炉 (#3003/19022)",
+              "§7机器类型: §e高炉§r§r",
+              "§7巨型砖高炉的控制器方块§r",
+              "§7§f谁能想象出蒸汽时代之伟力?§r",
+              "§7消耗铁/锻铁锭与焦煤/焦煤块炼钢(与灰烬副产物).§r",
+              "§7初始配方时间为§6240s§7. 输入更多锻铁与焦煤以减少处理时间.§r",
+              "§7实际处理时间 = 初始值 x 并行 / ((1 + 4 x 输入锻铁比例) x sqrt(输入焦煤))§r",
+              "§7一次性消耗输入的(锻)铁锭的§c50%§7与输入的全部焦煤.§r",
+              "§7焦煤的最低需求量: 2 x 处理的(锻)铁锭的量§r",
+              "§7需要连续运行§c8§7小时来达到最大效率.§r",
+              "§7最多可使焦煤的使用效率提高至§c800%§7,降低焦煤最低需求量并计入处理时间计算§r",
+              "§7§e建议在你有充足的资源之前不要强迫自己建造它!§r",
+              "§7切换到原始高炉模式可处理原始高炉配方, 不再通过锻铁加速.§r",
+              "§7§7点污染每秒§r",
+              "§7可以使用§9信道:§echisel§7进行搭建时自动转换凿子方块，可以查看nei进行预览可用方块§r",
+              "§7§7§m-----------------------------------------§r",
+              "§7§z11947§Z§r",
+              "§7§!shift§r"
+            ],
+            "tooltipTotalLines": 18,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7009",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_16",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 258,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f砖高炉 (#3003/140)",
+              "§7机器类型：§e高炉，BBF§r§r",
+              "§7用于炼钢或常规的热冶金§r",
+              "§7仅能通过控制器手动进行输入输出§r",
+              "§7每秒产生§5200§7点污染§r",
+              "§7§7§m-----------------------------------------§r",
+              "§7§!shift§r"
+            ],
+            "tooltipTotalLines": 7,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7010",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_17",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 276,
+            "y": 119,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f任务书 (#6222)"
+            ],
+            "tooltipTotalLines": 1,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7011",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_18",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 132,
+            "y": 137,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f完美执行核心模块 (#3003/18845)",
+              "§7为你的模块化机器添加第二个自我, 但更加强大.§r",
+              "§7使用机器的逻辑参数, 但不受能源限制, 并且并行无限.§r",
+              "§7直接使用无线EU能源.§r",
+              "§7任何任务都在 1 秒内完成.§r",
+              "§7§z11948§Z§r"
+            ],
+            "tooltipTotalLines": 6,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7012",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_19",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 150,
+            "y": 137,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f微型时空发生器 (#3003/19060)",
+              "§7机器类型: §e人造时空发生器§r§r",
+              "§7§5§l创生之始§r",
+              "§7激活原始奇点以开始宇宙的创建过程, 当然, 在可控范围内.§r",
+              "§7升级2级力场方块启用无损超频, 继续升级可大幅提升运行速度.§r",
+              "§7但使用高级力场方块的需要同时使用高级结构外壳. 否则将引起§c§l灾难§r§7.§r",
+              "§7可以在专用输入总线内提供时空之种, 每次运行消耗1个时空之种, 并将产物翻倍.§r",
+              "§7§7§m-----------------------------------------§r",
+              "§7§z11949§Z§r",
+              "§7§!shift§r"
+            ],
+            "tooltipTotalLines": 10,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7013",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_20",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 168,
+            "y": 137,
+            "width": 18,
+            "height": 18,
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7014",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_21",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 186,
+            "y": 137,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f加工中心 (#3003/19063)",
+              "§7机器类型: §e加工中心 | 九合一§r§r",
+              "§7一些机器的组合。§r",
+              "§7§a多功能核心§7限制配方电压等级。§r",
+              "§7加工中心不能制作§4§nUHV§7及以上的配方。§r",
+              "§7比单方块机器快§b20%§7。§r",
+              "§7每级超过§9IV§7的核心等级获得§b§b50.00%§r§7的速度提升。§r",
+              "§7每级超过§9IV§7的核心等级获得§b§b15.00%§r§7的能量减免。§r",
+              "§7最大并行为§b2x§7最大电压等级。§r",
+              "§7§7点污染每秒§r",
+              "§7§7§m-----------------------------------------§r",
+              "§7§z11950§Z§r",
+              "§7§!shift§r"
+            ],
+            "tooltipTotalLines": 13,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7015",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_22",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 204,
+            "y": 137,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f钨锭 (#7618/11081)",
+              "§7W§r"
+            ],
+            "tooltipTotalLines": 2,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          },
+          {
+            "widgetId": "widget:7016",
+            "parentId": "widget:6988",
+            "childIds": [],
+            "childCount": 0,
+            "childIdsTruncated": false,
+            "class": "com.cleanroommc.modularui.widgets.slot.ItemSlot",
+            "name": "slot_23",
+            "kind": "widget",
+            "enabled": true,
+            "valid": true,
+            "x": 222,
+            "y": 137,
+            "width": 18,
+            "height": 18,
+            "tooltip": [
+              "§f木斧 (#0271)",
+              "§7§r",
+              "§7§9攻击伤害 +3§r"
+            ],
+            "tooltipTotalLines": 3,
+            "tooltipTruncated": false,
+            "tooltipSource": "MUI2 public RichTooltip.isEmpty/getRichText/getAsStrings; native dirty builder refreshed",
+            "supportedActions": []
+          }
+        ],
+        "offset": 0,
+        "nextOffset": 48,
+        "hasMore": true,
+        "visited": 76,
+        "scanTruncated": false,
+        "byteLimited": false,
+        "nonAtomic": true,
+        "partial": true,
+        "budget": {
+          "softBudgetMicros": 4000,
+          "actualElapsedMicros": 4101,
+          "softBudgetExceeded": true,
+          "policy": "Soft budget includes public getters and JSON construction; a single getter cannot be preempted. At least one compiled entry progresses per page."
+        },
+        "coverage": {
+          "source": "Forge-captured vanilla buttons; actual public creative tabs and inventory-tab player slots; fixed AE and vanilla editable fields; public MUI2 panel/widget tree, current tooltips, public textures and supported native controls.",
+          "identity": "Widget IDs identify actual objects for this screenId; native button IDs may repeat. Closed/replaced controls are revalidated before mutation.",
+          "actions": "Native callbacks/value setters/sync; no OS input, drawing, hover-cache selection or caller-selected reflection. Generic activate requires neutral physical modifiers/buttons."
+        }
+      }
+    }
+  },
+  "world": {
+    "ok": true,
+    "data": {
+      "x": -10,
+      "y": 2,
+      "z": 145,
+      "dimension": 180,
+      "source": "integrated_server",
+      "registryName": "gregtech:gt.blockmachines",
+      "metadata": 2,
+      "tileClass": "gregtech.api.metatileentity.BaseMetaTileEntity",
+      "inventory": {
+        "name": "gt.blockmachines.basicmachine.macerator.tier.06.name",
+        "totalSlots": 11,
+        "slots": [
+          {
+            "index": 0,
+            "item": null
+          },
+          {
+            "index": 1,
+            "item": null
+          },
+          {
+            "index": 2,
+            "item": null
+          },
+          {
+            "index": 3,
+            "item": null
+          },
+          {
+            "index": 4,
+            "item": null
+          },
+          {
+            "index": 5,
+            "item": null
+          },
+          {
+            "index": 6,
+            "item": {
+              "registryName": "minecraft:pumpkin_seeds",
+              "displayName": "南瓜种子",
+              "count": 4,
+              "metadata": 0,
+              "hasTag": false
+            }
+          },
+          {
+            "index": 7,
+            "item": null
+          },
+          {
+            "index": 8,
+            "item": null
+          },
+          {
+            "index": 9,
+            "item": null
+          },
+          {
+            "index": 10,
+            "item": null
+          }
+        ],
+        "truncated": false
+      },
+      "fluids": {
+        "tanks": [],
+        "totalTanks": 0,
+        "truncated": false
+      },
+      "gregtech": {
+        "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe",
+        "metaTileId": 10940,
+        "displayName": "gt.blockmachines.basicmachine.macerator.tier.06.name",
+        "progress": 0,
+        "maxProgress": 0,
+        "active": false,
+        "allowedToWork": false,
+        "storedEU": 2097152,
+        "euCapacity": 2097152,
+        "inputVoltage": 32768,
+        "outputVoltage": 0,
+        "info": [
+          "GT5U.infodata.progress\\\\§a0§r\\\\§e0§r",
+          "GT5U.infodata.energy\\\\§a2,097,152§r\\\\§e2,097,152§r",
+          "GT5U.infodata.currently_uses\\\\§c0§r\\\\§c0§r"
+        ],
+        "structureErrorBits": 0
+      }
+    }
+  },
+  "recipe": {
+    "ok": true,
+    "data": {
+      "recipeMap": {
+        "name": "gt.recipe.macerator",
+        "text": "研磨机",
+        "amperage": 1,
+        "registerNEI": true
+      },
+      "machine": {
+        "x": -10,
+        "y": 2,
+        "z": 145,
+        "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe",
+        "metaTileId": 10940,
+        "currentRecipeMap": "gt.recipe.macerator",
+        "mode": null,
+        "modeName": null,
+        "availableRecipeMaps": [
+          {
+            "name": "gt.recipe.macerator",
+            "text": "研磨机",
+            "amperage": 1,
+            "registerNEI": true
+          }
+        ],
+        "availableMapsTruncated": false,
+        "scope": "Public current mode and RecipeMapWorkable maps; structure and recipe execution have not been validated."
+      },
+      "query": {},
+      "recipes": [
+        {
+          "available": true,
+          "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+          "rawEUt": 2,
+          "rawDurationTicks": 400,
+          "specialValue": 0,
+          "enabled": true,
+          "hidden": false,
+          "fakeRecipe": false,
+          "canBeBuffered": true,
+          "needsEmptyOutput": false,
+          "nbtSensitive": false,
+          "chanceDenominator": 10000,
+          "items": {
+            "inputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "gregtech:gt.metaitem.02",
+                    "displayName": "奶酪片",
+                    "count": 1,
+                    "metadata": 32576,
+                    "hasTag": false
+                  },
+                  "chance": 10000,
+                  "nonConsumedCatalyst": false
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "gregtech:gt.metaitem.01",
+                    "displayName": "小堆奶酪粉",
+                    "count": 1,
+                    "metadata": 1894,
+                    "hasTag": false
+                  },
+                  "chance": 10000
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            }
+          },
+          "fluids": {
+            "inputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            }
+          },
+          "specialItems": null,
+          "neiDescription": null,
+          "metadata": [],
+          "metadataTotal": 0,
+          "metadataTruncated": false,
+          "metadataUnknown": false,
+          "metadataUnknownCount": 0,
+          "publicMetadataComplete": true,
+          "executionValidated": false,
+          "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+          "alternativeFluidInputs": null,
+          "softBudgetPartial": false,
+          "stackLimitPerGroup": 64,
+          "metadataLimit": 64,
+          "genericValueLimit": 32,
+          "category": "gt.recipe.macerator",
+          "categoryRecipeIndex": 0
+        },
+        {
+          "available": true,
+          "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+          "rawEUt": 2,
+          "rawDurationTicks": 400,
+          "specialValue": 0,
+          "enabled": true,
+          "hidden": false,
+          "fakeRecipe": false,
+          "canBeBuffered": true,
+          "needsEmptyOutput": false,
+          "nbtSensitive": false,
+          "chanceDenominator": 10000,
+          "items": {
+            "inputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "minecraft:dye",
+                    "displayName": "可可豆",
+                    "count": 1,
+                    "metadata": 3,
+                    "hasTag": false
+                  },
+                  "chance": 10000,
+                  "nonConsumedCatalyst": false
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "harvestcraft:cocoapowderItem",
+                    "displayName": "可可粉",
+                    "count": 1,
+                    "metadata": 0,
+                    "hasTag": false
+                  },
+                  "chance": 10000
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            }
+          },
+          "fluids": {
+            "inputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            }
+          },
+          "specialItems": null,
+          "neiDescription": null,
+          "metadata": [],
+          "metadataTotal": 0,
+          "metadataTruncated": false,
+          "metadataUnknown": false,
+          "metadataUnknownCount": 0,
+          "publicMetadataComplete": true,
+          "executionValidated": false,
+          "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+          "alternativeFluidInputs": null,
+          "softBudgetPartial": false,
+          "stackLimitPerGroup": 64,
+          "metadataLimit": 64,
+          "genericValueLimit": 32,
+          "category": "gt.recipe.macerator",
+          "categoryRecipeIndex": 1
+        },
+        {
+          "available": true,
+          "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+          "rawEUt": 2,
+          "rawDurationTicks": 400,
+          "specialValue": 0,
+          "enabled": true,
+          "hidden": false,
+          "fakeRecipe": false,
+          "canBeBuffered": true,
+          "needsEmptyOutput": false,
+          "nbtSensitive": false,
+          "chanceDenominator": 10000,
+          "items": {
+            "inputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "minecraft:pumpkin",
+                    "displayName": "南瓜",
+                    "count": 1,
+                    "metadata": 0,
+                    "hasTag": false
+                  },
+                  "chance": 10000,
+                  "nonConsumedCatalyst": false
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "minecraft:pumpkin_seeds",
+                    "displayName": "南瓜种子",
+                    "count": 4,
+                    "metadata": 0,
+                    "hasTag": false
+                  },
+                  "chance": 10000
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            }
+          },
+          "fluids": {
+            "inputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            }
+          },
+          "specialItems": null,
+          "neiDescription": null,
+          "metadata": [],
+          "metadataTotal": 0,
+          "metadataTruncated": false,
+          "metadataUnknown": false,
+          "metadataUnknownCount": 0,
+          "publicMetadataComplete": true,
+          "executionValidated": false,
+          "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+          "alternativeFluidInputs": null,
+          "softBudgetPartial": false,
+          "stackLimitPerGroup": 64,
+          "metadataLimit": 64,
+          "genericValueLimit": 32,
+          "category": "gt.recipe.macerator",
+          "categoryRecipeIndex": 2
+        },
+        {
+          "available": true,
+          "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+          "rawEUt": 2,
+          "rawDurationTicks": 400,
+          "specialValue": 0,
+          "enabled": true,
+          "hidden": false,
+          "fakeRecipe": false,
+          "canBeBuffered": true,
+          "needsEmptyOutput": false,
+          "nbtSensitive": false,
+          "chanceDenominator": 10000,
+          "items": {
+            "inputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "minecraft:melon",
+                    "displayName": "西瓜片",
+                    "count": 1,
+                    "metadata": 0,
+                    "hasTag": false
+                  },
+                  "chance": 10000,
+                  "nonConsumedCatalyst": false
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [
+                {
+                  "index": 0,
+                  "stack": {
+                    "registryName": "minecraft:melon_seeds",
+                    "displayName": "西瓜种子",
+                    "count": 1,
+                    "metadata": 0,
+                    "hasTag": false
+                  },
+                  "chance": 10000
+                }
+              ],
+              "total": 1,
+              "truncated": false
+            }
+          },
+          "fluids": {
+            "inputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            },
+            "outputs": {
+              "entries": [],
+              "total": 0,
+              "truncated": false
+            }
+          },
+          "specialItems": null,
+          "neiDescription": null,
+          "metadata": [],
+          "metadataTotal": 0,
+          "metadataTruncated": false,
+          "metadataUnknown": false,
+          "metadataUnknownCount": 0,
+          "publicMetadataComplete": true,
+          "executionValidated": false,
+          "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+          "alternativeFluidInputs": null,
+          "softBudgetPartial": false,
+          "stackLimitPerGroup": 64,
+          "metadataLimit": 64,
+          "genericValueLimit": 32,
+          "category": "gt.recipe.macerator",
+          "categoryRecipeIndex": 3
+        }
+      ],
+      "scannedCandidates": 4,
+      "totalScanned": 4,
+      "unknownCandidates": 0,
+      "filterIncomplete": false,
+      "limit": 4,
+      "hasMore": true,
+      "nextCursor": "5113594b-ba07-42c3-a227-bb71b3e620dc",
+      "partial": true,
+      "complete": false,
+      "byteLimited": false,
+      "stopReason": "result_limit",
+      "nonAtomic": true,
+      "executionValidated": false,
+      "coverage": {
+        "scope": "Current registered recipes of the selected actual GT RecipeMap; dynamic backend-generated recipes and machine execution checks are not queried.",
+        "visibility": "Public registerNEI map, non-HIDE categories and mHidden=false recipes only; fake/disabled status is retained without promising execution.",
+        "matching": "Actual Item identity and metadata/wildcard; input NBT follows recipe sensitivity and output tags must match. Input declared alternatives/ore IDs are bounded. Counts are ignored; this is item containment, not a complete-input recipe match.",
+        "metadata": "Known public GTRecipeConstants condition keys only; metadataUnknown and publicMetadataComplete describe unknown/truncated values.",
+        "cursor": "Single-use, session/world/inventory/map/filter bound, 30 second TTL; structural collection changes invalidate. Recipe fields and non-structural element replacement remain non-atomic."
+      },
+      "limits": {
+        "candidates": 512,
+        "results": 16,
+        "resultBytes": 131072,
+        "categories": 64,
+        "maps": 16,
+        "matchStacks": 256,
+        "activeCursors": 8,
+        "cursorTtlSeconds": 30
+      },
+      "budget": {
+        "elapsedMicros": 410,
+        "softBudgetMicros": 2000,
+        "softBudgetExceeded": false
+      },
+      "sessionId": "d068479d-10a3-4ab6-b979-5ab1488271ce",
+      "source": "integrated_server",
+      "dimension": 180,
+      "worldTick": 2530102,
+      "queryPages": 1,
+      "maxPages": 16
+    }
+  }
+}

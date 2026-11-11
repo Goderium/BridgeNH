@@ -1,0 +1,399 @@
+{
+  "source": "Actual public raw recipes and projected native feed/output/stopped inventory evidence; empty-slot coverage and GUI bindings are not recorded here.",
+  "mold": {
+    "name": "mold_retained",
+    "query": {
+      "available": true,
+      "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+      "rawEUt": 3,
+      "rawDurationTicks": 130,
+      "specialValue": 0,
+      "enabled": true,
+      "hidden": false,
+      "fakeRecipe": false,
+      "canBeBuffered": true,
+      "needsEmptyOutput": false,
+      "nbtSensitive": false,
+      "chanceDenominator": 10000,
+      "items": {
+        "inputs": {
+          "entries": [
+            {
+              "index": 0,
+              "stack": {
+                "registryName": "gregtech:gt.metaitem.02",
+                "displayName": "细幽冥剧毒结晶导线",
+                "count": 1,
+                "metadata": 19951,
+                "hasTag": false
+              },
+              "chance": 10000,
+              "nonConsumedCatalyst": false
+            },
+            {
+              "index": 1,
+              "stack": {
+                "registryName": "gregtech:gt.metaitem.01",
+                "displayName": "模具（粒）",
+                "count": 0,
+                "metadata": 32309,
+                "hasTag": false
+              },
+              "chance": 10000,
+              "nonConsumedCatalyst": true
+            }
+          ],
+          "total": 2,
+          "truncated": false
+        },
+        "outputs": {
+          "entries": [
+            {
+              "index": 0,
+              "stack": {
+                "registryName": "gregtech:gt.metaitem.01",
+                "displayName": "幽冥剧毒结晶粒",
+                "count": 1,
+                "metadata": 9951,
+                "hasTag": false
+              },
+              "chance": 10000
+            }
+          ],
+          "total": 1,
+          "truncated": false
+        }
+      },
+      "fluids": {
+        "inputs": {
+          "entries": [],
+          "total": 0,
+          "truncated": false
+        },
+        "outputs": {
+          "entries": [],
+          "total": 0,
+          "truncated": false
+        }
+      },
+      "specialItems": null,
+      "neiDescription": null,
+      "metadata": [],
+      "metadataTotal": 0,
+      "metadataTruncated": false,
+      "metadataUnknown": false,
+      "metadataUnknownCount": 0,
+      "publicMetadataComplete": true,
+      "executionValidated": false,
+      "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+      "alternativeFluidInputs": null,
+      "softBudgetPartial": false,
+      "stackLimitPerGroup": 64,
+      "metadataLimit": 64,
+      "genericValueLimit": 32,
+      "category": "gt.recipe.category.alloy_smelter_recycling",
+      "categoryRecipeIndex": 0
+    },
+    "position": {
+      "x": -6,
+      "y": 2,
+      "z": 143
+    },
+    "native": [
+      {
+        "id": "fed",
+        "data": {
+          "inventory": {
+            "name": "gt.blockmachines.basicmachine.alloysmelter.tier.06.name",
+            "totalSlots": 9,
+            "slots": [
+              {
+                "index": 5,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.02",
+                  "displayName": "细幽冥剧毒结晶导线",
+                  "count": 1,
+                  "metadata": 19951,
+                  "hasTag": false
+                }
+              },
+              {
+                "index": 6,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "模具（粒）",
+                  "count": 1,
+                  "metadata": 32309,
+                  "hasTag": false
+                }
+              }
+            ],
+            "truncated": false
+          }
+        }
+      },
+      {
+        "id": "output",
+        "data": {
+          "inventory": {
+            "name": "gt.blockmachines.basicmachine.alloysmelter.tier.06.name",
+            "totalSlots": 9,
+            "slots": [
+              {
+                "index": 6,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "模具（粒）",
+                  "count": 1,
+                  "metadata": 32309,
+                  "hasTag": false
+                }
+              },
+              {
+                "index": 7,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "幽冥剧毒结晶粒",
+                  "count": 1,
+                  "metadata": 9951,
+                  "hasTag": false
+                }
+              }
+            ],
+            "truncated": false
+          }
+        }
+      },
+      {
+        "id": "stopped",
+        "data": {
+          "inventory": {
+            "name": "gt.blockmachines.basicmachine.alloysmelter.tier.06.name",
+            "totalSlots": 9,
+            "slots": [
+              {
+                "index": 6,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "模具（粒）",
+                  "count": 1,
+                  "metadata": 32309,
+                  "hasTag": false
+                }
+              },
+              {
+                "index": 7,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "幽冥剧毒结晶粒",
+                  "count": 1,
+                  "metadata": 9951,
+                  "hasTag": false
+                }
+              }
+            ],
+            "truncated": false
+          },
+          "gregtech.active": false,
+          "gregtech.progress": 0,
+          "gregtech.maxProgress": 0
+        }
+      }
+    ]
+  },
+  "die": {
+    "query": {
+      "available": true,
+      "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+      "rawEUt": 120,
+      "rawDurationTicks": 57,
+      "specialValue": 0,
+      "enabled": true,
+      "hidden": false,
+      "fakeRecipe": false,
+      "canBeBuffered": true,
+      "needsEmptyOutput": false,
+      "nbtSensitive": false,
+      "chanceDenominator": 10000,
+      "items": {
+        "inputs": {
+          "entries": [
+            {
+              "index": 0,
+              "stack": {
+                "registryName": "bartworks:gt.bwMetaGeneratedingot",
+                "displayName": "耐热铬铁合金-903锭",
+                "count": 1,
+                "metadata": 10084,
+                "hasTag": false
+              },
+              "chance": 10000,
+              "nonConsumedCatalyst": false
+            },
+            {
+              "index": 1,
+              "stack": {
+                "registryName": "gregtech:gt.metaitem.01",
+                "displayName": "模头（微型管道）",
+                "count": 0,
+                "metadata": 32358,
+                "hasTag": false
+              },
+              "chance": 10000,
+              "nonConsumedCatalyst": true
+            }
+          ],
+          "total": 2,
+          "truncated": false
+        },
+        "outputs": {
+          "entries": [
+            {
+              "index": 0,
+              "stack": {
+                "registryName": "gregtech:gt.blockmachines",
+                "displayName": "微型耐热铬铁合金-903流体管道",
+                "count": 2,
+                "metadata": 30995,
+                "hasTag": false
+              },
+              "chance": 10000
+            }
+          ],
+          "total": 1,
+          "truncated": false
+        }
+      },
+      "fluids": {
+        "inputs": {
+          "entries": [],
+          "total": 0,
+          "truncated": false
+        },
+        "outputs": {
+          "entries": [],
+          "total": 0,
+          "truncated": false
+        }
+      },
+      "specialItems": null,
+      "neiDescription": null,
+      "metadata": [],
+      "metadataTotal": 0,
+      "metadataTruncated": false,
+      "metadataUnknown": false,
+      "metadataUnknownCount": 0,
+      "publicMetadataComplete": true,
+      "executionValidated": false,
+      "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+      "alternativeFluidInputs": null,
+      "softBudgetPartial": false,
+      "stackLimitPerGroup": 64,
+      "metadataLimit": 64,
+      "genericValueLimit": 32,
+      "category": "gt.recipe.extruder",
+      "categoryRecipeIndex": 0
+    },
+    "data": [
+      {
+        "id": "fed",
+        "values": {
+          "inventory": {
+            "name": "gt.blockmachines.basicmachine.extruder.tier.06.name",
+            "totalSlots": 9,
+            "slots": [
+              {
+                "index": 5,
+                "item": {
+                  "registryName": "bartworks:gt.bwMetaGeneratedingot",
+                  "displayName": "耐热铬铁合金-903锭",
+                  "count": 1,
+                  "metadata": 10084,
+                  "hasTag": false
+                }
+              },
+              {
+                "index": 6,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "模头（微型管道）",
+                  "count": 1,
+                  "metadata": 32358,
+                  "hasTag": false
+                }
+              }
+            ],
+            "truncated": false
+          }
+        }
+      },
+      {
+        "id": "output",
+        "values": {
+          "inventory": {
+            "name": "gt.blockmachines.basicmachine.extruder.tier.06.name",
+            "totalSlots": 9,
+            "slots": [
+              {
+                "index": 6,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "模头（微型管道）",
+                  "count": 1,
+                  "metadata": 32358,
+                  "hasTag": false
+                }
+              },
+              {
+                "index": 7,
+                "item": {
+                  "registryName": "gregtech:gt.blockmachines",
+                  "displayName": "微型耐热铬铁合金-903流体管道",
+                  "count": 2,
+                  "metadata": 30995,
+                  "hasTag": false
+                }
+              }
+            ],
+            "truncated": false
+          }
+        }
+      },
+      {
+        "id": "stopped",
+        "values": {
+          "inventory": {
+            "name": "gt.blockmachines.basicmachine.extruder.tier.06.name",
+            "totalSlots": 9,
+            "slots": [
+              {
+                "index": 6,
+                "item": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "模头（微型管道）",
+                  "count": 1,
+                  "metadata": 32358,
+                  "hasTag": false
+                }
+              },
+              {
+                "index": 7,
+                "item": {
+                  "registryName": "gregtech:gt.blockmachines",
+                  "displayName": "微型耐热铬铁合金-903流体管道",
+                  "count": 2,
+                  "metadata": 30995,
+                  "hasTag": false
+                }
+              }
+            ],
+            "truncated": false
+          },
+          "gregtech.active": false,
+          "gregtech.progress": 0,
+          "gregtech.maxProgress": 0
+        }
+      }
+    ]
+  }
+}

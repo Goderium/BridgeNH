@@ -1,0 +1,5 @@
+include LICENSE README.md README_zh.md
+recursive-include src/minecraft_codex_bridge *.py *.md
+# Repository integration tests require the companion mod and root scripts.
+prune tests
+global-exclude *.pyc *.pyo

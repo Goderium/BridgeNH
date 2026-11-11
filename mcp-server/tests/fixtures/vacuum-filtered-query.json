@@ -1,0 +1,163 @@
+{
+  "ok": true,
+  "data": {
+    "recipeMap": {
+      "name": "gt.recipe.vacuumfreezer",
+      "text": "真空冷冻机",
+      "amperage": 1,
+      "registerNEI": true
+    },
+    "machine": {
+      "x": -184,
+      "y": 3,
+      "z": 145,
+      "metaClass": "gregtech.common.tileentities.machines.multi.MTEVacuumFreezer",
+      "metaTileId": 1002,
+      "currentRecipeMap": "gt.recipe.vacuumfreezer",
+      "mode": 0,
+      "modeName": "未知模式",
+      "availableRecipeMaps": [
+        {
+          "name": "gt.recipe.vacuumfreezer",
+          "text": "真空冷冻机",
+          "amperage": 1,
+          "registerNEI": true
+        }
+      ],
+      "availableMapsTruncated": false,
+      "scope": "Public current mode and RecipeMapWorkable maps; structure and recipe execution have not been validated."
+    },
+    "query": {
+      "input": {
+        "registryName": "gregtech:gt.metaitem.01",
+        "displayName": "热钨钢锭",
+        "count": 1,
+        "metadata": 12316,
+        "hasTag": false
+      }
+    },
+    "recipes": [
+      {
+        "available": true,
+        "source": "GTRecipe raw parameters; no machine overclock, parallel or efficiency applied",
+        "rawEUt": 1920,
+        "rawDurationTicks": 357,
+        "specialValue": 0,
+        "enabled": true,
+        "hidden": false,
+        "fakeRecipe": false,
+        "canBeBuffered": true,
+        "needsEmptyOutput": false,
+        "nbtSensitive": false,
+        "chanceDenominator": 10000,
+        "items": {
+          "inputs": {
+            "entries": [
+              {
+                "index": 0,
+                "stack": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "热钨钢锭",
+                  "count": 1,
+                  "metadata": 12316,
+                  "hasTag": false
+                },
+                "chance": 10000,
+                "nonConsumedCatalyst": false
+              }
+            ],
+            "total": 1,
+            "truncated": false
+          },
+          "outputs": {
+            "entries": [
+              {
+                "index": 0,
+                "stack": {
+                  "registryName": "gregtech:gt.metaitem.01",
+                  "displayName": "钨钢锭",
+                  "count": 1,
+                  "metadata": 11316,
+                  "hasTag": false
+                },
+                "chance": 10000
+              }
+            ],
+            "total": 1,
+            "truncated": false
+          }
+        },
+        "fluids": {
+          "inputs": {
+            "entries": [],
+            "total": 0,
+            "truncated": false
+          },
+          "outputs": {
+            "entries": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "specialItems": null,
+        "neiDescription": null,
+        "metadata": [],
+        "metadataTotal": 0,
+        "metadataTruncated": false,
+        "metadataUnknown": false,
+        "metadataUnknownCount": 0,
+        "publicMetadataComplete": true,
+        "executionValidated": false,
+        "conditionsCoverage": "Registered raw fields and recognized public GTRecipeConstants only; custom machine/backend checks and unknown metadata are not evaluated.",
+        "alternativeFluidInputs": null,
+        "softBudgetPartial": false,
+        "stackLimitPerGroup": 64,
+        "metadataLimit": 64,
+        "genericValueLimit": 32,
+        "category": "gt.recipe.vacuumfreezer",
+        "categoryRecipeIndex": 65
+      }
+    ],
+    "scannedCandidates": 319,
+    "totalScanned": 319,
+    "unknownCandidates": 0,
+    "filterIncomplete": false,
+    "limit": 16,
+    "hasMore": false,
+    "nextCursor": null,
+    "partial": false,
+    "complete": true,
+    "byteLimited": false,
+    "stopReason": "complete",
+    "nonAtomic": true,
+    "executionValidated": false,
+    "coverage": {
+      "scope": "Current registered recipes of the selected actual GT RecipeMap; dynamic backend-generated recipes and machine execution checks are not queried.",
+      "visibility": "Public registerNEI map, non-HIDE categories and mHidden=false recipes only; fake/disabled status is retained without promising execution.",
+      "matching": "Actual Item identity and metadata/wildcard; input NBT follows recipe sensitivity and output tags must match. Input declared alternatives/ore IDs are bounded. Counts are ignored; this is item containment, not a complete-input recipe match.",
+      "metadata": "Known public GTRecipeConstants condition keys only; metadataUnknown and publicMetadataComplete describe unknown/truncated values.",
+      "cursor": "Single-use, session/world/inventory/map/filter bound, 30 second TTL; structural collection changes invalidate. Recipe fields and non-structural element replacement remain non-atomic."
+    },
+    "limits": {
+      "candidates": 512,
+      "results": 16,
+      "resultBytes": 131072,
+      "categories": 64,
+      "maps": 16,
+      "matchStacks": 256,
+      "activeCursors": 8,
+      "cursorTtlSeconds": 30
+    },
+    "budget": {
+      "elapsedMicros": 621,
+      "softBudgetMicros": 2000,
+      "softBudgetExceeded": false
+    },
+    "sessionId": "9141192a-0af3-46a4-b5ff-93e7090c917c",
+    "source": "integrated_server",
+    "dimension": 180,
+    "worldTick": 2877176,
+    "queryPages": 1,
+    "maxPages": 16
+  }
+}

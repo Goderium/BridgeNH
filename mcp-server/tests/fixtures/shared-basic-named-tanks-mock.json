@@ -1,0 +1,95 @@
+{
+  "evidenceType": "mock_public_api_fixture_not_live_evidence",
+  "namedTanks": {
+    "schemaVersion": 1,
+    "source": "integrated_server",
+    "available": true,
+    "scope": "complete_actual_owner_named_tanks_public_api_read",
+    "binding": "public_basic_machine_named_tank_identity",
+    "owner": {
+      "x": -260,
+      "y": 119,
+      "z": -120,
+      "dimension": 180,
+      "registryName": "gregtech:gt.blockmachines",
+      "metaTileId": 810,
+      "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachine"
+    },
+    "tanks": [
+      {
+        "role": "input",
+        "publicGetter": "getFluidTank",
+        "capacity": 32000,
+        "empty": true,
+        "fluid": null
+      },
+      {
+        "role": "output",
+        "publicGetter": "getFluidOutputTank",
+        "capacity": 64000,
+        "empty": false,
+        "fluid": {
+          "fluid": "bridge_named_tank_fixture.fluid",
+          "amount": 144,
+          "hasTag": false
+        }
+      }
+    ],
+    "totalTanks": 2,
+    "truncated": false,
+    "publicApi": "gregtech.api.metatileentity.implementations.MTEBasicMachine.getFluidTank/getFluidOutputTank"
+  },
+  "fluidSlot": {
+    "canFill": {
+      "available": true,
+      "value": false
+    },
+    "canDrain": {
+      "available": true,
+      "value": true
+    },
+    "phantom": {
+      "available": true,
+      "value": false
+    },
+    "nativeClickAvailable": true,
+    "fluid": {
+      "available": true,
+      "empty": false,
+      "value": {
+        "fluid": "bridge_named_tank_fixture.fluid",
+        "amount": 144,
+        "hasTag": false
+      }
+    },
+    "capacity": {
+      "available": true,
+      "value": 64000
+    },
+    "machineTankBinding": {
+      "schemaVersion": 1,
+      "source": "client_display",
+      "available": true,
+      "scope": "current_native_widget_actual_named_machine_tank_identity",
+      "binding": "public_basic_machine_named_tank_identity",
+      "owner": {
+        "x": -260,
+        "y": 119,
+        "z": -120,
+        "dimension": 180,
+        "registryName": "gregtech:gt.blockmachines",
+        "metaTileId": 810,
+        "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachine"
+      },
+      "role": "output",
+      "publicGetter": "getFluidOutputTank",
+      "widgetPublicGetter": "getFluidTank",
+      "totalNamedTanks": 2,
+      "truncated": false,
+      "serverAcceptance": false
+    },
+    "available": true,
+    "source": "Current public FluidSlot.getFluidStack/getFluidTank and sync-handler permissions; client display state, not server tank acceptance.",
+    "nativeAction": "Normal public left press and no-op release; native cursor, fill/drain, phantom, filter and synchronization rules decide the effect. No direct tank fill or setter."
+  }
+}

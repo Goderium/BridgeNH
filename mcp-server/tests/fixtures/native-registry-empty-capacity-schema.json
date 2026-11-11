@@ -1,0 +1,72 @@
+{
+  "first": {
+    "schemaVersion": 1,
+    "source": "public_fluid_container_registry",
+    "scope": "observed_stack_copy_public_api_read",
+    "itemHasTag": true,
+    "probeMutatedCopy": false,
+    "available": true,
+    "empty": true,
+    "fluid": null,
+    "capacity": {
+      "available": true,
+      "source": "public_fluid_container_registry_getContainerCapacity",
+      "fluidName": "bridge_native_registry_fixture.fluid",
+      "value": 4321
+    }
+  },
+  "other": {
+    "schemaVersion": 1,
+    "source": "public_fluid_container_registry",
+    "scope": "observed_stack_copy_public_api_read",
+    "itemHasTag": true,
+    "probeMutatedCopy": false,
+    "available": true,
+    "empty": true,
+    "fluid": null,
+    "capacity": {
+      "available": true,
+      "source": "public_fluid_container_registry_getContainerCapacity",
+      "fluidName": "bridge_native_registry_fixture.other",
+      "value": 8765
+    }
+  },
+  "zeroTuple": {
+    "schemaVersion": 1,
+    "source": "public_fluid_container_registry",
+    "scope": "observed_stack_copy_public_api_read",
+    "itemHasTag": true,
+    "probeMutatedCopy": false,
+    "available": true,
+    "empty": true,
+    "fluid": null,
+    "capacity": {
+      "available": false,
+      "reason": "registered_empty_capacity_unavailable_for_fluid",
+      "source": "public_fluid_container_registry_getContainerCapacity",
+      "fluidName": "bridge_native_registry_fixture.no_tuple"
+    }
+  },
+  "filledUnchanged": {
+    "schemaVersion": 1,
+    "source": "public_fluid_container_registry",
+    "scope": "observed_stack_copy_public_api_read",
+    "itemHasTag": false,
+    "probeMutatedCopy": false,
+    "available": true,
+    "empty": false,
+    "capacity": {
+      "available": true,
+      "value": 4321
+    },
+    "fluid": {
+      "fluidName": "bridge_native_registry_fixture.fluid",
+      "amount": 4321,
+      "hasTag": false
+    }
+  },
+  "registryClassSha256": "221edf0b23596a01b5d31a79c1a3fc9b6978a10f1152fad58db42eed9f2a5c0d",
+  "registryClassResource": "file:/example/build/classes/java/patchedMc/net/minecraftforge/fluids/FluidContainerRegistry.class",
+  "registryClassUnmodified": true,
+  "environment": "headless Items/FluidRegistry/MinecraftForge initialization fixtures; no client or server acceptance"
+}

@@ -1,0 +1,16 @@
+# The installer generates absolute paths; replace these placeholders for manual setup.
+# Reuse your existing MCB registration name instead of adding a second server.
+[mcp_servers.mcb]
+command = '<MCB Python executable>'
+args = ['-m', 'minecraft_codex_bridge']
+startup_timeout_sec = 30
+tool_timeout_sec = 70
+
+[mcp_servers.mcb.env]
+MCB_CONFIG_FILE = '<absolute path to .mcb.local.json or user config.json>'
+PYTHONUTF8 = '1'
+# Profiles in this file are inventory only; every chat starts unbound.
+# Use mcb_clients then mcb_connection to explicitly bind the requested client.
+# Use the actual chat ID when binding; never hard-code CODEX_THREAD_ID here.
+# If MCP startup omits it, the first explicit bind pins this connection's owner.
+# Standalone in-process CLI adapters retain explicit profile/runtime selection.

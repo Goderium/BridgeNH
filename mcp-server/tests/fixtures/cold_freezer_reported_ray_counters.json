@@ -1,0 +1,20 @@
+{
+  "provenance": "Parent-provided excerpt from the real cold freezer 1002 maintenance currentOnly failure. This is not a complete HTTP receipt; test actor/context and target evidence are reconstructed by existing guarded fixtures.",
+  "current": {"normalReach": 4.5, "maxDistance": 3},
+  "result": {"status": "no_candidate", "complete": true, "partial": false, "currentOnly": true, "selected": null},
+  "coverage": {
+    "candidateSlots": 1,
+    "candidatesExamined": 1,
+    "candidateAttempts": 1,
+    "maxCandidateAttempts": 36,
+    "serverRays": 27,
+    "maxClientRays": 27,
+    "maxServerRays": 198,
+    "clientRays": 0,
+    "unknownChecks": 0,
+    "serverPages": 1,
+    "maxServerPages": 4,
+    "maxCandidates": 33,
+    "rayCounting": "Actual native Access.trace invocations, including shape fallback samples; server total is shared across continuation pages."
+  }
+}

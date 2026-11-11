@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'com.gtnewhorizons.retrofuturagradle' version '2.0.2'
+}
+
+group = providers.gradleProperty('modGroup').get()
+version = providers.gradleProperty('modVersion').get()
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(8) }
+}
+
+minecraft {
+    mcVersion = providers.gradleProperty('minecraftVersion').get()
+    javaCompatibilityVersion = 8
+    jvmLanguageVersion = JavaLanguageVersion.of(8)
+    mcpMappingChannel = 'stable'
+    mcpMappingVersion = '12'
+    useForgeEmbeddedMappings = false
+    injectMissingGenerics = false
+    injectedTags.put('VERSION', project.version.toString())
+}
+
+apply from: 'repositories.gradle'
+apply from: 'dependencies.gradle'
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-proc:none']
+}
+tasks.injectTags { outputClassName.set('com.Goderium.BridgeNH.util.Tags') }
+def buildIdentityDir = layout.buildDirectory.dir('generated/sources/bridgeIdentity')
+def identityInputs = files(fileTree('src/main') { include '**/*'; exclude '**/.DS_Store' },
+    'build.gradle', 'settings.gradle', 'gradle.properties', 'dependencies.gradle', 'repositories.gradle')
+tasks.register('generateBridgeIdentity') {
+    inputs.files(identityInputs)
+    outputs.dir(buildIdentityDir)
+    doLast {
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        identityInputs.files.findAll { it.isFile() }.sort { project.relativePath(it).replace('\\', '/') }.each { source ->
+            digest.update(project.relativePath(source).replace('\\', '/').getBytes('UTF-8'))
+            digest.update((byte) 0)
+            digest.update(source.bytes)
+            digest.update((byte) 0)
+        }
+        def target = buildIdentityDir.get().file('com/Goderium/BridgeNH/util/BridgeBuildIdentity.java').asFile
+        target.parentFile.mkdirs()
+        target.setText('package com.Goderium.BridgeNH.util;\npublic final class BridgeBuildIdentity {\n' +
+            '    public static String fingerprint() { return "' + digest.digest().encodeHex().toString() + '"; }\n}\n', 'UTF-8')
+    }
+}
+sourceSets.main.java.srcDir(buildIdentityDir)
+tasks.compileJava { dependsOn tasks.named('generateBridgeIdentity') }
+tasks.processResources {
+    inputs.property 'version', project.version
+    filesMatching('mcmod.info') { expand(version: project.version) }
+    filesMatching('META-INF/rfb-plugin/*.properties') { expand(version: project.version) }
+}
+tasks.jar {
+    from('LICENSE') { into 'META-INF' }
+    manifest.attributes('FMLCorePlugin': 'com.Goderium.BridgeNH.loader.core.NeiObserverLoadingPlugin',
+        'FMLCorePluginContainsFMLMod': 'true', 'ForceLoadAsMod': 'true',
+        'Implementation-Title': 'BridgeNH', 'Implementation-Version': project.version,
+        'Implementation-Vendor': 'Goderium')
+}
+
+tasks.register('bridgeSelfTest', JavaExec) {
+    dependsOn tasks.testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.Goderium.BridgeNH.common.bridge.BridgeSelfTest'
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(8) }
+}
+
+// The existing test sources are a main-based harness, not a JUnit suite.
+// Keep future framework tests enabled and make the real harness part of check/build.
+tasks.named('test', Test) { failOnNoDiscoveredTests = false }
+tasks.named('check') { dependsOn tasks.named('bridgeSelfTest') }

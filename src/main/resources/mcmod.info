@@ -1,0 +1,12 @@
+[
+  {
+    "modid": "codexbridge",
+    "name": "BridgeNH",
+    "description": "Authenticated local tools for client inspection and normal player controls.",
+    "version": "${version}",
+    "mcversion": "1.7.10",
+    "authorList": ["Goderium"],
+    "url": "https://github.com/Goderium/BridgeNH",
+    "dependencies": []
+  }
+]

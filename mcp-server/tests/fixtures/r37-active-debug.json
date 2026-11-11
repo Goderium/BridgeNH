@@ -1,0 +1,1329 @@
+{
+  "flow": {
+    "schemaVersion": 1,
+    "available": true,
+    "evidenceId": "5ff36c3c-50d5-4683-8dbf-4fb32d42234a",
+    "caseId": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+    "executionMode": "normal_world",
+    "retrievalScope": "api_receiver",
+    "fixturePreparationIncluded": false,
+    "methodEntryThroughRecoveryIncluded": true,
+    "state": "running",
+    "dimension": 180,
+    "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+    "runId": "53255bd2-c411-417f-80a7-e60d389f1bf3",
+    "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+    "source": "tstqa_public_instance_adapter",
+    "adapterRunOwned": true,
+    "cleanupCompleted": false,
+    "origin": {
+      "x": -424,
+      "y": 4,
+      "z": 8
+    },
+    "stages": [
+      {
+        "name": "method_entry",
+        "elapsedNanos": 22500,
+        "worldTick": 6783904
+      },
+      {
+        "name": "receiver_prepared",
+        "elapsedNanos": 11352400,
+        "worldTick": 6783904
+      },
+      {
+        "name": "native_public_blueprint_constructed",
+        "elapsedNanos": 14008200,
+        "worldTick": 6783904
+      },
+      {
+        "name": "simple_public_recipe_selected",
+        "elapsedNanos": 15239400,
+        "worldTick": 6783904
+      },
+      {
+        "name": "standard_debug_sources_configured",
+        "elapsedNanos": 295623800,
+        "worldTick": 6783910
+      },
+      {
+        "name": "infinite_observation_ready",
+        "elapsedNanos": 497499600,
+        "worldTick": 6783914
+      }
+    ],
+    "snapshots": [
+      {
+        "stage": "debug_supplied",
+        "items": [
+          {
+            "binding": "output",
+            "position": {
+              "x": -420,
+              "y": 6,
+              "z": 12
+            },
+            "totalSlots": 16,
+            "complete": true,
+            "slots": [
+              {
+                "slot": 0,
+                "count": 0
+              },
+              {
+                "slot": 1,
+                "count": 0
+              },
+              {
+                "slot": 2,
+                "count": 0
+              },
+              {
+                "slot": 3,
+                "count": 0
+              },
+              {
+                "slot": 4,
+                "count": 0
+              },
+              {
+                "slot": 5,
+                "count": 0
+              },
+              {
+                "slot": 6,
+                "count": 0
+              },
+              {
+                "slot": 7,
+                "count": 0
+              },
+              {
+                "slot": 8,
+                "count": 0
+              },
+              {
+                "slot": 9,
+                "count": 0
+              },
+              {
+                "slot": 10,
+                "count": 0
+              },
+              {
+                "slot": 11,
+                "count": 0
+              },
+              {
+                "slot": 12,
+                "count": 0
+              },
+              {
+                "slot": 13,
+                "count": 0
+              },
+              {
+                "slot": 14,
+                "count": 0
+              },
+              {
+                "slot": 15,
+                "count": 0
+              }
+            ]
+          },
+          {
+            "binding": "item_receiver",
+            "representation": "digital_chest_channels",
+            "complete": true,
+            "totalChannels": 2,
+            "position": {
+              "x": -423,
+              "y": 5,
+              "z": 9
+            },
+            "channels": [
+              {
+                "channel": 0,
+                "position": {
+                  "x": -423,
+                  "y": 5,
+                  "z": 9
+                },
+                "registeredName": "gt.blockmachines.super.chest.tier.01",
+                "runtimeClass": "gregtech.common.tileentities.storage.MTESuperChest",
+                "worldTileIdentityVerified": true,
+                "metaTileIdentityVerified": true,
+                "capacity": 4000000,
+                "voidOverflow": false,
+                "filterDisabled": false,
+                "itemSinkApi": "GTNHLib ItemSink.store(ImmutableItemStack), bulk channel 0, forced=false",
+                "configuredType": {
+                  "registryName": "bartworks:gt.bwMetaGeneratedstick",
+                  "metadata": 104,
+                  "count": 1,
+                  "nbt": ""
+                },
+                "bulk": {
+                  "count": 0
+                },
+                "physicalSlots": [
+                  {
+                    "count": 0,
+                    "slot": 0,
+                    "stackLimit": 64
+                  },
+                  {
+                    "count": 0,
+                    "slot": 1,
+                    "stackLimit": 64
+                  }
+                ],
+                "displayProjection": {
+                  "count": 0,
+                  "slot": 2,
+                  "stackLimit": 64
+                },
+                "displayProjectionExcludedFromAccounting": true,
+                "complete": true
+              },
+              {
+                "channel": 1,
+                "position": {
+                  "x": -424,
+                  "y": 5,
+                  "z": 8
+                },
+                "registeredName": "gt.blockmachines.super.chest.tier.01",
+                "runtimeClass": "gregtech.common.tileentities.storage.MTESuperChest",
+                "worldTileIdentityVerified": true,
+                "metaTileIdentityVerified": true,
+                "capacity": 4000000,
+                "voidOverflow": false,
+                "filterDisabled": false,
+                "itemSinkApi": "GTNHLib ItemSink.store(ImmutableItemStack), bulk channel 0, forced=false",
+                "configuredType": {
+                  "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+                  "metadata": 104,
+                  "count": 1,
+                  "nbt": ""
+                },
+                "bulk": {
+                  "count": 0
+                },
+                "physicalSlots": [
+                  {
+                    "count": 0,
+                    "slot": 0,
+                    "stackLimit": 64
+                  },
+                  {
+                    "count": 0,
+                    "slot": 1,
+                    "stackLimit": 64
+                  }
+                ],
+                "displayProjection": {
+                  "count": 0,
+                  "slot": 2,
+                  "stackLimit": 64
+                },
+                "displayProjectionExcludedFromAccounting": true,
+                "complete": true
+              }
+            ]
+          }
+        ],
+        "fluids": [
+          {
+            "binding": "fluid_receiver",
+            "position": {
+              "x": -414,
+              "y": 5,
+              "z": 9
+            },
+            "totalTanks": 1,
+            "complete": true,
+            "tanks": [
+              {
+                "tank": 0,
+                "capacity": 131072000,
+                "amount": 0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "elapsedNanos": 10798046800,
+    "worldTicks": 216,
+    "apiReceiverCapacity": {
+      "profile": "DEBUG_OBSERVATION",
+      "configuredItemReceiver": "gt.blockmachines.super.chest.tier.01",
+      "configuredFluidReceiver": "gt.blockmachines.hatch.input.tier.14",
+      "actualItemSlots": 3,
+      "actualItemInventoryStackLimit": 64,
+      "actualFluidReceiver": {
+        "binding": "fluid_receiver",
+        "position": {
+          "x": -414,
+          "y": 5,
+          "z": 9
+        },
+        "totalTanks": 1,
+        "complete": true,
+        "tanks": [
+          {
+            "tank": 0,
+            "capacity": 131072000,
+            "amount": 0
+          }
+        ]
+      },
+      "actualItemReceiver": {
+        "binding": "item_receiver",
+        "representation": "digital_chest_channels",
+        "complete": true,
+        "totalChannels": 2,
+        "position": {
+          "x": -423,
+          "y": 5,
+          "z": 9
+        },
+        "channels": [
+          {
+            "channel": 0,
+            "position": {
+              "x": -423,
+              "y": 5,
+              "z": 9
+            },
+            "registeredName": "gt.blockmachines.super.chest.tier.01",
+            "runtimeClass": "gregtech.common.tileentities.storage.MTESuperChest",
+            "worldTileIdentityVerified": true,
+            "metaTileIdentityVerified": true,
+            "capacity": 4000000,
+            "voidOverflow": false,
+            "filterDisabled": false,
+            "itemSinkApi": "GTNHLib ItemSink.store(ImmutableItemStack), bulk channel 0, forced=false",
+            "configuredType": {
+              "registryName": "bartworks:gt.bwMetaGeneratedstick",
+              "metadata": 104,
+              "count": 1,
+              "nbt": ""
+            },
+            "bulk": {
+              "count": 0
+            },
+            "physicalSlots": [
+              {
+                "count": 0,
+                "slot": 0,
+                "stackLimit": 64
+              },
+              {
+                "count": 0,
+                "slot": 1,
+                "stackLimit": 64
+              }
+            ],
+            "displayProjection": {
+              "count": 0,
+              "slot": 2,
+              "stackLimit": 64
+            },
+            "displayProjectionExcludedFromAccounting": true,
+            "complete": true
+          },
+          {
+            "channel": 1,
+            "position": {
+              "x": -424,
+              "y": 5,
+              "z": 8
+            },
+            "registeredName": "gt.blockmachines.super.chest.tier.01",
+            "runtimeClass": "gregtech.common.tileentities.storage.MTESuperChest",
+            "worldTileIdentityVerified": true,
+            "metaTileIdentityVerified": true,
+            "capacity": 4000000,
+            "voidOverflow": false,
+            "filterDisabled": false,
+            "itemSinkApi": "GTNHLib ItemSink.store(ImmutableItemStack), bulk channel 0, forced=false",
+            "configuredType": {
+              "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+              "metadata": 104,
+              "count": 1,
+              "nbt": ""
+            },
+            "bulk": {
+              "count": 0
+            },
+            "physicalSlots": [
+              {
+                "count": 0,
+                "slot": 0,
+                "stackLimit": 64
+              },
+              {
+                "count": 0,
+                "slot": 1,
+                "stackLimit": 64
+              }
+            ],
+            "displayProjection": {
+              "count": 0,
+              "slot": 2,
+              "stackLimit": 64
+            },
+            "displayProjectionExcludedFromAccounting": true,
+            "complete": true
+          }
+        ]
+      },
+      "actualItemTransferReceipts": {
+        "requestedTotal": 97968,
+        "acceptedTotal": 97968,
+        "rejectedTotal": 0,
+        "lastRequested": 58,
+        "lastAccepted": 58,
+        "lastRejected": 0,
+        "rejectedRestoredToPhysicalSource": true
+      },
+      "unboundedOrVirtualCapacity": false,
+      "policy": "Actual ordinary receiver tiles, chosen at construction; whole incoming simulated acceptance remains required before source extraction"
+    },
+    "publicBlueprintVisits": {
+      "api": "StructureLibAPI.enableInstrument + synchronous StructureElementVisitedEvent guard during one IConstructable.construct(stack,false)",
+      "hintsOnly": false,
+      "serverNativeConstruction": true,
+      "nativeConstructionInvocations": 1,
+      "preconstructionCompleteSurvey": false,
+      "instrumentedLoadedCoordinatesGuardedBeforeOperation": true,
+      "visitCoverageGap": "StructureLib unloaded-coordinate traversal can invoke an element without a public visit event; controller callbacks can also write without events",
+      "callbackWritesBounded": false,
+      "allPlacementCoordinatesGuarded": false,
+      "instrumentedLoadedReceiverCoordinatesProtected": true,
+      "instrumentedLoadedGroundCoordinatesProtected": true,
+      "coordinateExtentScope": "Instrumented loaded-coordinate visits only; not a complete shape survey or full write extent",
+      "visits": 4388,
+      "actualWorldIdentityVerified": true,
+      "uniqueCoordinates": 104,
+      "repeatedCoordinateVisits": 4284,
+      "reservedVolume": 2016,
+      "uniqueCoordinateBudget": 2016,
+      "totalDispatchWorkBudget": 2064384,
+      "constructionElapsedNanos": 1558300,
+      "elapsedWorkBudgetNanos": 5000000000,
+      "workBudgetPolicy": "Dispatch allowance max(65536,reserveVolume*1024), capped at 16777216, plus 5 seconds checked at instrumented events and after return; finite work policy allowing repeated public native hatch checks, not a shape or arbitrary callback bound",
+      "dispatchesAreUniqueShapeCoordinates": false,
+      "uninstrumentedCallbackTimePreempted": false,
+      "minX": -422,
+      "minY": 6,
+      "minZ": 11,
+      "maxX": -416,
+      "maxY": 10,
+      "maxZ": 15,
+      "width": 7,
+      "height": 5,
+      "depth": 5,
+      "instrumentRestoredDisabled": true,
+      "describedCoordinates": 104,
+      "descriptionErrors": 0,
+      "descriptionScope": "Partial public element category keys; probe priority only, never an acceptance rule or proof that an omitted hatch role is absent",
+      "descriptionMergePolicy": "Public descriptions cached by element identity; union of up to 32 category keys per coordinate, including different elements encountered during nested checks"
+    },
+    "publicBlueprint": {
+      "constructionApi": "IConstructable.construct(real_registered_stack,false)",
+      "registeredUnlocalizedName": "gt.blockmachines.multimachine.lathe",
+      "runtimeClass": "gregtech.common.tileentities.machines.multi.MTEMultiLathe",
+      "constructionAmount": 1,
+      "publicNativeRegistrationMetadataObserved": 686,
+      "observedExtent": {
+        "minX": -422,
+        "minY": 6,
+        "minZ": 11,
+        "maxX": -416,
+        "maxY": 10,
+        "maxZ": 15,
+        "width": 7,
+        "height": 5,
+        "depth": 5,
+        "occupiedBlocks": 105,
+        "candidateCasings": 72,
+        "measurement": "actual occupied blocks observed inside the declared reserve after native construction and before port replacements",
+        "observedBlocksEnclosedInsideReserve": true,
+        "provesAllConstructedBlocksInsideReserve": false,
+        "chunkCount": 2
+      }
+    },
+    "genericPortProbes": {
+      "algorithm": "public StructureLib role description keys prioritize actual casing candidates; registered hatch placement; public checkStructure(true); actual standard hatch-list membership",
+      "maxProbesPerRequiredRole": 128,
+      "maxProbesPerOptionalRole": 32,
+      "maxUnclassifiedRequiredFallbackProbes": 16,
+      "missingDescriptionMeansRoleAbsent": false,
+      "optionalUndescribedRoles": "not probed; unsupported is diagnostic, never proof of absence",
+      "attempts": [
+        {
+          "role": "ENERGY",
+          "registeredName": "gt.blockmachines.hatch.energy.tier.01",
+          "attempts": 1,
+          "classifiedCandidates": 59,
+          "candidateDescriptionMatched": true,
+          "elapsedNanos": 172900,
+          "x": -420,
+          "y": 6,
+          "z": 11,
+          "membershipVerified": true
+        },
+        {
+          "role": "MAINTENANCE",
+          "registeredName": "gt.blockmachines.hatch.maintenance.auto",
+          "attempts": 1,
+          "classifiedCandidates": 58,
+          "candidateDescriptionMatched": true,
+          "elapsedNanos": 81100,
+          "x": -419,
+          "y": 6,
+          "z": 12,
+          "membershipVerified": true
+        },
+        {
+          "role": "INPUT",
+          "registeredName": "gt.blockmachines.hatch.input_bus.tier.03",
+          "attempts": 1,
+          "classifiedCandidates": 57,
+          "candidateDescriptionMatched": true,
+          "elapsedNanos": 57500,
+          "x": -418,
+          "y": 6,
+          "z": 11,
+          "membershipVerified": true
+        },
+        {
+          "role": "OUTPUT",
+          "registeredName": "gt.blockmachines.hatch.output_bus.tier.03",
+          "attempts": 1,
+          "classifiedCandidates": 56,
+          "candidateDescriptionMatched": true,
+          "elapsedNanos": 50400,
+          "x": -420,
+          "y": 6,
+          "z": 12,
+          "membershipVerified": true
+        },
+        {
+          "role": "FLUID_INPUT",
+          "attempts": 0,
+          "classifiedCandidates": 0,
+          "elapsedNanos": 6100,
+          "membershipVerified": false,
+          "reason": "public_description_did_not_identify_candidates"
+        },
+        {
+          "role": "FLUID_OUTPUT",
+          "attempts": 0,
+          "classifiedCandidates": 0,
+          "elapsedNanos": 5500,
+          "membershipVerified": false,
+          "reason": "public_description_did_not_identify_candidates"
+        },
+        {
+          "role": "MUFFLER",
+          "attempts": 0,
+          "classifiedCandidates": 0,
+          "elapsedNanos": 6500,
+          "membershipVerified": false,
+          "reason": "public_description_did_not_identify_candidates"
+        }
+      ]
+    },
+    "publicEnergyTierSelection": {
+      "policy": "Highest actual standard public tier 01..04 that forms and reports positive public input voltage; no machine-specific tier assumption",
+      "attempts": [
+        {
+          "registeredName": "gt.blockmachines.hatch.energy.tier.04",
+          "formed": true,
+          "standardMembership": true,
+          "publicInputVoltage": 2048
+        }
+      ],
+      "selectedRegisteredName": "gt.blockmachines.hatch.energy.tier.04"
+    },
+    "startupPreparation": {
+      "startupPreparationApi": "HQA public Multiblock.assertFormed()",
+      "initialStartupCountdownSkipped": true,
+      "publicStartupCountdownAfterPreparation": -1,
+      "progression": "ordinary FML world ticks; no fast-forward or direct tile tick"
+    },
+    "publicPowerSupply": {
+      "registeredEnergyHatch": "gt.blockmachines.hatch.energy.tier.04",
+      "actualInputVoltage": 2048,
+      "actualInputAmperage": 2,
+      "suppliedAmperage": 2,
+      "offeredEUPerNormalTick": 4096,
+      "finiteSupplyBudgetEU": 32768000,
+      "policy": "Actual standard hatch public voltage times amperage; bounded ordinary buffer receipt",
+      "actualSupplyReceipts": {
+        "api": "IGregTechTileEntity.increaseStoredEnergyUnits; ordinary bounded public energy buffer",
+        "perTickLimitEU": 4096,
+        "totalBudgetEU": 32768000,
+        "creditedTotalEU": 357808,
+        "remainingBudgetEU": 32410192,
+        "normalWorldTick": 6784119,
+        "activeSupplyTicks": 215,
+        "storedBeforeLastReceiptEU": 15257,
+        "storedAfterLastReceiptEU": 16896,
+        "minimumObservedStoredBeforeReceiptEU": 0,
+        "lastOfferedEU": 1639,
+        "lastCreditedEU": 1639
+      },
+      "parallelLimitAssumed": false
+    },
+    "publicRecipeSelection": {
+      "api": "actual controller public getRecipeMap/getMaxInputVoltage/findRecipeQuery",
+      "machineMode": 0,
+      "modeSearch": "public supportsMachineModeSwitch/nextMachineMode only",
+      "rawDurationTicks": 1,
+      "rawEUt": 16,
+      "minDistinctItemOutputs": 2,
+      "selectedDistinctItemOutputs": 2,
+      "recipesVisited": 1204,
+      "compatibleCandidates": 505,
+      "backendQueries": 1,
+      "rule": "shortest deterministic simple recipe fitting actual ports; no special slots, metadata, NBT-sensitive or fake recipes"
+    },
+    "caseType": "infiniteDebug",
+    "infiniteRecipe": {
+      "sourceSemantics": "public GT debug phantom, logical exposure Integer.MAX_VALUE; physical finite conservation is inapplicable",
+      "itemConfigurationApi": "MTEHatchInputBusDebug.phantomHolder.setStackInSlot; finiteMode=false",
+      "fluidConfigurationApi": "unused",
+      "batchModeConfigurationApi": "MTEMultiBlockBase.setBatchMode(false)",
+      "batchModeInitiallyEnabled": true,
+      "batchModeEnabled": false,
+      "batchModePolicy": "Ordinary public unbatched production; parallelism and overclocking remain native",
+      "normalTickProductionRequired": true,
+      "minimumDistinctOutputIncrementTicks": 3,
+      "minDistinctItemOutputs": 2,
+      "minimumIncrementTicksPerItemProduct": 3,
+      "timingEndpoint": "main agent receives and reports quantified ongoing synthesis information; recovery/stop/stability lifetime separately measured",
+      "logicalInputsPerRecipe": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedingot",
+          "metadata": 104,
+          "count": 1,
+          "nbt": ""
+        }
+      ],
+      "logicalFluidsPerRecipe": [],
+      "itemProductsPerRecipe": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedstick",
+          "metadata": 104,
+          "count": 1,
+          "nbt": ""
+        },
+        {
+          "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+          "metadata": 104,
+          "count": 2,
+          "nbt": ""
+        }
+      ],
+      "fluidProductsPerRecipe": []
+    },
+    "infiniteObservation": {
+      "normalWorldTick": 6784119,
+      "outputIncrementTicks": 208,
+      "firstProductTick": 6783912,
+      "lastProductTick": 6784119,
+      "controllerTimer": 215,
+      "controllerTimerAtEntry": 0,
+      "outputTimer": 215,
+      "outputTimerAtEntry": 0,
+      "workingAllowed": true,
+      "active": true,
+      "progress": 0,
+      "maxProgress": 1,
+      "publicSignedEUt": -1639,
+      "publicEfficiency": 10000,
+      "energyStoredEU": 16896,
+      "energyCapacityEU": 16896,
+      "publicShutdownReason": "simple_result",
+      "pendingItemTypes": 2,
+      "pendingFluidTypes": 0,
+      "pendingItems": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedstick",
+          "metadata": 104,
+          "count": 157,
+          "nbt": ""
+        },
+        {
+          "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+          "metadata": 104,
+          "count": 314,
+          "nbt": ""
+        }
+      ],
+      "pendingFluids": [],
+      "completedLogicalBatches": 32656,
+      "recoveredItems": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedstick",
+          "metadata": 104,
+          "count": 32656,
+          "nbt": ""
+        },
+        {
+          "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+          "metadata": 104,
+          "count": 65312,
+          "nbt": ""
+        }
+      ],
+      "recoveredFluids": [],
+      "logicalInputDemandFromObservedProducts": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedingot",
+          "metadata": 104,
+          "count": 32656,
+          "nbt": ""
+        }
+      ],
+      "logicalFluidDemandFromObservedProducts": [],
+      "rounds": [
+        {
+          "worldTick": 6783912,
+          "controllerTimer": 8,
+          "outputTimer": 8,
+          "event": 1,
+          "completedLogicalBatches": 157
+        },
+        {
+          "worldTick": 6783913,
+          "controllerTimer": 9,
+          "outputTimer": 9,
+          "event": 2,
+          "completedLogicalBatches": 314
+        },
+        {
+          "worldTick": 6783914,
+          "controllerTimer": 10,
+          "outputTimer": 10,
+          "event": 3,
+          "completedLogicalBatches": 471
+        },
+        {
+          "worldTick": 6783915,
+          "controllerTimer": 11,
+          "outputTimer": 11,
+          "event": 4,
+          "completedLogicalBatches": 628
+        },
+        {
+          "worldTick": 6783916,
+          "controllerTimer": 12,
+          "outputTimer": 12,
+          "event": 5,
+          "completedLogicalBatches": 785
+        },
+        {
+          "worldTick": 6783917,
+          "controllerTimer": 13,
+          "outputTimer": 13,
+          "event": 6,
+          "completedLogicalBatches": 942
+        },
+        {
+          "worldTick": 6783918,
+          "controllerTimer": 14,
+          "outputTimer": 14,
+          "event": 7,
+          "completedLogicalBatches": 1099
+        },
+        {
+          "worldTick": 6783919,
+          "controllerTimer": 15,
+          "outputTimer": 15,
+          "event": 8,
+          "completedLogicalBatches": 1256
+        },
+        {
+          "worldTick": 6783920,
+          "controllerTimer": 16,
+          "outputTimer": 16,
+          "event": 9,
+          "completedLogicalBatches": 1413
+        },
+        {
+          "worldTick": 6783921,
+          "controllerTimer": 17,
+          "outputTimer": 17,
+          "event": 10,
+          "completedLogicalBatches": 1570
+        },
+        {
+          "worldTick": 6783922,
+          "controllerTimer": 18,
+          "outputTimer": 18,
+          "event": 11,
+          "completedLogicalBatches": 1727
+        },
+        {
+          "worldTick": 6783923,
+          "controllerTimer": 19,
+          "outputTimer": 19,
+          "event": 12,
+          "completedLogicalBatches": 1884
+        },
+        {
+          "worldTick": 6783924,
+          "controllerTimer": 20,
+          "outputTimer": 20,
+          "event": 13,
+          "completedLogicalBatches": 2041
+        },
+        {
+          "worldTick": 6783925,
+          "controllerTimer": 21,
+          "outputTimer": 21,
+          "event": 14,
+          "completedLogicalBatches": 2198
+        },
+        {
+          "worldTick": 6783926,
+          "controllerTimer": 22,
+          "outputTimer": 22,
+          "event": 15,
+          "completedLogicalBatches": 2355
+        },
+        {
+          "worldTick": 6783927,
+          "controllerTimer": 23,
+          "outputTimer": 23,
+          "event": 16,
+          "completedLogicalBatches": 2512
+        }
+      ],
+      "itemProductGrowth": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedstick",
+          "metadata": 104,
+          "count": 32656,
+          "nbt": "",
+          "outputIncrementTicks": 208,
+          "lastProductTick": 6784119
+        },
+        {
+          "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+          "metadata": 104,
+          "count": 65312,
+          "nbt": "",
+          "outputIncrementTicks": 208,
+          "lastProductTick": 6784119
+        }
+      ],
+      "allItemProductsRepeated": true,
+      "logicalDemandIsPhysicalConsumptionMeasurement": false,
+      "debugLogicalItemExposure": 2147483647,
+      "ordinaryStopRequested": false
+    },
+    "debugReceiverCapacity": {
+      "itemReceiverSlots": 3,
+      "itemReceiverStackLimit": 64,
+      "policy": "Actual bounded public receivers; validate whole incoming batch before extraction; no voiding or virtual receiver",
+      "sourceProductsRetainedOnCapacityFailure": true,
+      "parallelLimitAssumed": false,
+      "incomingItems": [
+        {
+          "registryName": "bartworks:gt.bwMetaGeneratedstick",
+          "metadata": 104,
+          "count": 157,
+          "nbt": ""
+        },
+        {
+          "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+          "metadata": 104,
+          "count": 314,
+          "nbt": ""
+        }
+      ],
+      "incomingFluid": 0,
+      "wholeIncomingBatchFits": true
+    },
+    "observationReady": true,
+    "observationReadyElapsedNanos": 497498000,
+    "informationReadElapsedNanos": 10746431100,
+    "informationReadIsUserReport": false
+  },
+  "start": {
+    "ok": true,
+    "schemaVersion": 1,
+    "source": "tstqa_public_instance_adapter",
+    "runnerSource": "HQA GameTestInstance public lifecycle wrapper",
+    "nativeRunnerContract": "tstqa-private-instance-v1",
+    "nativeRunOwned": false,
+    "dimension": 180,
+    "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+    "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+    "runId": "53255bd2-c411-417f-80a7-e60d389f1bf3",
+    "selector": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+    "selectedTests": 1,
+    "selectedIdsTruncated": false,
+    "owned": false,
+    "adapterRunOwned": true,
+    "correlation": "adapter_run_id",
+    "selectionMatches": true,
+    "freshSinceStart": true,
+    "nativeBatchActive": true,
+    "adapterActive": true,
+    "state": "running",
+    "startStatus": "STARTED",
+    "serverTickCycles": 0,
+    "startedWorldTick": 6783904,
+    "currentWorldTick": 6783904,
+    "elapsedNanos": 20008200,
+    "selectedIds": [
+      "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput"
+    ],
+    "fixtures": [
+      {
+        "ok": true,
+        "schemaVersion": 1,
+        "source": "tstqa_public_instance_adapter",
+        "runnerSource": "HQA GameTestInstance public lifecycle wrapper",
+        "nativeRunnerContract": "tstqa-private-instance-v1",
+        "nativeRunOwned": false,
+        "dimension": 180,
+        "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+        "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+        "testId": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+        "template": "tstqa:general_medium_flow_cell",
+        "geometry": "exact_adapter_reserved_bounds",
+        "rotation": 0,
+        "available": true,
+        "scope": "adapter-owned empty reserved region and retained fixture",
+        "nativeBoundsPubliclyAvailable": true,
+        "allocationOrigin": {
+          "x": -424,
+          "y": 4,
+          "z": 8
+        },
+        "placedSize": {
+          "x": 12,
+          "y": 12,
+          "z": 14
+        },
+        "cellBounds": {
+          "minX": -424,
+          "minY": 4,
+          "minZ": 8,
+          "maxX": -413,
+          "maxY": 15,
+          "maxZ": 21
+        },
+        "clearBounds": {
+          "minX": -425,
+          "minY": 3,
+          "minZ": 7,
+          "maxX": -412,
+          "maxY": 16,
+          "maxZ": 22
+        },
+        "reservedBounds": {
+          "minX": -425,
+          "minY": 3,
+          "minZ": 7,
+          "maxX": -412,
+          "maxY": 16,
+          "maxZ": 22
+        },
+        "requestedVolume": 3136,
+        "margin": 1,
+        "complete": true,
+        "clearEnvelopeComplete": true,
+        "callbackWritesBounded": false,
+        "preClear": false,
+        "requiresFreshAirPreflight": true,
+        "protectsGroundY": 1
+      }
+    ],
+    "nativeReport": {
+      "ok": true,
+      "schemaVersion": 1,
+      "source": "tstqa_public_instance_adapter",
+      "runnerSource": "HQA GameTestInstance public lifecycle wrapper",
+      "nativeRunnerContract": "tstqa-private-instance-v1",
+      "nativeRunOwned": false,
+      "dimension": 180,
+      "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+      "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+      "runId": "53255bd2-c411-417f-80a7-e60d389f1bf3",
+      "complete": false,
+      "runnerOwned": true,
+      "ownershipScope": "TST-QA adapter only",
+      "status": "RUNNING",
+      "exitCode": -1,
+      "selectedTests": 1,
+      "passed": 0,
+      "failed": 0,
+      "timedOut": 0,
+      "skipped": 0,
+      "incomplete": 1,
+      "requiredFailures": 0,
+      "optionalFailures": 0,
+      "infrastructureErrors": 0,
+      "durationSeconds": 0.02003
+    },
+    "observationReady": false,
+    "observations": [
+      {
+        "testId": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+        "observationReady": false,
+        "quantifiedOutputs": {}
+      }
+    ],
+    "testsStarted": 1,
+    "available": true,
+    "world": {
+      "name": "\u65b0\u7684\u4e16\u754c",
+      "folder": "\u65b0\u7684\u4e16\u754c",
+      "dimension": 180,
+      "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider"
+    }
+  },
+  "status": {
+    "ok": true,
+    "schemaVersion": 1,
+    "source": "tstqa_public_instance_adapter",
+    "runnerSource": "HQA GameTestInstance public lifecycle wrapper",
+    "nativeRunnerContract": "tstqa-private-instance-v1",
+    "nativeRunOwned": false,
+    "dimension": 180,
+    "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+    "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+    "runId": "53255bd2-c411-417f-80a7-e60d389f1bf3",
+    "selector": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+    "selectedTests": 1,
+    "selectedIdsTruncated": false,
+    "owned": false,
+    "adapterRunOwned": true,
+    "correlation": "adapter_run_id",
+    "selectionMatches": true,
+    "freshSinceStart": true,
+    "nativeBatchActive": true,
+    "adapterActive": true,
+    "state": "running",
+    "startStatus": "STARTED",
+    "serverTickCycles": 215,
+    "startedWorldTick": 6783904,
+    "currentWorldTick": 6784119,
+    "elapsedNanos": 10747669500,
+    "selectedIds": [
+      "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput"
+    ],
+    "fixtures": [
+      {
+        "ok": true,
+        "schemaVersion": 1,
+        "source": "tstqa_public_instance_adapter",
+        "runnerSource": "HQA GameTestInstance public lifecycle wrapper",
+        "nativeRunnerContract": "tstqa-private-instance-v1",
+        "nativeRunOwned": false,
+        "dimension": 180,
+        "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+        "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+        "testId": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+        "template": "tstqa:general_medium_flow_cell",
+        "geometry": "exact_adapter_reserved_bounds",
+        "rotation": 0,
+        "available": true,
+        "scope": "adapter-owned empty reserved region and retained fixture",
+        "nativeBoundsPubliclyAvailable": true,
+        "allocationOrigin": {
+          "x": -424,
+          "y": 4,
+          "z": 8
+        },
+        "placedSize": {
+          "x": 12,
+          "y": 12,
+          "z": 14
+        },
+        "cellBounds": {
+          "minX": -424,
+          "minY": 4,
+          "minZ": 8,
+          "maxX": -413,
+          "maxY": 15,
+          "maxZ": 21
+        },
+        "clearBounds": {
+          "minX": -425,
+          "minY": 3,
+          "minZ": 7,
+          "maxX": -412,
+          "maxY": 16,
+          "maxZ": 22
+        },
+        "reservedBounds": {
+          "minX": -425,
+          "minY": 3,
+          "minZ": 7,
+          "maxX": -412,
+          "maxY": 16,
+          "maxZ": 22
+        },
+        "requestedVolume": 3136,
+        "margin": 1,
+        "complete": true,
+        "clearEnvelopeComplete": true,
+        "callbackWritesBounded": false,
+        "preClear": false,
+        "requiresFreshAirPreflight": true,
+        "protectsGroundY": 1
+      }
+    ],
+    "nativeReport": {
+      "ok": true,
+      "schemaVersion": 1,
+      "source": "tstqa_public_instance_adapter",
+      "runnerSource": "HQA GameTestInstance public lifecycle wrapper",
+      "nativeRunnerContract": "tstqa-private-instance-v1",
+      "nativeRunOwned": false,
+      "dimension": 180,
+      "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider",
+      "sessionId": "1484ee10-ad2a-4d5d-8d48-815c082d41d7",
+      "runId": "53255bd2-c411-417f-80a7-e60d389f1bf3",
+      "complete": false,
+      "runnerOwned": true,
+      "ownershipScope": "TST-QA adapter only",
+      "status": "RUNNING",
+      "exitCode": -1,
+      "selectedTests": 1,
+      "passed": 0,
+      "failed": 0,
+      "timedOut": 0,
+      "skipped": 0,
+      "incomplete": 1,
+      "requiredFailures": 0,
+      "optionalFailures": 0,
+      "infrastructureErrors": 0,
+      "durationSeconds": 10.7477825
+    },
+    "observationReady": true,
+    "observations": [
+      {
+        "testId": "tstqa:GeneralDebugMachineTests.industrialLatheMultiOutput",
+        "observationReady": true,
+        "quantifiedOutputs": {
+          "normalWorldTick": 6784118,
+          "outputIncrementTicks": 207,
+          "firstProductTick": 6783912,
+          "lastProductTick": 6784118,
+          "controllerTimer": 214,
+          "controllerTimerAtEntry": 0,
+          "outputTimer": 214,
+          "outputTimerAtEntry": 0,
+          "workingAllowed": true,
+          "active": true,
+          "progress": 0,
+          "maxProgress": 1,
+          "publicSignedEUt": -1639,
+          "publicEfficiency": 10000,
+          "energyStoredEU": 16896,
+          "energyCapacityEU": 16896,
+          "publicShutdownReason": "simple_result",
+          "pendingItemTypes": 2,
+          "pendingFluidTypes": 0,
+          "pendingItems": [
+            {
+              "registryName": "bartworks:gt.bwMetaGeneratedstick",
+              "metadata": 104,
+              "count": 157,
+              "nbt": ""
+            },
+            {
+              "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+              "metadata": 104,
+              "count": 314,
+              "nbt": ""
+            }
+          ],
+          "pendingFluids": [],
+          "completedLogicalBatches": 32499,
+          "recoveredItems": [
+            {
+              "registryName": "bartworks:gt.bwMetaGeneratedstick",
+              "metadata": 104,
+              "count": 32499,
+              "nbt": ""
+            },
+            {
+              "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+              "metadata": 104,
+              "count": 64998,
+              "nbt": ""
+            }
+          ],
+          "recoveredFluids": [],
+          "logicalInputDemandFromObservedProducts": [
+            {
+              "registryName": "bartworks:gt.bwMetaGeneratedingot",
+              "metadata": 104,
+              "count": 32499,
+              "nbt": ""
+            }
+          ],
+          "logicalFluidDemandFromObservedProducts": [],
+          "rounds": [
+            {
+              "worldTick": 6783912,
+              "controllerTimer": 8,
+              "outputTimer": 8,
+              "event": 1,
+              "completedLogicalBatches": 157
+            },
+            {
+              "worldTick": 6783913,
+              "controllerTimer": 9,
+              "outputTimer": 9,
+              "event": 2,
+              "completedLogicalBatches": 314
+            },
+            {
+              "worldTick": 6783914,
+              "controllerTimer": 10,
+              "outputTimer": 10,
+              "event": 3,
+              "completedLogicalBatches": 471
+            },
+            {
+              "worldTick": 6783915,
+              "controllerTimer": 11,
+              "outputTimer": 11,
+              "event": 4,
+              "completedLogicalBatches": 628
+            },
+            {
+              "worldTick": 6783916,
+              "controllerTimer": 12,
+              "outputTimer": 12,
+              "event": 5,
+              "completedLogicalBatches": 785
+            },
+            {
+              "worldTick": 6783917,
+              "controllerTimer": 13,
+              "outputTimer": 13,
+              "event": 6,
+              "completedLogicalBatches": 942
+            },
+            {
+              "worldTick": 6783918,
+              "controllerTimer": 14,
+              "outputTimer": 14,
+              "event": 7,
+              "completedLogicalBatches": 1099
+            },
+            {
+              "worldTick": 6783919,
+              "controllerTimer": 15,
+              "outputTimer": 15,
+              "event": 8,
+              "completedLogicalBatches": 1256
+            },
+            {
+              "worldTick": 6783920,
+              "controllerTimer": 16,
+              "outputTimer": 16,
+              "event": 9,
+              "completedLogicalBatches": 1413
+            },
+            {
+              "worldTick": 6783921,
+              "controllerTimer": 17,
+              "outputTimer": 17,
+              "event": 10,
+              "completedLogicalBatches": 1570
+            },
+            {
+              "worldTick": 6783922,
+              "controllerTimer": 18,
+              "outputTimer": 18,
+              "event": 11,
+              "completedLogicalBatches": 1727
+            },
+            {
+              "worldTick": 6783923,
+              "controllerTimer": 19,
+              "outputTimer": 19,
+              "event": 12,
+              "completedLogicalBatches": 1884
+            },
+            {
+              "worldTick": 6783924,
+              "controllerTimer": 20,
+              "outputTimer": 20,
+              "event": 13,
+              "completedLogicalBatches": 2041
+            },
+            {
+              "worldTick": 6783925,
+              "controllerTimer": 21,
+              "outputTimer": 21,
+              "event": 14,
+              "completedLogicalBatches": 2198
+            },
+            {
+              "worldTick": 6783926,
+              "controllerTimer": 22,
+              "outputTimer": 22,
+              "event": 15,
+              "completedLogicalBatches": 2355
+            },
+            {
+              "worldTick": 6783927,
+              "controllerTimer": 23,
+              "outputTimer": 23,
+              "event": 16,
+              "completedLogicalBatches": 2512
+            }
+          ],
+          "itemProductGrowth": [
+            {
+              "registryName": "bartworks:gt.bwMetaGeneratedstick",
+              "metadata": 104,
+              "count": 32499,
+              "nbt": "",
+              "outputIncrementTicks": 207,
+              "lastProductTick": 6784118
+            },
+            {
+              "registryName": "bartworks:gt.bwMetaGenerateddustSmall",
+              "metadata": 104,
+              "count": 64998,
+              "nbt": "",
+              "outputIncrementTicks": 207,
+              "lastProductTick": 6784118
+            }
+          ],
+          "allItemProductsRepeated": true,
+          "logicalDemandIsPhysicalConsumptionMeasurement": false,
+          "debugLogicalItemExposure": 2147483647,
+          "ordinaryStopRequested": false
+        }
+      }
+    ],
+    "available": true,
+    "world": {
+      "name": "\u65b0\u7684\u4e16\u754c",
+      "folder": "\u65b0\u7684\u4e16\u754c",
+      "dimension": 180,
+      "providerClass": "me.eigenraven.personalspace.world.PersonalWorldProvider"
+    }
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "fixturePurpose": "Minimal exact field subset for offline regression only; complete retained DTOs remain in local temporary evidence.",
+  "sourceSha256": "7f824464b6721808a470f59e0bca37da6a1056057278c06d0b0ac67d3c74428d",
+  "actualFilledStackTooltip": {
+    "item": {
+      "registryName": "gregtech:gt.metaitem.01",
+      "metadata": 30001,
+      "count": 3,
+      "hasTag": false
+    },
+    "fluidContainer": {
+      "schemaVersion": 1,
+      "source": "public_fluid_container_registry",
+      "scope": "observed_stack_copy_public_api_read",
+      "itemHasTag": false,
+      "probeMutatedCopy": false,
+      "available": true,
+      "empty": false,
+      "capacity": {
+        "available": true,
+        "value": 1000
+      },
+      "fluid": {
+        "fluidName": "hydrogen",
+        "amount": 1000,
+        "hasTag": false
+      }
+    }
+  },
+  "before": {
+    "inventory": {
+      "totalSlots": 3,
+      "slots": [
+        {
+          "index": 0,
+          "item": null
+        },
+        {
+          "index": 1,
+          "item": null
+        },
+        {
+          "index": 2,
+          "item": null
+        }
+      ],
+      "truncated": false
+    },
+    "fluids": {
+      "tanks": [
+        {
+          "index": 0,
+          "capacity": 128000
+        }
+      ],
+      "totalTanks": 1,
+      "truncated": false
+    }
+  },
+  "widget": {
+    "widgetId": "widget:5025",
+    "class": "com.cleanroommc.modularui.widgets.slot.FluidSlot",
+    "kind": "fluid_slot",
+    "semantic": "fluid_slot",
+    "enabled": true,
+    "valid": true,
+    "supportedActions": [
+      "activate"
+    ],
+    "fluidSlot": {
+      "available": true,
+      "canFill": {
+        "available": true,
+        "value": true
+      },
+      "canDrain": {
+        "available": true,
+        "value": true
+      },
+      "phantom": {
+        "available": true,
+        "value": false
+      },
+      "nativeClickAvailable": true,
+      "fluid": {
+        "available": true,
+        "empty": true,
+        "value": null
+      },
+      "capacity": {
+        "available": true,
+        "value": 128000
+      }
+    }
+  },
+  "samples": [
+    {
+      "tank": {
+        "tanks": [
+          {
+            "index": 0,
+            "capacity": 128000,
+            "fluid": "hydrogen",
+            "amount": 3000
+          }
+        ],
+        "totalTanks": 1,
+        "truncated": false
+      },
+      "cursor": {
+        "registryName": "gregtech:gt.metaitem.01"
+      }
+    },
+    {
+      "tank": {
+        "tanks": [
+          {
+            "index": 0,
+            "capacity": 128000,
+            "fluid": "hydrogen",
+            "amount": 3000
+          }
+        ],
+        "totalTanks": 1,
+        "truncated": false
+      },
+      "cursor": {
+        "registryName": "IC2:itemCellEmpty"
+      }
+    }
+  ]
+}

@@ -1,0 +1,786 @@
+{
+  "fixturePurpose": "Exact minimal retained R17 ordinary-source ambiguity regression; complete original DTO remains local temporary evidence.",
+  "sourceArtifactSha256": "787ea1f4b46a3b678795c12fdd538a28921b1edbe50d578eb609f2c8deb2fbc8",
+  "sourceHashes": {
+    "fluid_recipe_tasks": "78d99cc8bad74712ebf3fb0303ae19f28addc68c197fbdcac6af686d8f4c732a",
+    "tools": "d4c6b45645b9407440aee0afcec62813c62391672080921860a956a186d98dd3",
+    "multi_recipe_tasks": "7d530ea0f0ecb6998153e2f221824146aa2e24d8e478c0d91f676cca5724a5a5",
+    "recipe_tasks": "f3e26fabf64a735f41f28785bac0f1e7e94ced3fe8341d3fe2b857e91131522a"
+  },
+  "actualRecipeArguments": {
+    "expectedSessionId": "61362a87-1a45-4c54-bd64-d22168be456f",
+    "expectedWorld": "新的世界",
+    "dimension": 180,
+    "machine": {
+      "x": -566,
+      "y": 2,
+      "z": -156
+    },
+    "input": {
+      "x": -566,
+      "y": 2,
+      "z": -156
+    },
+    "output": {
+      "x": -566,
+      "y": 2,
+      "z": -156
+    },
+    "recipeMode": "public_multi",
+    "recipeLookup": "backend_match",
+    "selection": "first_supported",
+    "backendInputs": [
+      {
+        "source": "registry",
+        "registryName": "IC2:itemCellEmpty",
+        "metadata": 0,
+        "count": 1
+      }
+    ],
+    "outputItem": {
+      "registryName": "gregtech:gt.metaitem.01",
+      "metadata": 30712
+    },
+    "outputItems": [
+      {
+        "registryName": "gregtech:gt.metaitem.01",
+        "metadata": 30712
+      }
+    ],
+    "fluidContainerInputs": [
+      {
+        "owner": {
+          "x": -566,
+          "y": 2,
+          "z": -156
+        },
+        "playerInventoryIndex": 0,
+        "count": 1,
+        "fluid": "creosote",
+        "amount": 1000
+      }
+    ],
+    "generateMaterials": true,
+    "preflightControls": true,
+    "inventoryPreparation": "preserve",
+    "timeout_ms": 30000
+  },
+  "actualRecipeResult": {
+    "ok": false,
+    "data": {
+      "status": "failed",
+      "available": false,
+      "reason": "material_source_missing_or_ambiguous",
+      "error": {
+        "code": "RECIPE_TASK_UNAVAILABLE",
+        "message": "The real source must be one observed stack with enough items; no slot or ownership is guessed.",
+        "reason": "material_source_missing_or_ambiguous"
+      },
+      "failedPhase": "open_input",
+      "lastActionReceipt": {
+        "operation": "player.interact",
+        "requestId": "6cae52ed-b11d-44c4-b1c4-b0263696dd16",
+        "dispatched": true,
+        "outcomeUnknown": false
+      },
+      "nonAtomic": true,
+      "rolledBack": false,
+      "fallback": "Use the existing sequence for cases outside this task's declared capability.",
+      "taskElapsed_ms": 1766,
+      "timings_ms": {
+        "preflight": 313,
+        "recipeDecision": 280,
+        "preparation": 375,
+        "executionAcceptance": 797,
+        "total": 1766
+      },
+      "timingsScope": "Non-overlapping stages; total includes all task work. Native workflow and hand timings are nested subsets.",
+      "nativeWorkflowElapsed_ms": 795,
+      "sideEffectsPossible": true,
+      "materialGenerationRequested": true,
+      "generatedMaterials": true,
+      "materialGrantsDispatched": 1,
+      "materialSupplyMode": "native_chat_give_commands",
+      "materialSupplyConfirmed": true,
+      "timingScope": "Full task: declaration, lock, reads, recipe decision, native actions/waits, real acceptance, final inventory verification/requested restoration and failure diagnostics.",
+      "approachPlanning": {
+        "operation": "player.plan_approach",
+        "readOnly": true,
+        "nonAtomic": true,
+        "selectedPlans": 5,
+        "selectedUnknownChecks": 0,
+        "earlierUnknownChecks": 0,
+        "searchComplete": false,
+        "scope": "Only each selected candidate's native client/server body and exact target face are verified; other candidates and the surrounding region remain unknown."
+      },
+      "executionsCompleted": 0,
+      "inventoryRestorationRequested": false,
+      "inputGuiSlot": 2,
+      "inputGuiSlotSource": "public_machine_input_binding",
+      "inputGuiBinding": {
+        "guiSlot": 2,
+        "inventoryIndex": 5,
+        "owner": {
+          "x": -566,
+          "y": 2,
+          "z": -156,
+          "dimension": 180,
+          "registryName": "gregtech:gt.blockmachines",
+          "metaTileId": 435,
+          "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe"
+        },
+        "binding": "public_native_slot_actual_machine_handler_identity",
+        "role": "consumed_input",
+        "selection": "lowest_empty_consumed_input_index"
+      },
+      "inventoryPreparation": {
+        "mode": "preserve",
+        "clearConfirmed": false,
+        "requiredEmptyHotbarSlots": 1,
+        "handPreparationElapsed_ms": 15,
+        "handRestorationElapsed_ms": 0,
+        "singleFeedGrants": true,
+        "finalInventoryVerified": false,
+        "finalCursorEmpty": null,
+        "borrowed": [],
+        "allBorrowedStacksRestored": true
+      },
+      "retainedInventoryMoves": [],
+      "pendingInventoryRestoration": [],
+      "machineScope": {
+        "kind": "single_block",
+        "commonBasicMachineAPIVerified": true,
+        "structureFormationClaimed": false,
+        "registeredCoreStopClaimed": false,
+        "inputRoleAutomaticallyDiscovered": true,
+        "declaredGuiSlots": [],
+        "guiSlotSource": "Public actual machine owner/handler/index and consumed-input role, revalidated before transfer."
+      },
+      "selectedRecipe": {
+        "category": "gt.recipe.canner",
+        "material": {
+          "registryName": "IC2:itemCellEmpty",
+          "metadata": 0
+        },
+        "materialPerExecution": 1,
+        "output": {
+          "registryName": "gregtech:gt.metaitem.01",
+          "metadata": 30712
+        },
+        "outputPerExecution": 1,
+        "catalyst": null,
+        "rawEUt": 1,
+        "rawDurationTicks": 16,
+        "candidatePage": 1,
+        "candidateIndex": 0,
+        "machine": {
+          "x": -566,
+          "y": 2,
+          "z": -156,
+          "dimension": 180
+        },
+        "source": "Current recipes.query raw candidate selected within this task; execution remains independently verified.",
+        "voltageEvidence": {
+          "actualInputVoltage": 8192,
+          "mapName": "gt.recipe.canner",
+          "mapAmperage": 1,
+          "rawVoltageCompatible": true,
+          "source": "This task's fresh machine.inspect state.inputVoltage public BaseMetaTileEntity.getInputVoltage and current recipes.query RecipeMap amperage."
+        },
+        "candidateOrdinal": 0,
+        "candidateSource": "public_backend_find",
+        "consumedItems": [
+          {
+            "registryName": "IC2:itemCellEmpty",
+            "metadata": 0,
+            "perExecution": 1
+          }
+        ],
+        "outputItems": [
+          {
+            "registryName": "gregtech:gt.metaitem.01",
+            "metadata": 30712,
+            "perExecution": 1
+          }
+        ],
+        "catalysts": [],
+        "fluidInputs": [
+          {
+            "fluid": "creosote",
+            "amount": 1000
+          }
+        ],
+        "fluidOutputs": []
+      },
+      "detailsIncluded": false,
+      "outcomeUnknown": false,
+      "resourceDiagnostics": {
+        "available": true,
+        "cursorItem": null,
+        "owners": [
+          {
+            "declaredOwner": {
+              "x": -566,
+              "y": 2,
+              "z": -156,
+              "dimension": 180
+            },
+            "actualOwner": {
+              "x": -566,
+              "y": 2,
+              "z": -156,
+              "dimension": 180,
+              "source": "integrated_server",
+              "registryName": "gregtech:gt.blockmachines"
+            },
+            "gregtech": {
+              "metaTileId": 435,
+              "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe"
+            },
+            "fluids": {
+              "tanks": [
+                {
+                  "index": 0,
+                  "capacity": 256000,
+                  "fluid": "creosote",
+                  "amount": 1000
+                },
+                {
+                  "index": 1,
+                  "capacity": 256000
+                }
+              ],
+              "totalTanks": 2,
+              "truncated": false,
+              "namedTanks": {
+                "schemaVersion": 1,
+                "source": "integrated_server",
+                "available": true,
+                "scope": "complete_actual_owner_named_tanks_public_api_read",
+                "binding": "public_basic_machine_named_tank_identity",
+                "owner": {
+                  "x": -566,
+                  "y": 2,
+                  "z": -156,
+                  "dimension": 180,
+                  "registryName": "gregtech:gt.blockmachines",
+                  "metaTileId": 435,
+                  "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe"
+                },
+                "tanks": [
+                  {
+                    "role": "input",
+                    "publicGetter": "getFluidTank",
+                    "capacity": 256000,
+                    "empty": false,
+                    "fluid": {
+                      "fluid": "creosote",
+                      "amount": 1000,
+                      "hasTag": false
+                    }
+                  },
+                  {
+                    "role": "output",
+                    "publicGetter": "getFluidOutputTank",
+                    "capacity": 256000,
+                    "empty": true,
+                    "fluid": null
+                  }
+                ],
+                "totalTanks": 2,
+                "truncated": false,
+                "publicApi": "gregtech.api.metatileentity.implementations.MTEBasicMachine.getFluidTank/getFluidOutputTank"
+              }
+            },
+            "inventory": {
+              "name": "gt.blockmachines.basicmachine.fluidcanner.tier.05.name",
+              "totalSlots": 8,
+              "slots": [
+                {
+                  "index": 0,
+                  "item": null
+                },
+                {
+                  "index": 1,
+                  "item": null
+                },
+                {
+                  "index": 2,
+                  "item": null
+                },
+                {
+                  "index": 3,
+                  "item": null
+                },
+                {
+                  "index": 4,
+                  "item": null
+                },
+                {
+                  "index": 5,
+                  "item": null
+                },
+                {
+                  "index": 6,
+                  "item": null
+                },
+                {
+                  "index": 7,
+                  "item": null
+                }
+              ],
+              "truncated": false
+            },
+            "playerInventoryIndex": 0,
+            "actualPlayerStack": {
+              "registryName": "IC2:itemCellEmpty",
+              "displayName": "空单元",
+              "count": 1,
+              "metadata": 0,
+              "hasTag": false
+            },
+            "lastAcceptedTank": [
+              "creosote",
+              1000
+            ],
+            "lastAcceptedContainerStack": {
+              "registryName": "IC2:itemCellEmpty",
+              "metadata": 0,
+              "count": 1,
+              "hasTag": false
+            }
+          }
+        ],
+        "source": "Fresh read-only current resource observations after failure; accepted checkpoints are separately labelled. No replay or automatic recovery."
+      },
+      "failedNativeWorkflows": []
+    }
+  },
+  "actualFailurePlayer": {
+    "name": "container.inventory",
+    "totalSlots": 41,
+    "slots": [
+      {
+        "index": 0,
+        "item": {
+          "registryName": "IC2:itemCellEmpty",
+          "displayName": "空单元",
+          "count": 1,
+          "metadata": 0,
+          "hasTag": false
+        }
+      },
+      {
+        "index": 1,
+        "item": {
+          "registryName": "IC2:itemCellEmpty",
+          "displayName": "空单元",
+          "count": 1,
+          "metadata": 0,
+          "hasTag": false
+        }
+      },
+      {
+        "index": 2,
+        "item": null
+      },
+      {
+        "index": 3,
+        "item": null
+      },
+      {
+        "index": 4,
+        "item": null
+      },
+      {
+        "index": 5,
+        "item": null
+      },
+      {
+        "index": 6,
+        "item": null
+      },
+      {
+        "index": 7,
+        "item": null
+      },
+      {
+        "index": 8,
+        "item": null
+      },
+      {
+        "index": 9,
+        "item": null
+      },
+      {
+        "index": 10,
+        "item": null
+      },
+      {
+        "index": 11,
+        "item": null
+      },
+      {
+        "index": 12,
+        "item": null
+      },
+      {
+        "index": 13,
+        "item": null
+      },
+      {
+        "index": 14,
+        "item": null
+      },
+      {
+        "index": 15,
+        "item": null
+      },
+      {
+        "index": 16,
+        "item": null
+      },
+      {
+        "index": 17,
+        "item": null
+      },
+      {
+        "index": 18,
+        "item": null
+      },
+      {
+        "index": 19,
+        "item": null
+      },
+      {
+        "index": 20,
+        "item": null
+      },
+      {
+        "index": 21,
+        "item": null
+      },
+      {
+        "index": 22,
+        "item": null
+      },
+      {
+        "index": 23,
+        "item": null
+      },
+      {
+        "index": 24,
+        "item": null
+      },
+      {
+        "index": 25,
+        "item": null
+      },
+      {
+        "index": 26,
+        "item": null
+      },
+      {
+        "index": 27,
+        "item": null
+      },
+      {
+        "index": 28,
+        "item": null
+      },
+      {
+        "index": 29,
+        "item": null
+      },
+      {
+        "index": 30,
+        "item": null
+      },
+      {
+        "index": 31,
+        "item": null
+      },
+      {
+        "index": 32,
+        "item": null
+      },
+      {
+        "index": 33,
+        "item": null
+      },
+      {
+        "index": 34,
+        "item": null
+      },
+      {
+        "index": 35,
+        "item": null
+      },
+      {
+        "index": 36,
+        "item": null
+      },
+      {
+        "index": 37,
+        "item": null
+      },
+      {
+        "index": 38,
+        "item": null
+      },
+      {
+        "index": 39,
+        "item": null
+      },
+      {
+        "index": 40,
+        "item": null
+      }
+    ],
+    "truncated": false,
+    "selectedHotbarSlot": 2,
+    "cursorItem": null
+  },
+  "actualFailureOwner": {
+    "inventory": {
+      "name": "gt.blockmachines.basicmachine.fluidcanner.tier.05.name",
+      "totalSlots": 8,
+      "slots": [
+        {
+          "index": 0,
+          "item": null
+        },
+        {
+          "index": 1,
+          "item": null
+        },
+        {
+          "index": 2,
+          "item": null
+        },
+        {
+          "index": 3,
+          "item": null
+        },
+        {
+          "index": 4,
+          "item": null
+        },
+        {
+          "index": 5,
+          "item": null
+        },
+        {
+          "index": 6,
+          "item": null
+        },
+        {
+          "index": 7,
+          "item": null
+        }
+      ],
+      "truncated": false
+    },
+    "fluids": {
+      "tanks": [
+        {
+          "index": 0,
+          "capacity": 256000,
+          "fluid": "creosote",
+          "amount": 1000
+        },
+        {
+          "index": 1,
+          "capacity": 256000
+        }
+      ],
+      "totalTanks": 2,
+      "truncated": false,
+      "namedTanks": {
+        "schemaVersion": 1,
+        "source": "integrated_server",
+        "available": true,
+        "scope": "complete_actual_owner_named_tanks_public_api_read",
+        "binding": "public_basic_machine_named_tank_identity",
+        "owner": {
+          "x": -566,
+          "y": 2,
+          "z": -156,
+          "dimension": 180,
+          "registryName": "gregtech:gt.blockmachines",
+          "metaTileId": 435,
+          "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe"
+        },
+        "tanks": [
+          {
+            "role": "input",
+            "publicGetter": "getFluidTank",
+            "capacity": 256000,
+            "empty": false,
+            "fluid": {
+              "fluid": "creosote",
+              "amount": 1000,
+              "hasTag": false
+            }
+          },
+          {
+            "role": "output",
+            "publicGetter": "getFluidOutputTank",
+            "capacity": 256000,
+            "empty": true,
+            "fluid": null
+          }
+        ],
+        "totalTanks": 2,
+        "truncated": false,
+        "publicApi": "gregtech.api.metatileentity.implementations.MTEBasicMachine.getFluidTank/getFluidOutputTank"
+      }
+    },
+    "gregtech": {
+      "metaClass": "gregtech.api.metatileentity.implementations.MTEBasicMachineWithRecipe",
+      "metaTileId": 435,
+      "displayName": "gt.blockmachines.basicmachine.fluidcanner.tier.05.name",
+      "orientation": {
+        "facing": {
+          "available": true,
+          "side": 3,
+          "direction": "SOUTH",
+          "offsetX": 0,
+          "offsetY": 0,
+          "offsetZ": 1
+        },
+        "energySides": [
+          {
+            "available": true,
+            "side": 0,
+            "direction": "DOWN",
+            "offsetX": 0,
+            "offsetY": -1,
+            "offsetZ": 0,
+            "front": false,
+            "energyInput": {
+              "available": true,
+              "value": true
+            },
+            "energyOutput": {
+              "available": true,
+              "value": false
+            }
+          },
+          {
+            "available": true,
+            "side": 1,
+            "direction": "UP",
+            "offsetX": 0,
+            "offsetY": 1,
+            "offsetZ": 0,
+            "front": false,
+            "energyInput": {
+              "available": true,
+              "value": true
+            },
+            "energyOutput": {
+              "available": true,
+              "value": false
+            }
+          },
+          {
+            "available": true,
+            "side": 2,
+            "direction": "NORTH",
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": -1,
+            "front": false,
+            "energyInput": {
+              "available": true,
+              "value": false
+            },
+            "energyOutput": {
+              "available": true,
+              "value": false
+            }
+          },
+          {
+            "available": true,
+            "side": 3,
+            "direction": "SOUTH",
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 1,
+            "front": true,
+            "energyInput": {
+              "available": true,
+              "value": true
+            },
+            "energyOutput": {
+              "available": true,
+              "value": false
+            }
+          },
+          {
+            "available": true,
+            "side": 4,
+            "direction": "WEST",
+            "offsetX": -1,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "front": false,
+            "energyInput": {
+              "available": true,
+              "value": true
+            },
+            "energyOutput": {
+              "available": true,
+              "value": false
+            }
+          },
+          {
+            "available": true,
+            "side": 5,
+            "direction": "EAST",
+            "offsetX": 1,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "front": false,
+            "energyInput": {
+              "available": true,
+              "value": true
+            },
+            "energyOutput": {
+              "available": true,
+              "value": false
+            }
+          }
+        ],
+        "energySideApi": "Public inputEnergyFrom(ForgeDirection, false)/outputsEnergyTo(ForgeDirection, false); current standard side gates including covers and machine mode, without waiting for cached active-side flags.",
+        "producing": {
+          "available": false,
+          "api": "isProducing",
+          "reason": "public_mode_getter_unavailable"
+        },
+        "laser": {
+          "available": false,
+          "api": "isLASER",
+          "reason": "public_mode_getter_unavailable"
+        },
+        "scope": "Live public getters only; side permission does not prove a connected producer/consumer or flowing energy. No rotation, topology scan, private state or energy mutation."
+      },
+      "progress": 0,
+      "maxProgress": 0,
+      "active": false,
+      "allowedToWork": false,
+      "storedEU": 524288,
+      "euCapacity": 524288,
+      "inputVoltage": 8192,
+      "outputVoltage": 0,
+      "info": [
+        "GT5U.infodata.progress\\\\§a0§r\\\\§e0§r",
+        "GT5U.infodata.energy\\\\§a524,288§r\\\\§e524,288§r",
+        "GT5U.infodata.currently_uses\\\\§c0§r\\\\§c0§r"
+      ],
+      "structureErrorBits": 0
+    }
+  },
+  "limitation": "Actual attempt stopped after acknowledged native fluid input fill and shell return before ordinary item feed or recipe execution. GUI-source and successful full-flow regression transports are synthetic offline fixtures."
+}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "activeProfile": "default",
+  "profiles": {
+    "default": {
+      "prismRoot": "<Prism data directory>",
+      "instanceName": "<instance display name or folder name>"
+    }
+  }
+}
