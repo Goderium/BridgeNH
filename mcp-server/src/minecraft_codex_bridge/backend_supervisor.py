@@ -44,7 +44,8 @@ def manifest(files):
 class Snapshot:
     def __init__(self, root, stable, directory=None):
         self.temp = tempfile.TemporaryDirectory(prefix="mcb-worker-", dir=directory)
-        self.root = Path(self.temp.name)
+        # Windows TEMP may use an 8.3 alias; handshake paths must use the same canonical root.
+        self.root = Path(self.temp.name).resolve()
         try:
             files = source_files(root)
             if manifest({name: files.get(name, b"") for name in STABLE_FILES}) != stable:

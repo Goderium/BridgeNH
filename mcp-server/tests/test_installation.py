@@ -146,6 +146,7 @@ def test_existing_project_registration_discovered_without_global_duplicate(tmp_p
     assert setup.existing_codex_configs(home, None) == [project / '.codex/config.toml']
 
 
+@pytest.mark.skipif(os.name != 'nt', reason='Windows installer execution')
 def test_failed_runtime_install_does_not_write_registration(tmp_path, monkeypatch):
     selected = instance(tmp_path)
     payload = tmp_path / 'payload'

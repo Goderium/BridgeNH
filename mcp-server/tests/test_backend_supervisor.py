@@ -62,6 +62,38 @@ async def unknown(supervisor):
     return await supervisor.call("call_tool", {"name": "fixture_unknown", "arguments": {}})
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Windows short-path aliases")
+async def test_worker_start_and_reload_accept_windows_short_snapshot_path(tmp_path):
+    import ctypes
+
+    directory = tmp_path / "worker snapshots with a long directory name"
+    directory.mkdir()
+    get_short_path = ctypes.WinDLL("kernel32", use_last_error=True).GetShortPathNameW
+    get_short_path.argtypes = [ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint]
+    get_short_path.restype = ctypes.c_uint
+    length = get_short_path(str(directory), None, 0)
+    assert length, ctypes.get_last_error()
+    buffer = ctypes.create_unicode_buffer(length)
+    assert get_short_path(str(directory), buffer, length), ctypes.get_last_error()
+    alias = Path(buffer.value)
+    if alias == directory.resolve():
+        pytest.skip("The test volume does not provide an 8.3 directory alias")
+    assert alias.resolve() == directory.resolve()
+
+    supervisor = Supervisor(environment=isolated_environment(tmp_path), snapshot_directory=alias)
+    try:
+        await supervisor.start()
+        assert supervisor.state == "running", supervisor.status()
+        first_pid = supervisor.status()["workerPid"]
+        assert (await unknown(supervisor))["structuredContent"]["error"]["code"] == "UNKNOWN_TOOL"
+        restarted = await supervisor.restart({"requestId": "short-path-reload", "expectedGeneration": 1})
+        assert restarted["ok"], restarted
+        assert supervisor.generation == 2 and supervisor.status()["workerPid"] != first_pid
+        assert (await unknown(supervisor))["structuredContent"]["error"]["code"] == "UNKNOWN_TOOL"
+    finally:
+        await supervisor.close()
+
+
 async def test_two_reloads_same_mcp_session_and_frontend_new_code_new_worker(supervisor):
     original = supervisor.status()
     pids = {original["workerPid"]}

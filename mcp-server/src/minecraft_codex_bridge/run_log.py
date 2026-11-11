@@ -165,7 +165,9 @@ class RunLog:
         # Keep interrupted evidence intact; a partial row must not swallow the
         # next valid receipt when another adapter resumes after a crash.
         if path is None:
-            path = root / "normal" / ("operations-" + f"{time.time_ns():020d}" + "-" + uuid.uuid4().hex[:12] + ".jsonl")
+            # Persist append order across adapters, including equal clock ticks and clock rollback.
+            sequence = max(time.time_ns(), int(files[-1].name.split("-")[1]) + 1 if files else 0)
+            path = root / "normal" / ("operations-" + f"{sequence:020d}" + "-" + uuid.uuid4().hex[:12] + ".jsonl")
         with path.open("ab") as stream:
             stream.write(raw)
 

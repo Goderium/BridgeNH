@@ -6,6 +6,7 @@ from pathlib import Path
 import sqlite3
 import zipfile
 from datetime import timedelta
+from uuid import UUID
 
 import httpx
 import pytest
@@ -83,6 +84,28 @@ def test_interrupted_append_rotates_and_next_receipt_remains_readable(tmp_path):
     assert [row["id"] for row in rows] == [second["eventId"], first["eventId"]]
     assert path.read_bytes().endswith(b'{"interrupted":')
     assert journal.command({})["normalFiles"] == 2
+
+
+@pytest.mark.parametrize("clock_change", [0, -1_000_000_000], ids=["same_tick", "clock_moves_back"])
+def test_rotated_receipts_keep_append_order_when_clock_does_not_advance(tmp_path, monkeypatch, clock_change):
+    journal, _ = setup(tmp_path)
+    ticks = iter([1_700_000_000_000_000_000, 1_700_000_000_000_000_000 + clock_change])
+    suffixes = iter([UUID("ffffffff-ffff-4fff-8fff-ffffffffffff"), UUID("00000000-0000-4000-8000-000000000001")])
+    monkeypatch.setattr("minecraft_codex_bridge.run_log.time.time_ns", lambda: next(ticks))
+    monkeypatch.setattr("minecraft_codex_bridge.run_log.uuid.uuid4", lambda: next(suffixes))
+    with journal.locked() as root:
+        journal.append(root, journal.settings(root), {"id": "first"})
+        interrupted = next((root / "normal").iterdir())
+        with interrupted.open("ab") as stream:
+            stream.write(b'{"interrupted":')
+    resumed = RunLog(journal.configuration)
+    with resumed.locked() as root:
+        resumed.append(root, resumed.settings(root), {"id": "second"})
+
+    rows = resumed.command({"action": "read", "category": "normal"})["entries"]
+    assert [row["id"] for row in rows] == ["second", "first"]
+    assert interrupted.read_bytes().endswith(b'{"interrupted":')
+    assert resumed.command({})["normalFiles"] == 2
 
 
 @pytest.mark.parametrize("payload,elapsed,category,reason", [

@@ -37,7 +37,8 @@ def build(jar: Path, output: Path):
             archive.writestr('BridgeNH/' + name, data)
     result = {'file': str(output.resolve()), 'files': len(files), 'bytes': output.stat().st_size,
               'sha256': hashlib.sha256(output.read_bytes()).hexdigest()}
-    output.with_suffix(output.suffix + '.sha256').write_text(result['sha256'] + '  ' + output.name + '\n', encoding='ascii')
+    output.with_suffix(output.suffix + '.sha256').write_text(
+        result['sha256'] + '  ' + output.name + '\n', encoding='ascii', newline='\n')
     return result
 
 

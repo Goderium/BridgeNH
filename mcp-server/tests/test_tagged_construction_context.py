@@ -34,7 +34,9 @@ async def test_reordered_trophy_nbt_retains_full_inventory_guards(tagged_bridge,
     new["slots"][40]["item"]["nbtIdentity"] = SERVER
     instance.accept_tagged_context_native_inventory(old, new)
     assert writes(state) == []
-    state["nbt"][40] = CLIENT.replace("1792888376038L", "1792888376039L")
+    changed = CLIENT.replace("1700000000000L", "1700000000001L")
+    assert changed != CLIENT, "The negative fixture must change an NBT value"
+    state["nbt"][40] = changed
     with pytest.raises(BridgeError):
         await instance.read_tagged_context_inventory(require_background=False)
     assert writes(state) == []

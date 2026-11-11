@@ -24,6 +24,7 @@ CONTROL_EXAMPLES = {
     "mcb_open_pause_menu": ("gui.open_pause_menu", {}),
     "mcb_gui_click": ("gui.click", {"screenId": "screen", "x": 20, "y": 30}),
     "mcb_gui_key": ("gui.key", {"screenId": "screen", "keyCode": 1}),
+    "mcb_nei_bookmark_action": ("nei.bookmark_action", {"screenId": "screen", "contextToken": "context", "action": "namespace_new"}),
     "mcb_close_gui": ("gui.close", {}),
     "mcb_chat": ("chat.send", {"message": "test"}),
     "mcb_supply_items": ("inventory.supply", {"expectedSessionId": "first-session", "expectedWorld": "test",

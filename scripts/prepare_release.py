@@ -54,7 +54,8 @@ def prepare(root: Path = ROOT) -> dict:
     build(jar, bundle)
     artifacts = sorted([copied_jar, wheel, sdist, bundle, bundle.with_suffix('.zip.sha256')])
     hashes = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in artifacts}
-    (output / 'SHA256SUMS.txt').write_text(''.join(f'{value}  {name}\n' for name, value in hashes.items()), encoding='ascii')
+    (output / 'SHA256SUMS.txt').write_text(
+        ''.join(f'{value}  {name}\n' for name, value in hashes.items()), encoding='ascii', newline='\n')
     return {'directory': str(output.resolve()), **release, 'sha256': hashes}
 
 
