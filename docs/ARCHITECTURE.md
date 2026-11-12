@@ -124,6 +124,8 @@ the MCP service; editing compatible business code does not require restarting Co
 
 ## Forge mod
 
+`loader.rfb.WindowFocusPlugin` wraps fixed SDL window calls in lwjgl3ify Display before Forge initialization. Native helpers carry `@Lwjgl3Aware`; do not mark the entire JAR aware, because other classes require LWJGL2 remapping. Startup policy is a bounded per-client file. Windows operations protect only the owned HWND, restore temporary focus/style/procedure state in `finally`, and use normal SDL resize events. Minimized startup creates a hidden, non-minimized SDL window, then shows and minimizes it under the guard. SDL's initially minimized creation path shows the HWND before that guard and can omit its taskbar button. Restoring a minimized window hides that already minimized HWND before showing it without activation; Windows can otherwise activate it after earlier maximize/restore cycles. No external foreground window is activated to compensate for focus theft.
+
 Java sources use `src/main/java/com/Goderium/BridgeNH/`, with `BridgeNH.java` as
 the sole handwritten root-package entry point. Subpackage names are lowercase;
 class names use UpperCamelCase. Tests follow the same domain packages. Foreign

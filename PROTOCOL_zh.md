@@ -50,6 +50,12 @@ AE 真实物品槽、网络 resourceId、VirtualMESlot 和幽灵样板各自独�
 
 ## 生命周期与后台控制
 
+`clientWindowControlsVersion=2` 增加 `minimize` 与 `resize`；后者要求 `width=256..8192`、`height=144..8192`，其他动作不接受尺寸参数。Windows 下的窗口尺寸调整、最大化及还原通过临时原生保护保留焦点及窗口层级，操作后仍可手动激活。最小化当前活动窗口时，Windows 正常选择其他前台窗口。全屏切换仍须明确请求。`confirmed` 表示原生状态或尺寸回读，客户端及帧缓冲尺寸可能在后续正常事件中更新；未知结果不得重放。`foregroundPreserved` 比较操作前后的前台窗口，用户同时切换窗口也可能使其为 false。
+
+启动参数 `windowMode` 可为 `minimized`（默认，最小化到任务栏且不激活）、`background`（显示但不激活）或 `normal`（普通启动）。启动器在排除重复客户端后、发送启动命令前，将偏好原子写入所选游戏目录的 `config/codexbridge/window-startup.txt`。该偏好也适用于后续手动 Prism 启动；下一次 MCP 启动省略参数时重新选择最小化到任务栏。状态查询不修改偏好。旧版客户端 JAR 不支持此策略，须安装带窗口控制 v2 的版本。`windowModeRequested` 与 `windowModeConfirmed=false` 仅表示启动意图；就绪后读取 `mcb_window`。窗口的 `startupMode`、`startupModeApplied` 表示早期策略，`focused`、`minimized` 表示当前状态，不等于启动全过程的焦点证明。
+
+该模式只控制游戏窗口；Prism 启动前的对话框仍可能取得键盘焦点。窗口未置顶不能证明输入没有中断。启动器侧边界见[原生控制缺口](docs/NATIVE_CONTROL_GAPS_zh.md)。
+
 启动、进程诊断、加载、连接、保存退出、关闭和原生窗口控制具有不同的完成证据。Java 进程存在不代表桥接或世界就绪，启动未知时只续查同一客户端，不自动再次启动。生命周期使用明确目标和当前会话/世界；不能作用于其他聊天的客户端。
 
 控制动作按需建立物理鼠标保护及失焦运行，失败则不执行原动作；只读操作不自动接管。手动恢复鼠标后，下一次控制仍可能接管，交还人工前先停止控制任务。直接 HTTP 生命周期调用方须满足对应保护，MCP 可复用既有预处理。原生生命周期和窗口接口不需要 Computer Use；其他未覆盖界面必须如实记录缺口。

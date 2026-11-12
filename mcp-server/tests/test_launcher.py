@@ -150,6 +150,60 @@ def test_launch_starts_normal_gui_then_dispatches_once(launch_settings):
         "worldReady": False, "nextTool": "mcb_health", "retryAction": False}
     assert "secret-not-returned" not in json.dumps(result)
     assert backend.lock_released is True
+    assert result["windowModeRequested"] == "minimized" and result["windowModeConfirmed"] is False
+    assert (launch_settings.instance_path / ".minecraft/config/codexbridge/window-startup.txt").read_text() == "minimized\n"
+
+
+@pytest.mark.parametrize("mode", ["background", "minimized", "normal"])
+def test_launch_mode_is_written_only_for_selected_instance_before_dispatch(launch_settings, mode):
+    gui = prism(launch_settings)
+    class CheckedWorkflow(Workflow):
+        def spawn(self, configuration, launch=False):
+            if launch:
+                assert (configuration.instance_path / ".minecraft/config/codexbridge/window-startup.txt").read_text() == mode + "\n"
+            return super().spawn(configuration, launch)
+    backend = CheckedWorkflow([[gui], [gui], [gui, java(launch_settings)]])
+    result = _launch(launch_settings, threading.Event(), backend, mode)
+    assert result["windowModeRequested"] == mode
+    assert not list(launch_settings.instance_path.rglob(".window-startup-*"))
+
+
+def test_running_or_invalid_launch_does_not_change_window_preference(launch_settings):
+    target = launch_settings.instance_path / ".minecraft/config/codexbridge/window-startup.txt"
+    target.parent.mkdir(parents=True)
+    target.write_text("normal\n")
+    for mode, code in [("minimized", "CLIENT_ALREADY_RUNNING"), ("invalid", "INVALID_ARGUMENTS")]:
+        backend = Workflow([[java(launch_settings)]])
+        with pytest.raises(BridgeError) as error:
+            _launch(launch_settings, threading.Event(), backend, mode)
+        assert error.value.code == code
+        assert not backend.commands and target.read_text() == "normal\n"
+
+
+def test_launch_window_mode_rejects_status_and_unknown_modes():
+    from minecraft_codex_bridge.server import _validate
+    for mode in ("background", "minimized", "normal"):
+        _validate("mcb_launch", {"windowMode": mode})
+        with pytest.raises(BridgeError):
+            _validate("mcb_launch", {"action": "status", "windowMode": mode})
+    with pytest.raises(BridgeError):
+        _validate("mcb_launch", {"windowMode": "hidden"})
+
+
+def test_window_mode_write_failure_preserves_previous_preference_and_never_dispatches(launch_settings, monkeypatch):
+    target = launch_settings.instance_path / ".minecraft/config/codexbridge/window-startup.txt"
+    target.parent.mkdir(parents=True)
+    target.write_text("normal\n")
+    def refuse_replace(*args):
+        raise PermissionError("fixture write denied")
+    monkeypatch.setattr("minecraft_codex_bridge.launcher.os.replace", refuse_replace)
+    gui = prism(launch_settings)
+    backend = Workflow([[gui], [gui]])
+    with pytest.raises(BridgeError) as error:
+        _launch(launch_settings, threading.Event(), backend, "minimized")
+    assert error.value.code == "LAUNCH_WINDOW_CONFIGURATION"
+    assert not backend.commands and target.read_text() == "normal\n"
+    assert not list(target.parent.glob(".window-startup-*"))
 
 
 def test_launch_reuses_existing_responsive_gui(launch_settings):
@@ -292,7 +346,8 @@ async def test_async_launch_cancellation_stops_before_dispatch(launch_settings, 
     entered = threading.Event()
     finished = threading.Event()
 
-    def worker(configuration, cancelled, backend):
+    def worker(configuration, cancelled, backend, window_mode):
+        assert window_mode == "minimized"
         entered.set()
         cancelled.wait(timeout=1)
         assert cancelled.is_set()

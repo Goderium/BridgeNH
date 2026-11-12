@@ -85,6 +85,8 @@
 
 ## 客户端启动与绑定
 
+启动器 CLI 接受 `--window-mode background|minimized|normal`，默认 `minimized`，最小化至任务栏并保留图标，不能与 `--status` 同用。所选客户端 JAR 须提供窗口控制 v2，启动后通过 `mcb_window` 验收。游戏窗口建立前，Prism 自身的对话框仍可能获得焦点。
+
 新 MCP 前端从未绑定开始，而明确绑定需要认证在线客户端 health。因此，关闭的客户端不能完成首次在线绑定；安装 profile 和最近使用实例仍只是清单，不是默认绑定。
 
 获准首次启动时，使用注册 runtime 的 Python 执行已安装共享启动器 `python -m minecraft_codex_bridge.launcher_cli`，明确给出所选 Prism 实例的 `--prism`、`--instance`、`--runtime` 路径；源码包装入口是 `scripts/launch_client.py`。它与 `mcb_launch` 使用相同的有界固定实例启动逻辑，不自动登录、不注入系统键鼠、不创建世界。不得使用未经核实的路径或改选其他客户端。

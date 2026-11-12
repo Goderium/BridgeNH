@@ -25,8 +25,11 @@ def main() -> int:
     parser.add_argument("--instance", help="Prism instance directory; alternatively MCB_INSTANCE_PATH.")
     parser.add_argument("--runtime", help="Standard Prism runtime path for inference; file need not exist.")
     parser.add_argument("--status", action="store_true", help="Read-only bounded startup continuation; never launches a process.")
+    parser.add_argument("--window-mode", choices=["background", "minimized", "normal"], help="Startup window state; launch defaults to minimized in the taskbar. Requires window-controls v2 in the client.")
     parser.add_argument("--timeout-ms", type=int, default=30000, help="Status observation window, 1000..60000 ms.")
     options = parser.parse_args()
+    if options.status and options.window_mode is not None:
+        parser.error("--window-mode cannot be used with --status")
     environment = dict(os.environ)
     for argument, key in ((options.prism, "MCB_PRISM_EXE"),
                           (options.instance, "MCB_INSTANCE_PATH"),
@@ -43,7 +46,7 @@ def main() -> int:
                 return await launch_status(client, options.timeout_ms)
             finally:
                 await client.aclose()
-        result = anyio.run(observe) if options.status else anyio.run(launch_client, Configuration(environment))
+        result = anyio.run(observe) if options.status else anyio.run(launch_client, Configuration(environment), options.window_mode or "minimized")
         print(json.dumps({"ok": True, "data": result}, ensure_ascii=False))
         return 0
     except BridgeError as error:

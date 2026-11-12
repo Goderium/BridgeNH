@@ -83,6 +83,8 @@ Do not assume a host Settings **Restart** button reconnects only one MCP server.
 
 ## Client startup and binding
 
+The launcher CLI accepts `--window-mode background|minimized|normal` (default `minimized`, retaining a taskbar button); it cannot be combined with `--status`. The selected client JAR must provide window-controls v2. Verify with `mcb_window` after startup. Prism-owned dialogs may still activate before the game window exists.
+
 New MCP frontends start unbound, and explicit binding authenticates live client health. A stopped client therefore cannot complete its first live bind. Installation profiles and recently used instances remain inventory, not default bindings.
 
 For an authorized first startup, use the installed shared launcher CLI `python -m minecraft_codex_bridge.launcher_cli` with the registered runtime's Python and explicit `--prism`, `--instance` and `--runtime` paths from the selected Prism instance. The source wrapper is `scripts/launch_client.py`. This is the same bounded fixed-instance launcher used by `mcb_launch`; it performs no login automation, OS keyboard/mouse input or world creation. Do not guess paths or select another client.

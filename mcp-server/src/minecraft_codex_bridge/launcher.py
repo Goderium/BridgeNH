@@ -10,6 +10,7 @@ import re
 import subprocess
 import threading
 import time
+import tempfile
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -274,7 +275,31 @@ def _check_cancelled(cancelled: threading.Event) -> None:
         raise BridgeError("LAUNCH_CANCELLED", "Launch collection was cancelled; no further launch command will be issued.")
 
 
-def _launch(configuration: LaunchConfiguration, cancelled: threading.Event, backend: WindowsBackend) -> dict[str, Any]:
+def _write_window_mode(configuration: LaunchConfiguration, mode: str) -> None:
+    if mode not in {"background", "minimized", "normal"}:
+        raise BridgeError("INVALID_ARGUMENTS", "windowMode must be background, minimized or normal.")
+    directory = configuration.instance_path / ".minecraft/config/codexbridge"
+    temporary = None
+    try:
+        directory.resolve().relative_to(configuration.instance_path.resolve())
+        directory.mkdir(parents=True, exist_ok=True)
+        target = directory / "window-startup.txt"
+        if target.is_symlink():
+            raise ValueError("Symlink policy file")
+        with tempfile.NamedTemporaryFile(dir=directory, prefix=".window-startup-", delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write((mode + "\n").encode("ascii"))
+        os.replace(temporary, target)
+    except (OSError, ValueError):
+        raise BridgeError("LAUNCH_WINDOW_CONFIGURATION", "Cannot safely write the selected instance's window startup mode; no launch was dispatched.") from None
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+
+
+def _launch(configuration: LaunchConfiguration, cancelled: threading.Event, backend: WindowsBackend, window_mode: str = "minimized") -> dict[str, Any]:
+    if window_mode not in {"background", "minimized", "normal"}:
+        raise BridgeError("INVALID_ARGUMENTS", "windowMode must be background, minimized or normal.")
     with backend.mutex(configuration):
         _check_cancelled(cancelled)
         processes = backend.processes()
@@ -306,6 +331,8 @@ def _launch(configuration: LaunchConfiguration, cancelled: threading.Event, back
         if _target_java(backend.processes(), configuration):
             raise BridgeError("CLIENT_ALREADY_RUNNING", "The target Java process is already running; no duplicate launch was issued.")
         _check_cancelled(cancelled)
+        _write_window_mode(configuration, window_mode)
+        _check_cancelled(cancelled)
         command = backend.spawn(configuration, launch=True)
         try:
             exit_code = command.wait(timeout=DISPATCH_TIMEOUT)
@@ -319,7 +346,7 @@ def _launch(configuration: LaunchConfiguration, cancelled: threading.Event, back
                 _check_cancelled(cancelled)
                 java = _target_java(backend.processes(), configuration)
                 if java:
-                    return {"status": "scheduled", "scheduled": True, "ready": False, "instanceId": configuration.instance_id, "prismProcessId": ready.process_id, "launchProcessId": command.pid, "javaProcessId": java.process_id, "startup": {"version": 1, "stage": "java_started", "bridgeReady": False, "worldReady": False, "nextTool": "mcb_health", "retryAction": False}, "completion": "Use mcb_health once to observe the current session and readiness; Java startup does not mean Minecraft or a world is ready."}
+                    return {"status": "scheduled", "scheduled": True, "ready": False, "windowModeRequested": window_mode, "windowModeConfirmed": False, "instanceId": configuration.instance_id, "prismProcessId": ready.process_id, "launchProcessId": command.pid, "javaProcessId": java.process_id, "startup": {"version": 1, "stage": "java_started", "bridgeReady": False, "worldReady": False, "nextTool": "mcb_health", "retryAction": False}, "completion": "Use mcb_health once to observe the current session and readiness; Java startup does not mean Minecraft or a world is ready."}
                 if backend.monotonic() >= deadline:
                     raise BridgeError("LAUNCH_NOT_OBSERVED", "Prism accepted dispatch, but no target Java process appeared before the bounded observation timeout. Inspect Prism before another request.", outcome_unknown=True)
                 backend.sleep(1.0)
@@ -328,13 +355,13 @@ def _launch(configuration: LaunchConfiguration, cancelled: threading.Event, back
             raise
 
 
-async def launch_client(configuration: Configuration | None = None) -> dict[str, Any]:
+async def launch_client(configuration: Configuration | None = None, window_mode: str = "minimized") -> dict[str, Any]:
     """MCP and CLI share this workflow; request cancellation stops later dispatch stages."""
     settings = read_launch_configuration(configuration or Configuration())
     cancelled = threading.Event()
 
     def worker():
-        return _launch(settings, cancelled, WindowsBackend())
+        return _launch(settings, cancelled, WindowsBackend(), window_mode)
 
     try:
         return await anyio.to_thread.run_sync(worker, abandon_on_cancel=True)

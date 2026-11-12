@@ -21,6 +21,8 @@ Mocked tests, in-game QA, an integrated server and a dedicated server are distin
 
 The native-control target requires end-to-end operation without Computer Use, external input or human completion of missing steps. If required, report that assistance and keep native acceptance open using [workspace.md](workspace.md).
 
+For Windows window controls, verify launch modes and repeated restore/resize/maximize/minimize sequences on the selected client. Check native state, framebuffer dimensions and taskbar presence. Record foreground and keyboard-focus changes throughout each operation; equal before/after handles do not exclude a brief input interruption. Passive OS observations are measurement, not client control. Assess Prism's prelaunch dialogs separately from the game window; a client-window pass does not establish uninterrupted typing during launcher startup.
+
 ## QA remains optional
 
 Horizon-QA provides a test framework; TST-QA provides related cases and public private-dimension integration. Neither is required for ordinary BridgeNH use, server dialogue, permissions or reads. Do not install/enable QA, elevate policy or switch client/world without task authorization. Client prerequisites remain UniMixins, StructureLib and lwjgl3ify.

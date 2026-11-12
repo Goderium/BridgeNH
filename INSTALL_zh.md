@@ -4,6 +4,12 @@
 
 每个客户端只安装一个兼容的 BridgeNH 模组 JAR，不要与旧 MCB JAR 同时安装。
 
+## 启动窗口状态
+
+`mcb_launch` 的 `windowMode` 可选 `minimized`（默认，最小化到任务栏且不激活）、`background`（显示但不激活）或 `normal`（普通启动）。源码 CLI 使用同名取值的 `--window-mode` 参数。所选模式保存到客户端 `config/codexbridge/window-startup.txt`，也适用于手动 Prism 启动；缺少偏好时默认最小化到任务栏；三种模式均保留任务栏图标。该功能需要 BridgeNH 早期 SDL 窗口钩子，更新 JAR 后须重启所选客户端，并在启动完成后通过 `mcb_window` 核实实际状态。
+
+这些模式控制 Windows SDL 后端的游戏窗口。Prism 的登录、更新和启动进度对话框仍由启动器控制，可能在 Java 启动前获得焦点。BridgeNH 不屏蔽共享 Prism 进程的对话框。
+
 ## 下载与安装
 
 下载发布附件 **`BridgeNH-<版本>-windows.zip`**，解压后双击 `install.cmd`。不需要管理员权限；PowerShell 执行策略仅对安装进程生效，不修改整机策略。发布包没有代码签名，请从可信来源下载并核对 SHA-256。

@@ -30,14 +30,14 @@ Read-only tools can still require a live session, supported server bridge or hig
 
 | Tool | Use and verification boundary |
 | --- | --- |
-| `mcb_launch` | Start the fixed selected Prism instance once, or continue read-only startup observation with `action="status"`. Java existence is not bridge/world readiness; never repeat an uncertain launch. |
+| `mcb_launch` | Start the selected instance once; windowMode=minimized is default (taskbar), with background (visible without activation) and normal alternatives (requires client window-controls v2). action="status" is read-only continuation. Java existence is not readiness; never replay an uncertain launch. |
 | `mcb_worlds` | List existing local saves and exact folder names. Does not create, delete or load a world. |
 | `mcb_load_world` | From the main menu, schedule loading an authorized existing exact save folder with the current session. Wait for actual world readiness. |
 | `mcb_connect_server` | Schedule normal Minecraft connection to an explicit host and separate port. Uses launcher authentication; observe the actual connection and world, not only the scheduled ticket. |
 | `mcb_leave_world` | Normally save/leave the owned integrated world or disconnect a server. Bind current session and `health.lifecycleTarget.expectedWorld`; verify return to menu. |
 | `mcb_exit` | Normally save/disconnect and close the selected client. Verify process exit; a scheduled acknowledgment is not shutdown completion. |
 | `mcb_window` | Read actual window mode, native flags, client/framebuffer sizes and supported actions. Fullscreen preference and live fullscreen state are different. |
-| `mcb_window_action` | Native maximize, restore or explicit windowed transition. Bind current session/window/mode; check `confirmed` and later dimensions. Does not use OS input or save window preferences. |
+| `mcb_window_action` | Maximize, restore, minimize, resize or explicitly leave fullscreen. Windows operations preserve focus and stacking. resize requires width/height. Bind current session/window/mode; verify confirmed and later dimensions. Does not save window preferences. |
 
 For a first launch after reconnect, an offline client cannot yet satisfy live binding. Use the supported fixed-instance launcher with the user's explicit selection, then bind after readiness; see [maintenance](maintenance.md#client-startup-and-binding).
 

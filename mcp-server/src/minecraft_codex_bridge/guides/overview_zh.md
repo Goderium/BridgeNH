@@ -118,6 +118,8 @@ GUI/tooltip 判断的优先级是当前客户端数据 -> 数据不足时的本�
 
 静态快捷键是对应模组版本的参考，不是当前客户端的实时配置或完整实机验收。当前绑定、提示和能力优先；数据不足时再核对精确版本源码，不得使用未经确认的历史快捷键。
 
+窗口控制 v2 的默认启动方式为 `mcb_launch(windowMode="minimized")`，最小化到任务栏并保留图标；也可指定 `background`（显示但不激活）或 `normal`；该偏好同样适用于手动启动。通过 `mcb_window` 读取启动策略、实际窗口状态及尺寸，使用受保护的 `mcb_window_action` 调整尺寸、最大化、还原或最小化。Windows 后台窗口操作保留焦点和层级；最小化活动窗口时正常释放焦点。这与鼠标保护、失焦继续运行是独立功能。Prism 对话框仍由启动器控制。
+
 `mcb_world_scan({})` 从当前玩家脚下开始，默认探测横向/纵向各 1 区块半径 (16 格)。`mcb_scan_config({})` 同时查询探测、缓存设置和命中统计；`radiusChunks`/`verticalRadiusChunks` 各 1..8，`cacheRadiusChunks`/`cacheVerticalRadiusChunks` 各 1..32，默认缓存各 4 区块 (64 格)。`cacheMaxMiB` 默认 2048，可设为 64..16384，按需分配；预算是保守的引用/条目记账，不是完整 JVM 或原生区块对象图的内存上限。每次查询核对实时方块/metadata 和世界/区块身份，不缓存实体、仓室内容或最终碰撞验收，不加载新区块。未提供的设置保留，修改清除旧游标和缓存，不接管鼠标。Forge `scan` 配置保存启动默认值；MCP 或 `/mcb scan N [V]`，`/mcb cache N [V]`，`/mcb cache memory N` 热调节当前会话。
 
 扫描每次只返回预算内的一页，不加载区块，不返回机器库存。显式块数 `radius` 保留为横向/纵向相同的 0..128 格兼容参数，不能与区块半径混用。初次指定中心时必须提供完整 x/y/z；player profile 只能查询当前维度，developer 可带完整中心查询已加载的本地维度。续页仅传上页 `nextCursor` 和可选 `limit`，不重传中心/范围/维度。游标会过期，响应成功送达后旧游标被消费；同游标执行中返回 busy，状态失效返回 stale_cursor，不自动重试。每页查看 `complete`，coverage，page，`visitedSpans`，`stopReason` 和 `nextCursor`。预算耗尽可能返回零进度；visitedSpans 标明已观察/空气/未加载的区段，未访问和未加载的位置不等于空气。不默认循环完最大扫描体积，不用返回 blocks 数量推算覆盖率，不通过 wait_for 重复扫描游标。

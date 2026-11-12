@@ -19,13 +19,14 @@ async def test_window_read_preserves_independent_native_and_game_modes_without_t
     assert not state["protected"]
 
 
-@pytest.mark.parametrize("action", ["maximize", "restore", "windowed"])
+@pytest.mark.parametrize("action", ["maximize", "restore", "windowed", "minimize", "resize"])
 async def test_window_mutation_requires_takeover_and_preserves_unconfirmed_receipt(bridge, action):
     adapter, state = bridge
     evidence = {"submitted": True, "confirmed": False, "nativeSyncCompleted": False,
                 "after": {"mode": "windowed", "maximized": False}}
     state["data"]["client.window_action"] = evidence
     args = {"expectedSessionId": "expanded-session", "expectedWindowId": "abc", "expectedMode": "windowed", "action": action}
+    if action == "resize": args.update(width=1280, height=720)
     result = await adapter.call_tool("mcb_window_action", args)
     assert result.structuredContent["data"] == evidence
     writes = [c for c in state["calls"] if c["operation"] == "client.window_action"]
@@ -50,3 +51,22 @@ async def test_window_native_refusal_is_not_replayed_or_replaced_with_fullscreen
     assert result.isError
     assert operations(state).count("client.window_action") == 1
     assert "gui.key" not in operations(state)
+
+
+@pytest.mark.parametrize("dimensions", [{}, {"width": 1100}, {"width": 255, "height": 650},
+                         {"width": 1100, "height": 8193}, {"width": 1100.5, "height": 650}])
+async def test_invalid_resize_is_rejected_before_takeover(bridge, dimensions):
+    adapter, state = bridge
+    result = await adapter.call_tool("mcb_window_action", {
+        "expectedSessionId": "expanded-session", "expectedWindowId": "abc",
+        "expectedMode": "windowed", "action": "resize", **dimensions})
+    assert result.isError and "client.window_action" not in operations(state)
+    assert not state["protected"]
+
+
+async def test_dimensions_do_not_silently_change_another_window_action(bridge):
+    adapter, state = bridge
+    result = await adapter.call_tool("mcb_window_action", {
+        "expectedSessionId": "expanded-session", "expectedWindowId": "abc",
+        "expectedMode": "windowed", "action": "restore", "width": 1100, "height": 650})
+    assert result.isError and not state["protected"]

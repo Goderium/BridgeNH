@@ -147,7 +147,7 @@ Individual tools and script-driven tests remain supported.
 | `bridge.health` | `{}` | Protocol, mod/game versions, capabilities, session ID, active control profile |
 | `client.snapshot` | `{}` | Player position/look/health, world/dimension, screen, crosshair target, focused/paused state |
 | `client.window` | `{}` | Client/framebuffer dimensions and actual SDL/lwjgl3ify window mode, flags, identity and supported actions |
-| `client.window_action` | `{expectedSessionId,expectedWindowId,expectedMode,action:"maximize"\|"restore"\|"windowed"}` | Guarded runtime native window request; no OS input, implicit fullscreen transition or configuration save |
+| `client.window_action` | `{expectedSessionId,expectedWindowId,expectedMode,action:"maximize"\|"restore"\|"windowed"\|"minimize"\|"resize",width?,height?}` | Guarded runtime native window request; no OS input, implicit fullscreen transition or configuration save |
 | `gui.inspect` | `{waitFor?:{timeoutMillis?,conditions?}}` | Current screen, public buttons/container slots and supported widgets; optional guarded native synchronization wait |
 | `gui.tooltip` | `{screenId,slot?,x?,y?,advanced?}` | Current client item/widget tooltip; exactly one real slot or a complete coordinate pair |
 | `nei.inspect` | `{screenId,offset?,limit?,includeTooltips?,advanced?}` | Bounded current NEI handler/stack and supported GT recipe/display data |
@@ -187,16 +187,18 @@ baseline, and `appliedValue` its actual binding or NotFine store, with an explic
 Apply/Undo are normal native button callbacks. A callback receipt does not prove
 persistence after restart or a resulting measured frame rate.
 
-`clientWindowControlsVersion=1` distinguishes maximized, windowed, undecorated windowed,
-borderless fullscreen and game fullscreen using native flags and the actual
-lwjgl3ify mode. Configuration preferences and Minecraft's fullscreen boolean
-remain separate evidence. Missing optional SDL APIs report unavailable/unknown.
-Maximize/restore require windowed mode; explicit `windowed` only leaves fullscreen.
-Native requests run on lwjgl3ify's owning thread, synchronize with SDL, then
-read flags back. `confirmed:false` is not permission to replay. Dimensions may
-follow on the next resize event; obtain a fresh read. No window action sends F11,
-enters fullscreen or saves options. Rebuilding a loaded MCP connection is needed
-to expose these two newly added tool names; existing GUI tool schemas are unchanged.
+`clientWindowControlsVersion=2` adds guarded minimize and resize (`width=256..8192`,
+`height=144..8192`, required only for resize). Windowed resize, maximize and restore retain the current
+foreground window and Z order on Windows through temporary native protection;
+manual activation remains available after the operation. Minimizing an active
+window lets Windows select another foreground window normally. Fullscreen transitions
+remain explicit. `confirmed` reports native state/dimension readback; client and
+framebuffer dimensions can follow on a later normal resize event. A false or
+unknown receipt never authorizes replay. `foregroundPreserved` compares native
+foreground handles across the operation; concurrent user focus changes can also
+make it false. `window.startupMode` and `startupModeApplied` describe the early
+startup policy; `focused` and `minimized` remain current state, not historical
+proof of uninterrupted focus preservation.
 
 Capabilities must describe which operations are actually implemented. Do not
 advertise unsupported operations. The MCP server must surface a clear error for
@@ -1066,7 +1068,7 @@ not replace existing recipe/QA acceptance or declare a root cause from UI text.
 | `client.background` / `mcb_background` | `{enabled}` | Install/restore temporary background input protection |
 | `client.mouse` / `mcb_mouse` | `{enabled}` | `true` restores manual mouse; `false` installs passive mouse protection independently |
 | `client.unfocused` / `mcb_unfocused` | `{enabled}` | `true` temporarily disables lost-focus pausing; `false` restores its previous setting independently |
-| MCP-only `mcb_launch` | `{}` or `{action:"launch"}`; `{action:"status",timeout_ms:1000..60000}` | Launch once; status is a bounded read-only current-health/process continuation with no dispatch |
+| MCP-only `mcb_launch` | `{windowMode?:"background"\|"minimized"\|"normal"}` or `{action:"launch",windowMode?}`; `{action:"status",timeout_ms:1000..60000}` | Launch once; status is a bounded read-only current-health/process continuation with no dispatch |
 
 `expectedSessionId` must match the current health/snapshot session. Save folders
 must be single existing list entries, not paths; creation and old-save conversion
@@ -1145,6 +1147,21 @@ the current data directory is preserved to reuse the existing account session.
 Hidden auxiliary processes, a named mutex and target-Java detection prevent
 duplicate dispatch. The result is only `scheduled`, not Minecraft readiness.
 It does not automate login and never retries uncertain launch outcomes.
+
+`windowMode` defaults to `minimized`: start minimized to the taskbar without activation.
+`background` displays the game without activation; `normal` uses normal window behavior.
+All modes retain taskbar eligibility. `window.taskbarButtonRequested` reports the actual
+Win32 `WS_EX_APPWINDOW` flag, not a taskbar UI observation. The launcher
+atomically writes `config/codexbridge/window-startup.txt` in the selected game
+directory after duplicate-client checks and before dispatch. This preference also
+applies to later manual Prism starts; a new MCP launch without a mode selects
+minimized again. Status never changes it. The client requires the early SDL/RFB
+window hook (window-controls v2); an older installed JAR does not apply this policy.
+`windowModeRequested` and `windowModeConfirmed=false` distinguish launch intent from
+native verification. Read `mcb_window` after the bridge becomes ready. The mode
+controls the game window only; Prism prelaunch dialogs can still take keyboard
+focus. A window remaining below another window does not establish uninterrupted
+typing. Track this launcher boundary in [NATIVE_CONTROL_GAPS.md](docs/NATIVE_CONTROL_GAPS.md).
 
 After an uncertain dispatch, its error includes a read-only `continuation` to
 `mcb_launch(action=status)`. This also works from a fresh MCP connection without

@@ -8,6 +8,13 @@
 }
 
 dependencies {
+    compileOnly('com.github.GTNewHorizons:lwjgl3ify:3.0.42:api') { transitive = false }
+    testImplementation('com.github.GTNewHorizons:lwjgl3ify:3.0.42:api') { transitive = false }
+    // Optional SDL window backend supplied by lwjgl3ify; never bundled.
+    ['lwjgl', 'lwjgl-sdl'].each { module ->
+        compileOnly("org.lwjgl:${module}:3.4.3") { transitive = false }
+        testImplementation("org.lwjgl:${module}:3.4.3") { transitive = false }
+    }
     compileOnly('com.github.GTNewHorizons:StructureLib:1.4.45:dev') { transitive = false }
     testImplementation('com.github.GTNewHorizons:StructureLib:1.4.45:dev') { transitive = false }
     compileOnly('io.github.legacymoddingmc:unimixins:0.3.1:dev') { transitive = false }

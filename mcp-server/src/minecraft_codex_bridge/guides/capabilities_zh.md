@@ -32,14 +32,14 @@
 
 | 工具 | 用途与验收边界 |
 | --- | --- |
-| `mcb_launch` | 对固定所选实例启动一次，或以 `action="status"` 只读续查。Java 进程出现不等于桥接/世界就绪，未知启动不得重发。 |
+| `mcb_launch` | 对所选实例启动一次；`windowMode=minimized` 默认最小化至任务栏，另可选 `background`（显示但不激活）、`normal`，要求客户端窗口控制 v2。`action="status"` 只读续查。Java 进程存在不等于就绪，未知启动不得重发。 |
 | `mcb_worlds` | 列出已有存档及准确文件夹名，不创建、删除或载入世界。 |
 | `mcb_load_world` | 在主菜单按当前会话载入获准的已有存档；等待实际 world readiness。 |
 | `mcb_connect_server` | 通过正常连接流程连接明确的 host 和独立 port，使用启动器认证；核对实际连接与世界，而非仅看调度回执。 |
 | `mcb_leave_world` | 正常保存并离开拥有的单人/LAN 世界，或断开服务器；使用当前会话及 `health.lifecycleTarget.expectedWorld`，核对回到菜单。 |
 | `mcb_exit` | 正常保存/断开并关闭所选客户端；核对进程退出，scheduled 不代表关闭完成。 |
 | `mcb_window` | 读取实际窗口模式、原生标志、客户端/帧缓冲大小和动作支持；全屏偏好与实际全屏状态分开。 |
-| `mcb_window_action` | 原生最大化、还原或明确切回窗口模式；绑定当前会话/窗口/模式，核对 `confirmed` 和后续尺寸，不用系统输入、不保存窗口偏好。 |
+| `mcb_window_action` | 最大化、还原、最小化、调整尺寸，或明确切回窗口模式。Windows 操作保留焦点和层级。resize 要求 width/height；绑定当前会话/窗口/模式，核对 confirmed 和后续尺寸，不保存窗口偏好。 |
 
 重连后的首次启动中，关闭的客户端还不能通过在线绑定验证。应先使用用户明确选定实例的受支持启动器入口，待就绪后绑定，详见[维护](maintenance_zh.md#客户端启动与绑定)。
 

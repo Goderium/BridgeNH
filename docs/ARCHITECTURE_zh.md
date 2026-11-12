@@ -69,6 +69,8 @@ OperationPolicies 持有有界的本地意图和存档/服务器选择；LocalJs
 
 ## Forge 模组
 
+`loader.rfb.WindowFocusPlugin` 在 Forge 初始化前封装 lwjgl3ify Display 中固定的 SDL 窗口调用。原生辅助类带有 `@Lwjgl3Aware`，不能为整个 JAR 添加该标记，其他类仍依赖 LWJGL2 重映射。启动策略使用有界的客户端独立文件。Windows 操作只保护自身 HWND，在 `finally` 中恢复临时焦点、样式及窗口过程状态，并沿用正常 SDL 尺寸事件。最小化启动先创建隐藏、未最小化的 SDL 窗口，再在保护范围内显示并最小化。SDL 的创建时最小化路径会提前显示 HWND，可能导致任务栏按钮缺失。还原最小化窗口时，先隐藏已经最小化的 HWND，再以不激活方式显示，避免 Windows 在此前最大化、还原后仍触发激活。不会通过激活其他窗口补偿焦点抢占。
+
 Java 使用 `src/main/java/com/Goderium/BridgeNH/`，BridgeNH.java 为根包入口；类名 UpperCamelCase，职责子包小写。自有测试跟随领域包，第三方 API 样本保留其命名空间。
 
 | 包 | 职责 |

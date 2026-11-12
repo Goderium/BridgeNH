@@ -65,7 +65,7 @@ async def handle_help(adapter, name, arguments, started_at):
 async def handle_launch(adapter, name, arguments, started_at):
     if arguments.get("action") == "status":
         return _result({"ok": True, "data": await launch_status(adapter.client, arguments.get("timeout_ms", 30000))})
-    return _result({"ok": True, "data": await launch_client(adapter.client.configuration)})
+    return _result({"ok": True, "data": await launch_client(adapter.client.configuration, arguments.get("windowMode", "minimized"))})
 
 
 async def handle_diagnostics(adapter, name, arguments, started_at):

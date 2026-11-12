@@ -4,6 +4,20 @@
 
 Use one compatible BridgeNH mod JAR per client; do not install it alongside an older MCB JAR.
 
+## Startup window mode
+
+`mcb_launch` accepts `windowMode`: `minimized` (default, minimized to the taskbar
+without activation), `background` (visible without activation), or `normal`.
+All three retain a taskbar button. The source CLI accepts `--window-mode` with the same values.
+The selected mode is stored in the client's `config/codexbridge/window-startup.txt`
+and also applies to manual Prism launches. A missing preference defaults to minimized.
+This requires the BridgeNH early SDL window hook; restart the selected client after
+updating its JAR. Verify the actual result with `mcb_window` after startup.
+
+These modes control the game window on the Windows SDL backend. Prism login,
+update and launch-progress dialogs remain launcher-controlled and can activate
+before Java starts. BridgeNH does not suppress dialogs in a shared Prism process.
+
 ## Install from the download
 
 Extract the ZIP, then double-click **install.cmd**. No administrator rights are

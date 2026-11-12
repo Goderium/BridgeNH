@@ -171,6 +171,7 @@ public class BridgeSelfTest {
         checks += NeiGeneratedDiagramSelfTest.run();
         checks += NeiRenderedSelfTest.run();
         checks += TooltipModifiersSelfTest.run();
+        checks += com.Goderium.BridgeNH.loader.rfb.WindowFocusSelfTest.run();
         checks += NeiHoverSelfTest.run();
         checks += LogicalGuiPointerSelfTest.run();
         checks += NeiNaturalRenderSelfTest.run();
