@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -542,6 +543,21 @@ def test_small_metadata_progresses_when_soft_deadline_expires(monkeypatch):
     assert metadata["components.nextOffset"] == 1
     assert metadata["components.hasMore"] is True
     assert summary["pagination"] is True
+
+
+@pytest.mark.parametrize("expired", [False, True])
+def test_metadata_deadline_reports_omitted_fields_after_minimum_progress(monkeypatch, expired):
+    from minecraft_codex_bridge import workflows
+
+    times = iter([0.0] + [100.0 if expired else 0.0] * 1000)
+    monkeypatch.setattr(workflows, "time", SimpleNamespace(monotonic=lambda: next(times)))
+    data = {"hasMore": False, "entries": [{"source": "native_tooltip_observer"}] * 128}
+    metadata, summary = _metadata(data)
+    assert metadata["hasMore"] is False
+    assert metadata["entries.0.source"] == "native_tooltip_observer"
+    assert ("entries.127.source" not in metadata) is expired
+    assert summary["metadataOmitted"] is expired
+    assert summary["unknownOrUnloaded"] is expired
 
 
 def test_public_descriptions_and_piece_bounds_are_in_default_observations():

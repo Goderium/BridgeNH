@@ -11,6 +11,13 @@ from test_nei_view import SCREEN, CONTEXT, VIEW
 from test_workflows import bridge, operations
 
 
+@pytest.fixture(autouse=True)
+def metadata_field_preservation_budget(monkeypatch):
+    # These tests verify retained fields, not elapsed time. Keep node/output
+    # limits; test_workflows covers the production deadline with a controlled clock.
+    monkeypatch.setattr("minecraft_codex_bridge.workflows.MAX_METADATA_MILLIS", float("inf"))
+
+
 DETAIL = {**SCREEN, "section": "detail"}
 SCENE_POSITION = {"x": -33554432, "y": -2048, "z": 33554431}
 BLOCK_TARGETS = ("preview_block", "preview_hint_text", "preview_textures")
@@ -244,10 +251,7 @@ async def test_sdk_preserves_existing_tools_and_advertises_native_player_informa
 
 
 @pytest.mark.parametrize("hook_available", [True, False])
-async def test_explicit_false_modifier_and_missing_keyboard_hook_are_preserved_without_inferred_tooltip(bridge, hook_available, monkeypatch):
-    # Field-preservation assertions must not depend on a scheduler pause inside
-    # the separately tested production metadata traversal deadline.
-    monkeypatch.setattr("minecraft_codex_bridge.workflows.MAX_METADATA_MILLIS", 1000)
+async def test_explicit_false_modifier_and_missing_keyboard_hook_are_preserved_without_inferred_tooltip(bridge, hook_available):
     adapter, state = bridge
     context = {"requestedModifiers": {"shift": False, "control": True, "alt": False},
         "physicalModifiers": {"shift": True, "ctrl": False, "alt": False, "source": "physical_keyboard"},
@@ -327,9 +331,7 @@ def test_large_or_nested_diagnostic_lists_report_omission_instead_of_expanding_t
 
 @pytest.mark.parametrize("target", ["preview_candidate_groups", "preview_candidate_items", "preview_candidate_tooltip_lines",
     "preview_candidate_tooltip_text", "preview_candidate_nbt"])
-async def test_unselected_candidate_cache_retains_native_absence_and_diagnostics_without_a_scan(bridge, target, monkeypatch):
-    # Test field preservation without scheduler pauses consuming the production time budget.
-    monkeypatch.setattr("minecraft_codex_bridge.workflows.MAX_METADATA_MILLIS", 1000)
+async def test_unselected_candidate_cache_retains_native_absence_and_diagnostics_without_a_scan(bridge, target):
     adapter, state = bridge
     details = {"target": target, "unit": "entries", "resourceContext": "current resource reload and language",
         "coordinateFrame": "preview_scene", "candidateRulesCoverage": "native selected position cache only",
@@ -351,8 +353,7 @@ async def test_unselected_candidate_cache_retains_native_absence_and_diagnostics
     assert not state["background"]["enabled"]
 
 
-def test_texture_model_limit_and_runtime_getter_diagnostics_survive_compact_entry_selection(monkeypatch):
-    monkeypatch.setattr("minecraft_codex_bridge.workflows.MAX_METADATA_MILLIS", 1000)
+def test_texture_model_limit_and_runtime_getter_diagnostics_survive_compact_entry_selection():
     details = {"target": "preview_textures", "textureReadSource": "native getter descriptors", "textureSide": 5,
         "textureGraphicsCoverage": "CTM world renderer, TESR geometry and shader/light pixels are not evaluated",
         "resourceContext": "current resource reload and language", "maximumTraversedNodes": 512, "maximumTextureEntries": 256,
