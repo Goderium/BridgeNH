@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 /** No Minecraft client or window is constructed by this fixture. */
-public class GuiRecipe {
+public class GuiRecipe extends net.minecraft.client.gui.GuiScreen {
     private IRecipeHandler handler;
     private final List<Integer> refs;
     public List<IRecipeHandler> currenthandlers = new ArrayList<>();

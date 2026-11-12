@@ -59,6 +59,19 @@
 
 `mcb_help` 的 worker 工具指纹与 `mcb_backend_status` 的监督器完整契约指纹**不能互换**。原样使用返回的 `callGuards`，重载或重绑后刷新。`TOOL_CATALOG_CHANGED`、`BINDING_GENERATION_CHANGED` 是派发前拒绝；目标动作若已产生未知效果，仍须核对，不得通过更换请求重新执行。
 
+## 核对已有回执的创造模式放置
+
+`BACKEND_ACTION_REPLAY_REQUIRES_RECONCILIATION` 表示当前 worker 保留了效果未确定的匹配动作。游戏会话变化或 worker 重启不会清除保护。在保留原动作的同一已绑定 MCP 连接中使用 `mcb_action_recovery`：
+
+1. 调用 `{"action":"list"}`，按工具及参数选择原始 `actionId`。此步骤离线执行，不导入其他对话的记录。
+2. 调用 `action="inspect"`，提供该 `actionId`、当前 `expectedSessionId`、原 `expectedWorld` 和 `dimension`。原 `expectedWorld` 必须与当前准确存档目录名一致，仅显示名称匹配不足以通过检查。检查该本地世界中健康的创造模式玩家、空闲输入、空光标、客户端与服务器完整背包及 NBT 一致、原目标为空且原相邻支撑仍存在。此步骤保留重放保护。
+3. 核对返回的当前 `sourceItem` 和新放置意图。调用 `action="reconcile"`，提供相同保护字段、返回的 `evidenceFingerprint` 和 `acknowledgement="allow_new_placement_after_verified_reset"`。重新进行原生读取，证据必须与指纹一致；证据变化或不完整时保留保护。
+4. `reconciled` 回执记录允许另行请求新放置。恢复本身不修改游戏状态。通过原工具明确提交预期放置，并核对服务器效果。后续放置若再次产生不确定结果，将成为新的未解决动作，即使参数和回执与旧动作相似。
+
+此路径仅支持已有正常回执的独立创造模式 ItemBlock 回调：目标原本为空，未预计消耗物品，且不涉及替换、攻击、空中使用回退、部件、跳跃放置或精确附着约束。传输结果未知、生存模式消耗及其他动作类型尚不支持。旧回执不保留原物品 NBT；当前背包一致只能确认当前拟用物品，不能证明历史物品守恒或原动作结果。`originalOutcomeKnown=false` 保持明确。读取非原子，核对是重复观察，不锁定后续游戏状态。
+
+核对只解除该动作的匹配重放保护，不清除 worker 保守保留的未分类结果标记、不授权切换客户端，也不解决其他动作。回执随兼容 worker 交接保留；最多保存 64 条记录，新增未知动作前可淘汰已核对记录。不得编辑内部记录来恢复动作。
+
 ## 按失败层定位
 
 | 观察 | 含义与下一步 |

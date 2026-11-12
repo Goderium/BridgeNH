@@ -270,7 +270,19 @@ async def test_actual_mcp_initialize_list_and_call_all_tools(http_bridge, tmp_pa
         assert len(listed.tools) == len(TOOLS) + len(management)
         assert {tool.name for tool in listed.tools} == {spec.name for spec in TOOLS} | management
         assert set(examples) <= {spec.name for spec in TOOLS}
-        assert all(tool.inputSchema.get("additionalProperties") is False or tool.name == "mcb_dialogue" and all(branch.get("additionalProperties") is False for branch in tool.inputSchema["oneOf"]) for tool in listed.tools)
+        for tool in listed.tools:
+            schema = tool.inputSchema
+            branches = schema.get("oneOf", [])
+            assert schema.get("additionalProperties") is False or branches and all(
+                branch.get("type") == "object" and branch.get("additionalProperties") is False
+                for branch in branches), tool.name
+        calls_before_recovery = len(state["calls"])
+        recovery = await session.call_tool("mcb_action_recovery", {"action": "list"})
+        if supervised:
+            assert not recovery.isError and recovery.structuredContent["data"]["actions"] == []
+        else:
+            assert recovery.isError and recovery.structuredContent["error"]["code"] == "ACTION_RECOVERY_WORKER_REQUIRED"
+        assert len(state["calls"]) == calls_before_recovery
         for tool in listed.tools:
             if tool.name in management:
                 assert tool.annotations.destructiveHint is False

@@ -4,6 +4,7 @@ from ..tools import TOOL_BY_NAME
 from .handlers import local, observations, tasks
 
 HANDLERS = {
+    'mcb_action_recovery': local.handle_action_recovery,
     'mcb_dialogue': local.handle_dialogue,
     'mcb_recording': local.handle_recording,
     'mcb_run_log': local.handle_run_log,

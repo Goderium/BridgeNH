@@ -23,6 +23,7 @@ Read-only tools can still require a live session, supported server bridge or hig
 | `mcb_connection` | Inspect, explicitly bind or unbind this conversation. Bind with actual chat ID, current generation and a new request ID; a fresh frontend starts unbound. |
 | `mcb_backend_status` | Read this frontend/worker, generations, fingerprints and catalog-notification observations. No game call and no restart. |
 | `mcb_backend_restart` | Replace compatible worker code, tools/resources and guides on the same MCP connection. Verify state handoff and actual host rediscovery; see [maintenance](maintenance.md). |
+| `mcb_action_recovery` | List retained action IDs, inspect current native evidence and explicitly reconcile a returned creative placement after verified removal. No automatic replay; scope and procedure are in [maintenance](maintenance.md#reconcile-a-returned-creative-placement). |
 | `mcb_health` | Observe bound instance/session, readiness, executing build, authority and capabilities. A current readiness receipt does not prove future loading or action completion. |
 | `mcb_policy` | Read or persist save/server operation intent. Survival/efficient/creative/full, movement and QA ceilings remain intersected with actual authority; no automatic OP or flight grant. |
 

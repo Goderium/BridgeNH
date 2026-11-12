@@ -30,6 +30,7 @@ class Worker:
     def __init__(self, client):
         self.client = client
         self.adapter = Adapter(client)
+        self.adapter.action_recovery = self.recover_action
         self.mutation_seen = False
         self.uncertain = False
         self.failed_actions = []
@@ -86,6 +87,16 @@ class Worker:
         record = {"tool": name, "arguments": deepcopy(arguments), "result": action_result(result)}
         if record in self.failed_actions:
             return
+        from .action_recovery import action_id, reconciled
+        if any(reconciled(row) and action_id(row) == action_id(record) for row in self.failed_actions):
+            # A later identical receipt is a different action, not the already
+            # reconciled one. Keep its ID distinct across checkpoint handoff.
+            from uuid import uuid4
+            record["result"]["actionRecoveryRecordId"] = uuid4().hex
+        if len(self.failed_actions) >= MAX_FAILED_ACTIONS:
+            resolved = next((row for row in self.failed_actions if reconciled(row)), None)
+            if resolved is not None:
+                self.failed_actions.remove(resolved)
         self.failed_actions.append(record)
         movement = movement_failure(name, arguments, result)
         if movement is not None and len(self.movement_failures) < MAX_MOVEMENT_FAILURES:
@@ -101,7 +112,12 @@ class Worker:
         if self.uncertain and not self.failed_actions:
             return True
         key = replay_key(name, arguments)
-        return any(replay_key(record["tool"], record["arguments"]) == key for record in self.failed_actions)
+        from .action_recovery import reconciled
+        return any(not reconciled(record) and replay_key(record["tool"], record["arguments"]) == key for record in self.failed_actions)
+
+    async def recover_action(self, arguments):
+        from .action_recovery import manage
+        return await manage(self, arguments)
 
     async def dispatch(self, method, params):
         if method == "list_clients":
@@ -187,23 +203,31 @@ class Worker:
             return _result({"ok": False, "error": {"code": "CLIENT_NOT_BOUND",
                 "message": "No default binding. List clients and explicitly bind this conversation before game tools.",
                 "outcome_unknown": False}, "mcpConnection": self.client.configuration.connection_info()}, error=True).model_dump(mode="json", by_alias=True, exclude_none=True)
-        if spec is not None and not spec.read_only:
+        recovery = name == "mcb_action_recovery"
+        if spec is not None and not spec.read_only and not recovery:
             if self.replay_blocked(name, arguments):
+                from .action_recovery import action_id, reconciled
                 return _result({"ok": False, "error": {"code": "BACKEND_ACTION_REPLAY_REQUIRES_RECONCILIATION",
                     "message": "A prior matching action has unresolved effects; reload does not authorize replay.",
-                    "outcome_unknown": False, "replayAllowed": False}}, error=True).model_dump(mode="json", by_alias=True, exclude_none=True)
-            if len(self.failed_actions) >= MAX_FAILED_ACTIONS:
+                    "outcome_unknown": False, "replayAllowed": False, "recoveryTool": "mcb_action_recovery",
+                    "actionIds": [action_id(row) for row in self.failed_actions if not reconciled(row)
+                        and replay_key(row["tool"], row["arguments"]) == replay_key(name, arguments)]}},
+                    error=True).model_dump(mode="json", by_alias=True, exclude_none=True)
+            from .action_recovery import reconciled
+            if sum(not reconciled(row) for row in self.failed_actions) >= MAX_FAILED_ACTIONS:
                 raise BackendError("BACKEND_ACTION_RECORD_CAPACITY")
             self.mutation_seen = True
         result = await self.adapter.call_tool(name, arguments)
-        if spec is not None and not spec.read_only and uncertain_tool_result(result.structuredContent):
+        if spec is not None and not spec.read_only and not recovery and uncertain_tool_result(result.structuredContent):
             self.remember_unknown(name, arguments, result.structuredContent)
         if name == "mcb_health":
+            from .action_recovery import reconciled
             result = health_result(result, self.client, {"pid": os.getpid(), "reloadMode": "supervised_worker",
                 "schemaFingerprint": fingerprint(self.contract), "sourceStatus": "frozen_snapshot",
                 "reloadRecovery": {"unclassifiedOutcome": self.uncertain,
                     "pendingMovements": deepcopy(self.movement_failures), "reconciledMovements": self.reconciled_movements,
-                    "unresolvedActions": len(self.failed_actions), "pendingOrders": sum(
+                    "unresolvedActions": sum(not reconciled(row) for row in self.failed_actions),
+                    "reconciledActions": sum(reconciled(row) for row in self.failed_actions), "pendingOrders": sum(
                         record.get("phase") not in TERMINAL_ORDERS for record in self.adapter.ae_order_records.values()),
                     "reloadBlockedByGameOutcome": False, "stateVersion": STATE_VERSION,
                     "automaticActionRetries": False}})

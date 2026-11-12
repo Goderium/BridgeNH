@@ -96,7 +96,7 @@ public final class NeiPreviewDetailSelfTest {
     private static String repeat(String text, int count) { StringBuilder result = new StringBuilder(); for (int i = 0; i < count; i++) result.append(text); return result.toString(); }
     private static void check(boolean value, String label) { checks++; if (!value) throw new AssertionError(label); }
     private static void expect(String code, Runnable runnable) { checks++; try { runnable.run(); } catch (BridgeException error) { if (code.equals(error.code)) return; throw new AssertionError("Expected " + code + ", got " + error.code, error); } throw new AssertionError("Expected " + code); }
-    public static final class SelectionAccess extends GTGuiMultiblockHandler { void select(int x, int y, int z) { SELECTED_BLOCK.set(x, y, z); } }
+    public static final class SelectionAccess extends GTGuiMultiblockHandler { void select(int x, int y, int z) { selectedBlock.set(x, y, z); } }
     public static final class FixtureBlock extends Block { public FixtureBlock() { super(Material.rock); } }
     public static final class FixtureItem extends Item {
         int tooltipCalls; String lastLine;

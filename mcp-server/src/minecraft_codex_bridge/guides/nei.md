@@ -4,6 +4,12 @@ Agent reference: English; [Chinese companion](nei_zh.md) for human review ([read
 
 For Minecraft 1.7.10 and GTNH NotEnoughItems. Native bookmark APIs are source-scoped to **2.8.171-GTNH**; the shortcut reference uses **2.8.155-GTNH**, and the other baseline behavior uses **2.8.145-GTNH**. These source baselines do not establish complete live-test coverage. Read current bindings, configuration and tooltips after upgrades or rebinding.
 
+## Native structure previews
+
+The preview adapter supports the BlockRenderer6343 1.4.23/1.4.25 field layouts, including protected element maps and per-handler selection. Open the actual item usage/recipe, then read `mcb_nei_view` with the current `screenId` and `section="preview"`. Use `section="detail"` with `target="preview_controls"` or `"preview_blocks"` for those details. Retain the current `contextToken` for detail reads and `mcb_nei_preview_control`; use advertised actions and fresh observations after changes.
+
+`set_camera`, `set_tier`, `set_layer`, `select_block` and `clear_selection` use the native preview model/callbacks. Layer values follow the installed slider: 1.4.25 uses 0 for all layers and 1 through the structure height; the legacy layout uses -1 for all layers. Read actual control minimum/maximum instead of assuming either range. Tier changes can rebuild geometry and change bounds. Preview blocks and candidate alternatives describe a render model, not placed blocks or machine formation.
+
 ## Choose the bookmark and retrieval scope
 
 - For one final item, a human item-level **A** bookmark is different from **Shift+A** for a whole recipe. Save inputs/outputs together only when that relationship is required. bookmarkItemsWithRecipe may attach recipe identity without adding all ingredients.

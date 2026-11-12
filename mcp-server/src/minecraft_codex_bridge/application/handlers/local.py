@@ -11,6 +11,13 @@ from ...player_recordings import read_recording
 from ..results import _result
 
 
+async def handle_action_recovery(adapter, name, arguments, started_at):
+    recovery = getattr(adapter, "action_recovery", None)
+    if recovery is None:
+        raise BridgeError("ACTION_RECOVERY_WORKER_REQUIRED", "Use the supervised MCP connection that retains the unresolved action.", outcome_unknown=False)
+    return _result({"ok": True, "data": await recovery(arguments)})
+
+
 async def handle_dialogue(adapter, name, arguments, started_at):
     from ...dialogue import manage
     return _result({"ok": True, "data": await manage(adapter.client, arguments)})

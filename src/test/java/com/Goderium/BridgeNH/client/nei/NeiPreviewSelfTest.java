@@ -24,11 +24,48 @@ import net.minecraft.util.StatCollector;
 /** Callback identity, mutation boundaries, coordinates, and old-frame invalidation, without a client. */
 public final class NeiPreviewSelfTest {
     private static int checks;
-    public static int run() { checks = 0; verify(); return checks; }
+    public static int run() { checks = 0; verifyExistingScene(); verify(); return checks; }
     public static void main(String[] args) { System.out.println("NEI preview fixtures passed: " + run()); }
     private static JsonObject action(String action) { JsonObject args = new JsonObject(); args.addProperty("action", action); args.addProperty("screenId", "fixture-preview"); args.addProperty("contextToken", "fixture-token"); return args; }
     private static JsonObject coordinate(int x, int y, int z) { JsonObject value = new JsonObject(); value.addProperty("x", x); value.addProperty("y", y); value.addProperty("z", z); return value; }
     private static long pack(int x, int y, int z) { return ((long) x & 0x3ffffffL) << 38 | ((long) z & 0x3ffffffL) << 12 | ((long) y & 0xfffL); }
+
+    private static void verifyExistingScene() {
+        blockrenderer6343.integration.nei.GuiMultiblockHandler gui = new blockrenderer6343.integration.nei.GuiMultiblockHandler();
+        WorldSceneRenderer renderer = new WorldSceneRenderer();
+        ItemStack trigger = new ItemStack(new StructuredInfoSelfTest.FakeItem(), 1, 0);
+        gui.fixtureInit(renderer, trigger, values -> {});
+        gui.fixtureButtons().add(new GuiSlider(StatCollector.translateToLocal("blockrenderer6343.nei.tier"), 0, 1, 1, 4, value -> {}));
+        GuiSlider modernLayer = new GuiSlider(StatCollector.translateToLocal("blockrenderer6343.nei.layer"), 1, 0, 0, 1, value -> gui.fixtureLayer(value - 1));
+        gui.fixtureButtons().add(modernLayer);
+        long position = pack(0, 64, 0);
+        renderer.world.blockMap.put(position, new Object());
+        renderer.renderedBlocks.add(position);
+        gui.fixtureElements().put(position, new Object());
+        blockrenderer6343.integration.nei.MultiblockHandler handler =
+            new blockrenderer6343.integration.nei.MultiblockHandler(gui, new Object());
+        codechicken.nei.recipe.GuiRecipe screen = new codechicken.nei.recipe.GuiRecipe(handler, Collections.singletonList(0));
+        NeiPreviewProvider.Scene scene = NeiPreviewProvider.scene(screen);
+        check(scene.built && scene.elements == gui.fixtureElements(), "scene discovery reads the protected 1.4.25 element map without building or rendering");
+        JsonObject request = action("set_camera");
+        request.addProperty("rotationYaw", 35); request.addProperty("rotationPitch", 80); request.addProperty("zoom", 12);
+        NeiPreviewProvider.applyControl(scene, request);
+        blockrenderer6343.integration.nei.GuiMultiblockHandler other = new blockrenderer6343.integration.nei.GuiMultiblockHandler();
+        other.fixtureInit(new WorldSceneRenderer(), trigger, values -> {});
+        JsonObject read = NeiPreviewProvider.inspect(screen, 0, 1, System.nanoTime(), false);
+        check(read.get("status").getAsString().equals("ok"), "public preview read traverses the actual handler/model fields: " + read);
+        check(read.getAsJsonObject("data").getAsJsonObject("camera").get("zoom").getAsFloat() == 12,
+            "creating another preview cannot overwrite the selected preview camera");
+        check(read.getAsJsonObject("data").get("structureElementCount").getAsInt() == 1 && renderer.fixtureCameraCalls == 1,
+            "readback preserves protected map contents and does not replay camera input");
+        JsonObject layer = action("set_layer"); layer.addProperty("value", 20);
+        NeiPreviewProvider.applyControl(scene, layer);
+        check(modernLayer.fixtureValue() == 20, "zero-based all-layers sentinel leaves the maximum physical layer reachable");
+        layer.addProperty("value", 21);
+        expect("invalid_args", () -> NeiPreviewProvider.applyControl(scene, layer));
+        layer.addProperty("value", 0); NeiPreviewProvider.applyControl(scene, layer);
+        check(modernLayer.fixtureValue() == 0, "1.4.25 all-layers sentinel is zero");
+    }
 
     private static void verify() {
         for (int x : new int[] {-33554432, -5, -1, 0, 5, 33554431}) for (int y : new int[] {-2048, -1, 0, 62, 64, 81, 2047}) for (int z : new int[] {-33554432, -9, -1, 0, 1, 33554431}) {

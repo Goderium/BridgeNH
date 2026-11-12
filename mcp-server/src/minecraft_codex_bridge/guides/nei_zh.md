@@ -6,6 +6,12 @@
 
 适用 Minecraft 1.7.10 的 GTNH NotEnoughItems。原生书签 API 参考 **2.8.171-GTNH** 源码；快捷键参考 **2.8.155-GTNH**，其他基础行为参考 **2.8.145-GTNH**。这些源码基线不代表所有快捷键均已实机验证。升级或重绑后读取当前 Controls、绑定与 tooltip。
 
+## 原生结构预览
+
+预览适配器支持 BlockRenderer6343 1.4.23/1.4.25 的字段布局，包括受保护的元素映射与处理器实例内的选择状态。打开实际物品的用途或配方，使用当前 `screenId` 调用 `mcb_nei_view(section="preview")`。控件与方块详情使用 `section="detail"`，并指定 `target="preview_controls"` 或 `"preview_blocks"`。保留当前 `contextToken` 用于详情读取与 `mcb_nei_preview_control`，按实际声明的动作操作，并在修改后重新读取。
+
+`set_camera`、`set_tier`、`set_layer`、`select_block` 和 `clear_selection` 使用原生预览模型或回调。层数值遵循已安装滑块：1.4.25 的 0 表示全部层，1 至结构高度表示各层；旧布局用 -1 表示全部层。应读取当前控件的 minimum/maximum，不预设范围。等级变化可能重建几何并改变边界。预览方块与候选项描述渲染模型，不证明实际方块或机器成型。
+
 ## 按目标选择收藏与领取
 
 - 只需最终产物：人工悬停目标产物按 **A** 做物品级收藏，再从书签领取；不为取一件而用 **Shift+A** 保存整套原料。需要输入输出关系或整方用量时才收藏配方。`bookmarkItemsWithRecipe` 可附带配方身份，不等于把原料也收藏。

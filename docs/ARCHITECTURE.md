@@ -109,6 +109,12 @@ Native rediscovery depends on the MCP host supporting these notifications.
 Orders and unresolved effects are transferred through the existing versioned
 checkpoint; replacement does not resume or replay game actions.
 
+`action_recovery.py` reconciles a retained returned creative placement through
+fresh native inventory/context/block reads. `mcb_action_recovery` records an
+explicit evidence fingerprint on that worker-owned action; it never dispatches
+placement or resolves other unknown effects. The marker and stable action ID
+survive the same checkpoint. See the [recovery procedure](../mcp-server/src/minecraft_codex_bridge/guides/maintenance.md#reconcile-a-returned-creative-placement).
+
 The legacy in-process server also supports data-only catalog refresh.
 `catalog/sources.py` declares a fixed, dependency-ordered source bundle.
 `catalog_refresh.py` interprets those declarations without executing edited

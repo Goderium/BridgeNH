@@ -78,6 +78,16 @@ network request, retry, generated script or persistent per-call plan is involved
 
 ### MCP-only bounded workflows
 
+`mcb_action_recovery` is a worker-local recovery interface, not a new HTTP
+mutation. `list` reads retained action IDs without game calls; `inspect` and
+`reconcile` use existing guarded `baubles.inspect` and `world.inspect_many`
+reads. Reconciliation requires the current session, original exact save-folder
+argument and dimension, repeated matching full-NBT client/server inventory and
+block evidence, and an explicit acknowledgement. Its receipt releases only the
+selected returned creative placement's replay guard; the historical outcome
+remains unknown and a new placement requires a separate request. Other unknown
+actions remain protected. See the [scope and procedure](mcp-server/src/minecraft_codex_bridge/guides/maintenance.md#reconcile-a-returned-creative-placement).
+
 `mcb_sequence` and `mcb_observe` execute existing HTTP operations in the Python
 service; they do not require a separate workflow operation in the mod. They support one agent doing
 discovery, planning and execution without generated scripts or subagents.

@@ -450,6 +450,16 @@ TOOLS.append(ToolSpec("mcb_dialogue", None,
         obj({"action": {"const": "reply"}, "messageId": {"type": "string", "format": "uuid"},
              "text": {"type": "string", "minLength": 1, "maxLength": 4096}, "channel": {"type": "string", "enum": ["private", "server"]}}, ["action", "messageId", "text"])
     ]}, False, idempotent=False))
+ACTION_RECOVERY_ID = {"type": "string", "pattern": "^[a-f0-9]{64}$", "minLength": 64, "maxLength": 64}
+ACTION_RECOVERY_GUARDS = {"actionId": ACTION_RECOVERY_ID, "expectedSessionId": EXPECTED_SESSION,
+    "expectedWorld": EXPECTED_WORLD, "dimension": DIMENSION}
+TOOLS.append(ToolSpec("mcb_action_recovery", None,
+    "Inspect this supervised worker's retained unresolved action IDs. list is offline. inspect verifies a returned creative ItemBlock placement's current empty target, original adjacent support, idle input and matching complete client/server full-NBT inventory in the same world/dimension. reconcile repeats those native reads and requires the inspect evidenceFingerprint plus acknowledgement=allow_new_placement_after_verified_reset. It records reconciliation of that exact action; it never dispatches placement, changes inventory, proves the historical outcome or grants automatic replay. A separately requested new placement still uses normal guards. Session changes alone never clear protection. Only returned creative placements without source loss, replacement, air-use fallback or part/jump/exact-attachment semantics are supported. Other actions, transport-unknown results, changed evidence and partial reads stay blocked. Use the same MCP connection that owns the original action; no Codex restart or file editing.",
+    {"oneOf": [obj({"action": {"const": "list"}}, ["action"]),
+        obj({"action": {"const": "inspect"}, **ACTION_RECOVERY_GUARDS}, ["action", *ACTION_RECOVERY_GUARDS]),
+        obj({"action": {"const": "reconcile"}, **ACTION_RECOVERY_GUARDS, "evidenceFingerprint": ACTION_RECOVERY_ID,
+            "acknowledgement": {"const": "allow_new_placement_after_verified_reset"}},
+            ["action", *ACTION_RECOVERY_GUARDS, "evidenceFingerprint", "acknowledgement"])]}, False, idempotent=False))
 CATALOG_REVISION = {"type": "string", "pattern": "^[a-f0-9]{64}$"}
 DYNAMIC_TOOL_NAME = {"type": "string", "pattern": "^mcb_[a-z0-9_]+$", "maxLength": 96}
 DYNAMIC_CALL_SCHEMA = obj({

@@ -57,6 +57,19 @@ When a host still exposes old native tool definitions, the existing `mcb_sequenc
 
 The worker catalog fingerprint in `mcb_help` is **not interchangeable** with the supervisor's full contract fingerprint in `mcb_backend_status`. Copy the returned `callGuards` unchanged. After reload or rebinding, refresh them. `TOOL_CATALOG_CHANGED` or `BINDING_GENERATION_CHANGED` refuses before dispatch; an unknown target action outcome still requires reconciliation rather than a new call.
 
+## Reconcile a returned creative placement
+
+`BACKEND_ACTION_REPLAY_REQUIRES_RECONCILIATION` means this worker retains a matching action with unresolved effects. A new game session or worker restart does not clear it. Use `mcb_action_recovery` on the same bound MCP connection:
+
+1. Call `{"action":"list"}` and select the original `actionId` by its tool and arguments. This step is offline. Other chats' records are not imported.
+2. Call `action="inspect"` with that `actionId`, the current `expectedSessionId`, original `expectedWorld` and `dimension`. The original `expectedWorld` must match the current exact save folder; a display-name-only match is insufficient. It checks a healthy creative actor in that local world, idle input, empty cursor, complete matching client/server inventory including full NBT, an empty original target and its original adjacent support. It leaves the replay guard active.
+3. Review the returned current `sourceItem` and intended new placement. Call `action="reconcile"` with the same guards, returned `evidenceFingerprint` and `acknowledgement="allow_new_placement_after_verified_reset"`. Fresh native reads must match the fingerprint; changed or incomplete evidence leaves protection active.
+4. A `reconciled` receipt records permission for a separately requested new placement. Recovery performs no game mutation. Submit the intended placement explicitly through its ordinary tool and verify server effects. A later uncertain placement creates a new unresolved action, even if its arguments and receipt resemble the previous action.
+
+This path supports a returned standalone creative ItemBlock callback with an initially empty target, no predicted source consumption, replacement, attack, air-use fallback or part/jump/exact-attachment semantics. Transport-unknown calls, survival consumption and other action types remain unsupported. The legacy receipt does not preserve the original item NBT: current inventory agreement establishes the current intended item, not historical item conservation or the original action's outcome. `originalOutcomeKnown=false` remains explicit. Reads are non-atomic and reconciliation is repeated observation, not a lock on future game state.
+
+Reconciliation clears only that action's matching replay guard. It does not clear the worker's conservative unclassified-outcome flag, authorize a client switch or resolve other actions. Receipts survive compatible worker handoff; up to 64 records are retained, with reconciled entries eligible for eviction before new unknown actions. Do not edit internal records to recover an action.
+
 ## Diagnose the layer that failed
 
 | Observation | Meaning and next step |

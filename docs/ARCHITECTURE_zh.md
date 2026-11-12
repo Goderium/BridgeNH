@@ -63,6 +63,8 @@ OperationPolicies 持有有界的本地意图和存档/服务器选择；LocalJs
 
 应用变化替换私有 worker；固定前端、启动指引及依赖版本须匹配。工具/资源增删及 schema 变化随新 worker 提交，激活成功后发送 list_changed。宿主是否原生重新发现仍取决于宿主支持。订单/未知效果经过版本化 checkpoint 交接，不自动续做或重放。
 
+`action_recovery.py` 通过新的原生背包、上下文和方块读取，核对 worker 保留的已有回执的创造模式放置。`mcb_action_recovery` 将明确的证据指纹记录到该动作，不派发放置，也不解决其他未知效果。核对标记及稳定动作 ID 随同一 checkpoint 交接。详见[恢复流程](../mcp-server/src/minecraft_codex_bridge/guides/maintenance_zh.md#核对已有回执的创造模式放置)。
+
 旧进程内服务器还支持纯数据目录刷新。catalog/sources.py 定义固定依赖顺序，catalog_refresh.py 解释声明但不执行编辑后的源码；已加载辅助代码保持冻结。工具拓扑、权限或辅助代码变化被拒绝。共享目录和校验器缓存在同一动作锁内更新。
 
 可执行变化检测覆盖新增/删除的嵌套 Python 模块，新模块须进入快照和 wheel。固定前端、依赖、启动指引变化需要 MCP 重连；兼容业务代码不要求重启 Codex。

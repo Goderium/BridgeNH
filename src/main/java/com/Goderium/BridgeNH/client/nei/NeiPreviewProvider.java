@@ -29,7 +29,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 
-/** Passive existing preview reads; explicit named controls reuse BlockRenderer6343 1.4.23 callbacks. */
+/** Passive existing preview reads; explicit named controls reuse BlockRenderer6343 1.4.23/1.4.25 callbacks. */
 public final class NeiPreviewProvider {
     private static final String GUI = "codechicken.nei.recipe.GuiRecipe";
     private static final String HANDLER = "blockrenderer6343.integration.nei.MultiblockHandler";
@@ -48,7 +48,7 @@ public final class NeiPreviewProvider {
     private static final String GT_TILE = "gregtech.api.metatileentity.BaseMetaTileEntity";
     private static final String GT_META = "gregtech.api.metatileentity.MetaTileEntity";
     private static final String GT_COMMON_META = "gregtech.api.metatileentity.CommonMetaTileEntity";
-    private static final String SOURCE = "BlockRenderer6343 1.4.23 public model + fixed read-only fields; GTNHLib 0.11.51 coordinates; GT5 5.09.54.183 existing tile identity";
+    private static final String SOURCE = "BlockRenderer6343 1.4.23/1.4.25 public model + fixed read-only fields; GTNHLib 0.11.51 coordinates; GT5 5.09.54.183 existing tile identity";
     private static final long SOFT_NANOS = 4000000L;
     private static final int BYTE_LIMIT = 112 * 1024;
     private static final Map<String, Field> FIELDS = new ConcurrentHashMap<>();
@@ -205,7 +205,7 @@ public final class NeiPreviewProvider {
             .append(':').append(identity(scene.blocks)).append(':').append(scene.blocks.size())
             .append(':').append(size(scene.rendered)).append(':').append(size(scene.translucent))
             .append(':').append(number(field(scene.gui, PREVIEW, "layerIndex", false)));
-        appendVector(result, field(scene.gui, PREVIEW, "SELECTED_BLOCK", false), VECTOR3I);
+        appendVector(result, selectedBlock(scene.gui), VECTOR3I);
         Object trigger = field(scene.gui, PREVIEW, "trigger", false);
         if (trigger instanceof ItemStack) {
             ItemStack stack = (ItemStack) trigger;
@@ -325,7 +325,7 @@ public final class NeiPreviewProvider {
         String action = JsonData.string(args, "action");
         JsonObject result = new JsonObject();
         result.addProperty("schemaVersion", 1); result.addProperty("action", action);
-        result.addProperty("source", "Existing BlockRenderer6343 1.4.23 preview callbacks and exact native model fields.");
+        result.addProperty("source", "Existing BlockRenderer6343 1.4.23/1.4.25 preview callbacks and exact native model fields.");
         result.addProperty("requiresViewRefresh", true);
         result.addProperty("effectStatus", "requires_readback; callback completion alone does not prove a server, inventory or world effect.");
         long started = System.nanoTime();
@@ -413,7 +413,7 @@ public final class NeiPreviewProvider {
                 int x = JsonData.integer(position, "x", -33554432, 33554431), y = JsonData.integer(position, "y", -2048, 2047), z = JsonData.integer(position, "z", -33554432, 33554431);
                 long packed = pack(x, y, z);
                 if (!scene.blocks.containsKey(packed) || !(scene.rendered.contains(packed) || scene.translucent.contains(packed))) throw new BridgeException("not_found", "Position is not a block in the current preview render sets.");
-                Object selected = field(scene.gui, PREVIEW, "SELECTED_BLOCK", false);
+                Object selected = selectedBlock(scene.gui);
                 nativeCall(type(selected, BLOCK_POS), selected, "set", new Class<?>[] {int.class, int.class, int.class}, x, y, z);
                 ClassLoader loader = scene.gui.getClass().getClassLoader();
                 Class<?> util = fixedClass(loader, BR_UTIL), element = fixedClass(loader, ELEMENT);
@@ -428,7 +428,7 @@ public final class NeiPreviewProvider {
             }
             case "clear_selection": {
                 allowed(args); clearSelection(scene); result.addProperty("status", "applied"); result.add("selection", selection(scene));
-                result.addProperty("nativeCallback", "Existing SELECTED_BLOCK sentinel and empty onCandidateChanged callback.");
+                result.addProperty("nativeCallback", "Existing selection sentinel and empty onCandidateChanged callback.");
                 break;
             }
             default: throw new BridgeException("invalid_args", "Unknown named preview action.");
@@ -453,7 +453,9 @@ public final class NeiPreviewProvider {
     private static int maximum(Scene scene, Object slider, int index) {
         if (index != 1) return number(field(slider, SLIDER, "maxValue", false)).intValue();
         JsonObject bound = bounds(scene);
-        return (int) (bound.getAsJsonObject("maximum").get("y").getAsDouble() - bound.getAsJsonObject("minimum").get("y").getAsDouble());
+        int minimum = number(field(slider, SLIDER, "minValue", false)).intValue();
+        return (int) (bound.getAsJsonObject("maximum").get("y").getAsDouble() - bound.getAsJsonObject("minimum").get("y").getAsDouble())
+            + (minimum == 0 ? 1 : 0);
     }
 
     @SuppressWarnings("unchecked")
@@ -463,8 +465,20 @@ public final class NeiPreviewProvider {
         return (Consumer<List<?>>) callback;
     }
 
+    private static Object selectedBlock(Object gui) {
+        Class<?> owner = type(gui, PREVIEW);
+        if (owner == null) throw new Unavailable("Fixed preview selection owner is unavailable.");
+        try {
+            // 1.4.25 owns selection per preview; earlier versions used a static sentinel.
+            owner.getDeclaredField("selectedBlock");
+            return field(gui, PREVIEW, "selectedBlock", false);
+        } catch (NoSuchFieldException absent) {
+            return field(gui, PREVIEW, "SELECTED_BLOCK", false);
+        }
+    }
+
     private static void clearSelection(Scene scene) {
-        Object selected = field(scene.gui, PREVIEW, "SELECTED_BLOCK", false);
+        Object selected = selectedBlock(scene.gui);
         nativeCall(type(selected, BLOCK_POS), selected, "set", new Class<?>[] {int.class, int.class, int.class}, -100000, 0, -100000);
         candidateCallback(scene).accept(Collections.emptyList());
     }
@@ -553,8 +567,10 @@ public final class NeiPreviewProvider {
                 status = "Stored name and numeric value; drawing may trim the name to fit.";
             } else if (pluginIndex == 1 && name instanceof String
                 && name.equals(StatCollector.translateToLocal("blockrenderer6343.nei.layer"))) {
-                semantic = name + ": " + (current == -1 ? StatCollector.translateToLocal("blockrenderer6343.nei.all") : Integer.toString(current + 1));
-                status = "Known 1.4.23 layer-label semantics from current value, without invoking the stored supplier; drawing may trim the name.";
+                int minimum = number(field(value, SLIDER, "minValue", false)).intValue();
+                if (minimum != -1 && minimum != 0) throw new Unavailable("Unverified preview layer slider minimum.");
+                semantic = name + ": " + (current == minimum ? StatCollector.translateToLocal("blockrenderer6343.nei.all") : Integer.toString(current - minimum));
+                status = "Known layer-label semantics from the stored minimum/value, without invoking the supplier; drawing may trim the name.";
             } else status = "Custom text-supplier callback not invoked; stored name and numeric state are available.";
             text(result, "semanticText", semantic, 8192);
             result.addProperty("semanticTextStatus", status);
@@ -744,7 +760,7 @@ public final class NeiPreviewProvider {
         scene.blocks = (Map<?, ?>) blocks;
         scene.metadata = map(field(scene.world, WORLD, "blockMetaMap", true));
         scene.tiles = map(field(scene.world, WORLD, "tileMap", true));
-        scene.elements = map(field(scene.gui, PREVIEW, "structureElementMap", true));
+        scene.elements = map(field(scene.gui, PREVIEW, "structureElementMap", false));
         scene.rendered = collection(field(scene.renderer, RENDERER, "renderedBlocks", true));
         scene.translucent = collection(field(scene.renderer, RENDERER, "renderTranslucentBlocks", true));
         if (type(scene.gui, GT_GUI) != null) {
@@ -899,7 +915,7 @@ public final class NeiPreviewProvider {
 
     static JsonObject selection(Scene scene) {
         JsonObject result = new JsonObject();
-        Object selected = field(scene.gui, PREVIEW, "SELECTED_BLOCK", false);
+        Object selected = selectedBlock(scene.gui);
         JsonObject pos = vector(selected, VECTOR3I);
         int x = pos.get("x").getAsInt(), y = pos.get("y").getAsInt(), z = pos.get("z").getAsInt();
         result.addProperty("present", !(x == -100000 && y == 0 && z == -100000));
@@ -939,7 +955,7 @@ public final class NeiPreviewProvider {
         Object controls = field(scene.gui, PREVIEW, "allButtons", false);
         result.append(':').append(identity(controls)).append(':').append(size(controls));
         result.append(':').append(number(field(scene.gui, PREVIEW, "layerIndex", false)));
-        appendVector(result, field(scene.gui, PREVIEW, "SELECTED_BLOCK", false), VECTOR3I);
+        appendVector(result, selectedBlock(scene.gui), VECTOR3I);
         Object trigger = field(scene.gui, PREVIEW, "trigger", false);
         if (trigger instanceof ItemStack) {
             ItemStack stack = (ItemStack) trigger;
