@@ -84,6 +84,12 @@ saved movement before composites; native navigation resolves it directly in the
 existing client preflight. Actor roles remain independent. Remote OP observations
 reuse the existing self sample and expire rather than trusting a handshake forever.
 
+## Server runtime observations
+
+`RemoteReadServer` handles `server.observe` reads through the authenticated Forge connection. `logs`, `diagnostics` and `mods` retain the existing per-player in-flight limit and server-tick budget and require current OP level 2 in addition to client observation policy. `common.diagnostics.ServerDiagnostics` samples public server/JVM state and pages loaded FML metadata; it does not scan chunks or JAR files.
+
+`ServerLogReader` reads fixed bounded log tails on a lazy single-worker executor with 16 queued jobs. Only a copied request, server-root path and server type cross into that worker; it does not access game objects. The owning server tick revalidates player, session, dimension and permission before delivering a completed future. Timeout, disconnect and server reset cancel pending reads; reset shuts down the executor. The existing Forge response-size bound remains authoritative. [Protocol details](../PROTOCOL.md#server-runtime-observations) define fields and limits.
+
 ## Domain implementations
 
 These existing modules remain separate from transport and are not moved solely to
@@ -141,6 +147,7 @@ API fixtures in test sources keep the corresponding mod's namespace.
 | --- | --- |
 | `common.bridge` | Dispatch, queues, request guards, readiness and capabilities |
 | `common.dialogue` | Server commands and attributed player dialogue |
+| `common.diagnostics` | Bounded server runtime metadata and asynchronous fixed log reads |
 | `common.ae`, `inventory`, `machine`, `recipe`, `structure`, `world`, `qa` | Shared domain adapters and their state models |
 | `client.control`, `lifecycle`, `recording` | Native controls, menu/world lifecycle and player recording |
 | `client.gui`, `nei`, `navigation`, `render` | GUI adapters, NEI observations, movement and framebuffer capture |

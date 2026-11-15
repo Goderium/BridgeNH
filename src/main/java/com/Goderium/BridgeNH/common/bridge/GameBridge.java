@@ -476,15 +476,23 @@ public class GameBridge {
         if(client.thePlayer.dimension!=JsonData.integer(args,"dimension",Integer.MIN_VALUE,Integer.MAX_VALUE)) throw new BridgeException("stale_world","Client dimension changed.");
     }
     private JsonObject dispatchRemoteRead(JsonObject args,GameQueue.Control control) throws ExecutionException,InterruptedException {
-        RemoteReadProtocol.keys(args,"kind","expectedSessionId","dimension","expectedConnectionId","positions","includeInventory","x","y","z","componentOffset","componentLimit");
+        RemoteReadProtocol.keys(args,"kind","expectedSessionId","dimension","expectedConnectionId","positions","includeInventory","x","y","z","componentOffset","componentLimit","log","level","query","limit","offset");
         String kind=CatalogData.text(args,"kind",16,"status");
+        if (!"logs".equals(kind)) for (String key : new String[]{"log","level","query"})
+            if (args.has(key)) throw new BridgeException("invalid_args", "Log filters require kind=logs.");
+        if (args.has("offset") && !"mods".equals(kind)) throw new BridgeException("invalid_args", "Offset requires kind=mods.");
+        if (args.has("limit") && !"mods".equals(kind) && !"logs".equals(kind)) throw new BridgeException("invalid_args", "Limit requires kind=mods/logs.");
         if("status".equals(kind)) return clientQueue.await(clientQueue.submit(() -> {
             if(!sessionId.equals(CatalogData.text(args,"expectedSessionId",128,""))) throw new BridgeException("stale_world","Client runtime session changed.");
             JsonObject data=RemoteReadClient.INSTANCE.status(); data.addProperty("sessionId",sessionId); return data;
         },8000,control),8000);
-        if(!RemoteReadProtocol.READS.contains(kind) || "hello".equals(kind)) throw new BridgeException("invalid_args","Expected status/self/blocks/machine.");
+        if(!java.util.Arrays.asList("self","blocks","machine","logs","diagnostics","mods").contains(kind))
+            throw new BridgeException("invalid_args","Expected status/self/blocks/machine/logs/diagnostics/mods.");
         JsonObject read=new JsonObject();
-        String[] keys="self".equals(kind) ? new String[]{"includeInventory"} : "blocks".equals(kind) ? new String[]{"positions"} : new String[]{"x","y","z","componentOffset","componentLimit"};
+        String[] keys="self".equals(kind) ? new String[]{"includeInventory"} : "blocks".equals(kind) ? new String[]{"positions"}
+            : "logs".equals(kind) ? new String[]{"log","level","query","limit"} : "mods".equals(kind) ? new String[]{"offset","limit"}
+            : "diagnostics".equals(kind) ? new String[]{}
+            : new String[]{"x","y","z","componentOffset","componentLimit"};
         for(String key:keys) if(args.has(key)) read.add(key,args.get(key));
         if("blocks".equals(kind)) RemoteReadProtocol.positions(read);
         final long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(8000);

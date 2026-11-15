@@ -6,6 +6,24 @@
 
 适用 Minecraft 1.7.10。使用现有工具组合所需操作检查。 实际能力以当前 health 与返回 coverage 为准。`mcb_operation_check` 是独立排错入口；既有搭建、配方与 QA 工作流已完成的预检和验收不要重复调用。
 
+## 服务端日志与运行信息
+
+使用 `mcb_server_observe(kind="status",expectedSessionId=...)` 取得已认证的服务端连接及读取能力声明。调用 `logs`、`diagnostics` 和 `mods` 时，提供当前 `expectedSessionId`、`expectedConnectionId` 和 `dimension`。两端均需使用兼容的 BridgeNH 版本；握手声明 `serverLogsVersion=1`、`serverDiagnosticsVersion=1` 和 `serverModsVersion=1`。这些读取要求增强观察策略及实际服务端 OP 2 级权限。玩家权限组不会授予 OP。
+
+| Kind | 参数与结果 |
+| --- | --- |
+| `logs` | `log="latest"`（默认）或 `"fml-server-latest"`；`level="WARN"`（默认）、`"ERROR"` 或 `"ANY"`；可选 `query` 为最多 256 字符、不区分大小写的字面文本；`limit` 为 1..128，默认 128。仅读取服务端进程 `logs/` 目录下的指定文件。未标注级别的堆栈行需使用 `ANY`。 |
+| `diagnostics` | 服务端版本及品牌、玩家及模组数量、JVM 内存及运行时长、已有原生 tick 耗时、有限的已加载世界信息，以及日志读取队列数量。`estimatedTpsIfSustained` 根据执行耗时估算持续负载下的能力，不是实测 TPS。 |
+| `mods` | 已加载 FML 模组的 ID、名称及版本；`offset` 为 0..10000，`limit` 为 1..64，默认 16。`hasMore` 为真时按 `nextOffset` 继续，检查 `byteLimited` 和每行的 `fieldsTruncated`。 |
+
+```json
+{"kind":"logs","expectedSessionId":"<current-session>","expectedConnectionId":"<current-connection>","dimension":0,"log":"latest","level":"WARN","limit":32}
+```
+
+日志读取使用一个后台线程，最多排队 16 项。每次最多读取 64 KiB，返回的 JSON 数据最多 24,000 字节，每行最多 2,048 字符。敏感行在查询匹配前脱敏。文件路径固定，拒绝路径重定向；返回结果前再次核对权限和连接身份。检查 `bytesRead`、`truncated`、`byteLimited`、时间戳及覆盖说明：没有匹配结果不能证明相关内容不存在，日志轮转和并发写入也可能影响读取。
+
+内置服务端与客户端共享日志、JVM 和已加载模组清单；`sharedClientServerLog` 和 `jvm.sharedWithClient` 标识这一范围。独立服务端通过现有 Forge 连接提供自身进程的数据。指定日志文件不存在时返回 `log_unavailable`。`mcb_logs` 仍读取所选客户端的日志。服务端诊断最多检查世界数组的 256 项、返回 64 行，不加载区块、不遍历实体。`samplingMillis` 和 `backgroundReadMillis` 是单次请求的耗时。按需读取，不安装持续监控。
+
 ## 一次调用的快捷检查
 
 玩家操作历史直接使用 `mcb_recording({"view":"summary"})`，不再临时编写日志读取脚本。

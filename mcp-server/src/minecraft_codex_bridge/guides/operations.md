@@ -4,6 +4,24 @@ Agent reference: English; [Chinese companion](operations_zh.md) for human review
 
 For Minecraft 1.7.10. Use existing tools to assemble the required operation checks. Current health, permissions and coverage decide availability. `mcb_operation_check` is a diagnostic entry point, not an extra preflight around workflows which already own their checks. Record missing native paths using [workspace.md](workspace.md); external input cannot establish native acceptance.
 
+## Server logs and runtime observations
+
+Use `mcb_server_observe(kind="status",expectedSessionId=...)` to obtain the authenticated server connection and advertised read capabilities. For `logs`, `diagnostics` and `mods`, supply the current `expectedSessionId`, `expectedConnectionId` and `dimension`. Both endpoints need compatible BridgeNH versions; the handshake advertises `serverLogsVersion=1`, `serverDiagnosticsVersion=1` and `serverModsVersion=1`. These reads require the enhanced-observation policy and actual server OP level 2. Player permission groups do not grant OP.
+
+| Kind | Arguments and result |
+| --- | --- |
+| `logs` | `log="latest"` (default) or `"fml-server-latest"`; `level="WARN"` (default), `"ERROR"` or `"ANY"`; optional literal, case-insensitive `query` up to 256 characters; `limit` 1..128, default 128. Reads only the named file under the server process's `logs/` directory. Use `ANY` for unlabelled stack-trace lines. |
+| `diagnostics` | Server version/brand, player and mod counts, JVM memory/uptime, existing native tick durations, bounded loaded-world metadata and log-reader queue counts. `estimatedTpsIfSustained` estimates capacity from execution time; it is not measured wall-clock TPS. |
+| `mods` | Loaded FML mod IDs, names and versions; `offset` 0..10000 and `limit` 1..64, default 16. Continue with `nextOffset` while `hasMore`; inspect `byteLimited` and per-row `fieldsTruncated`. |
+
+```json
+{"kind":"logs","expectedSessionId":"<current-session>","expectedConnectionId":"<current-connection>","dimension":0,"log":"latest","level":"WARN","limit":32}
+```
+
+Log reads use one background worker with at most 16 queued jobs. Each read examines at most 64 KiB and returns at most 24,000 bytes of JSON data; lines are limited to 2,048 characters. Sensitive lines are redacted before query matching. File paths are fixed, and redirected paths are refused. Permissions and connection identity are checked again before delivery. Inspect `bytesRead`, `truncated`, `byteLimited`, timestamps and coverage: a missing match does not prove absence, and rotation/concurrent writes can change the file during a read.
+
+An integrated server shares its logs, JVM and loaded mod list with the client; `sharedClientServerLog` and `jvm.sharedWithClient` identify this scope. A dedicated server supplies its own process data through the existing Forge connection. Missing fixed log files return `log_unavailable`. `mcb_logs` continues to read the selected client's logs. Server diagnostics inspect at most 256 world-array entries and return at most 64 rows, without loading chunks or traversing entities. Read `samplingMillis` and `backgroundReadMillis` as individual request measurements. Read on demand; no continuous monitor is installed.
+
 ## History and one-call diagnosis
 
 Use `mcb_recording(view="summary")` for passive player history, rather than custom log scripts. `list` pages this client's recordings; `events` uses recordingId/since/nextSince and optional kinds. Summaries cover commands, GUI, movement, slots and server block/AE-part changes, while reporting sequence gaps, omitted payloads, incomplete tails and truncation. Repeated state observations are not action counts. Disk history works offline and after restart, with no takeover/replay; a missing stop marker means unknown. `live` reads current enablement/queue metrics. A supported standalone CLI entry is `scripts/mcb.ps1 -Profile <profile> -Action Recording`; its selected profile is not a live chat binding.

@@ -54,6 +54,8 @@ BridgeNH 有两套独立设置：**玩家权限组**决定谁能向 Agent 发消
 
 普通操作包括受支持的移动、GUI、背包和原生交互，不等于所有工具均可用。选择 `creative` 不会切换游戏模式；选择 `full` 不会绕过服务器权限或让仅限本地的工具支持远程服务器。实际处于创造模式时，生存策略会拒绝受其保护的修改操作，避免把免消耗行为当作生存操作。
 
+服务端日志、运行诊断及模组清单读取采用增强观察权限范围：`survival_efficient`、`creative` 或 `full`，并要求实际服务端 OP 2 级权限。这些只读操作在 `readOnly=true` 时仍可用。范围及限制见[服务端观察](../mcp-server/src/minecraft_codex_bridge/guides/operations_zh.md#服务端日志与运行信息)。
+
 策略保存在**客户端**的 `config/codexbridge/policies.json`，按单人存档或服务器地址分别记住选择。新作用域采用默认值：`survival`、`path`、`readOnly=false`、`terrainChanges=false`、`qa=auto`。这与服务器玩家权限配置是两份不同文件。
 
 在客户端聊天框使用以下本地指令；这些指令与 `mcb_policy` 共用同一接口：

@@ -60,9 +60,10 @@ public final class RemoteReadSelfTest {
         refused(() -> RemoteReadProtocol.permit("blocks",false),"Nonoperator block read refused");
         refused(() -> RemoteReadProtocol.permit("machine",false),"Nonoperator machine read refused");
         RemoteReadProtocol.permit("machine",true); check(true,"Operator fixed machine read");
-        for (String operation:new String[]{"machine.inspect","world.inspect","world.inspect_many","gui.container"}) {
+        for (String operation:new String[]{"machine.inspect","world.inspect","world.inspect_many","gui.container","logs","diagnostics","mods"}) {
             check(operation.equals(RemoteReadProtocol.operation(RemoteReadProtocol.request(operation,UUID.randomUUID().toString(),UUID.randomUUID().toString(),180,new JsonObject()))),"Native guarded observation retains its operation identity");
             refused(() -> RemoteReadProtocol.permit(operation,false),"Remote owner observation rejects nonoperators");
+            RemoteReadProtocol.permit(operation, true);
         }
         JsonObject args=new JsonObject(); JsonArray positions=new JsonArray(); args.add("positions",positions);
         refused(() -> RemoteReadProtocol.positions(args),"Empty page refused");
@@ -89,7 +90,8 @@ public final class RemoteReadSelfTest {
         channel.channelRegistration(null,first,"REGISTER");
         channel.channelConnected(first,false);
         check(channel.status().get("channelAdvertised").getAsBoolean(),"Login channel advertisement retained before Minecraft has a player/sendQueue");
-        for(Class<?> common:new Class<?>[]{RemoteReadServer.class,HorizonQaAdapter.class,PrivateDimensionQaAdapter.class}) {
+        for(Class<?> common:new Class<?>[]{RemoteReadServer.class,HorizonQaAdapter.class,PrivateDimensionQaAdapter.class,
+                com.Goderium.BridgeNH.common.diagnostics.ServerDiagnostics.class, com.Goderium.BridgeNH.common.diagnostics.ServerLogReader.class}) {
             try(java.io.InputStream classBytes=common.getResourceAsStream("/"+common.getName().replace('.','/')+".class")) {
                 new org.objectweb.asm.ClassReader(classBytes).accept(new org.objectweb.asm.ClassVisitor(org.objectweb.asm.Opcodes.ASM9) {
                     @Override public org.objectweb.asm.MethodVisitor visitMethod(int access,String name,String descriptor,String signature,String[] exceptions) {
@@ -119,7 +121,8 @@ public final class RemoteReadSelfTest {
                     "common.world.WorldObservationsAdapter","common.machine.DeveloperMachineTools","common.recipe.RecipeQueryAdapter",
                     "BridgeNH","network.RemoteReadProtocol","network.RemoteReadNetwork","network.RemoteReadNetwork$RequestHandler",
                     "network.RemoteReadNetwork$ResponseHandler","network.RemoteReadServer","util.JsonData","common.machine.GregTechAdapter",
-                    "common.machine.MachineDataAdapter","common.recipe.GTRecipeAdapter","common.machine.MachineEnergyAdapter"}) {
+                    "common.machine.MachineDataAdapter","common.recipe.GTRecipeAdapter","common.machine.MachineEnergyAdapter",
+                    "common.diagnostics.ServerDiagnostics","common.diagnostics.ServerLogReader"}) {
                 Class<?> type=Class.forName("com.Goderium.BridgeNH."+name,true,isolated); type.getDeclaredMethods(); type.getDeclaredFields();
                 check(true,"Common entrypoint resolves without client: "+name);
             }

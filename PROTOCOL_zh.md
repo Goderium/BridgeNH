@@ -14,6 +14,18 @@ POST /v1/cancel 使用同样认证，仅提交原 requestId，返回 cancelled/a
 
 旧独立进程内适配器保留 MCB_RUNTIME_FILE、MCB_INSTANCE_PATH、发现目录变量及 URL/TOKEN 入口，其省略/auto 发现仍可能选最新运行记录；这不是聊天绑定策略。独立调用应明确固定目标，旧环境变量不会重定向运行中的聊天。运行文件和凭据不纳入版本控制。
 
+## 服务端运行信息读取
+
+`server.observe` / `mcb_server_observe` 在既有读取中增加 `kind=logs|diagnostics|mods`，均要求当前 `expectedSessionId`、`expectedConnectionId` 和 `dimension`。客户端应用增强观察策略；服务端独立核验实际玩家、连接、维度及 OP 2 级权限，异步日志读取完成后仍需再次核验。握手声明 `serverLogsVersion=1`、`serverDiagnosticsVersion=1`、`serverModsVersion=1` 并扩充 `readOperations`。仅更新客户端不会使旧服务端获得这些能力。
+
+`logs` 仅接受 `log=latest|fml-server-latest`，默认 latest；`level=ANY|WARN|ERROR`，默认 WARN；最多 256 字符、不区分大小写的字面 `query`；以及 1..128 的 `limit`，默认 128。只读取服务端进程目录内 `logs/latest.log` 或 `logs/fml-server-latest.log`，拒绝重定向路径及非普通文件。文件不存在或不可读时返回 `log_unavailable`。每次最多读取 65,536 字节，丢弃首个不完整行，敏感行在查询匹配前脱敏；每行最多 2,048 个 UTF-16 字符，JSON 数据最多 24,000 个 UTF-8 字节，并受 28,672 字节的 Forge 响应上限约束。ANY 保留未标注级别的堆栈行，WARN 包含 ERROR/FATAL，ERROR 包含 FATAL。
+
+日志 I/O 使用一个后台线程，最多排队 16 项。`readSource=server_process_log_file`、`capturedOutsideGameThread=true` 标识文件采集；`source=remote_server_tick` 标识经过核验的结果交付。返回文件大小及修改时间、读取字节数及时间戳、脱敏及裁剪数量、`truncated`、`byteLimited` 和非原子历史覆盖说明。返回结果不能证明更早或并发写入的内容不存在。内置服务端设置 `sharedClientServerLog=true`，其 JVM 信息和 FML 清单也属于与客户端共享的进程。
+
+`diagnostics` 不接受额外参数，返回版本、品牌、构建指纹、玩家及模组数量、JVM 内存及运行时长、最多 100 个已有 tick 耗时样本、有限的已加载世界信息和日志读取队列数量。世界数组最多检查 256 项、返回 64 行；计数不完整时为 null 并设置 `worldCountComplete=false`，省略行时设置 `worldsTruncated=true`。不遍历世界或实体、不新增持续采样。`estimatedTpsIfSustained` 根据不含休眠的执行耗时估算，并非实测 TPS；暂停或停滞时样本可能陈旧。`jvm.uptimeMillis` 是 JVM 运行时长，不是世界或服务器运行时长。
+
+`mods` 分页读取已加载 FML 模组的 ID、名称及版本，不扫描 JAR。`offset` 为 0..10000，默认 0；`limit` 为 1..64，默认 16。按 `nextOffset`/`hasMore` 继续，检查 `byteLimited` 和每行的 `fieldsTruncated`。日志过滤、offset 和 limit 仅由各自适用的 kind 接受；未知字段会被拒绝。`samplingMillis` 与日志的 `backgroundReadMillis` 报告单次请求耗时。
+
 ## 内置解释与结果含义
 
 相关结果可以附带 source=mcb_builtin 的固定 feedback，最多四条去重说明，包含稳定 id、回执位置、含义与下一步；说明省略会显式标记。它不依赖历史知识或额外 RPC，不改原始结果、错误、图像与验收证据，不授予权限或执行回退。

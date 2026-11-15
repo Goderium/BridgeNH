@@ -64,7 +64,7 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_state_diff` | Freeze selected player/inventory/GUI/message baselines and page comparisons with current state. Continuations cannot change sections; inspect omissions and consumed cursor rules. |
 | `mcb_capture` | Collect bounded diagnostics and selected observations. Non-atomic; screenshots are off by default and require an actual visual need. |
 | `mcb_screenshot` | Read the real client framebuffer when visual evidence is needed. It is not an OS capture or a substitute for available structured observations. |
-| `mcb_server_observe` | Read authenticated remote status, self, blocks or machines through the client. Respect connection/session/dimension and server permission gates; not arbitrary remote control. |
+| `mcb_server_observe` | Read authenticated server status, self, blocks, machines, fixed log tails, runtime diagnostics or paginated loaded mods through the client. Respect connection/session/dimension and server permission gates; see [server observations](operations.md#server-logs-and-runtime-observations). |
 | `mcb_operation_check` | Run a fixed read-only machine, AE, AE-buffer or NEI operating check. Keep observed facts separate from guidance and remaining unknowns. |
 
 ## GUI reading and semantic actions

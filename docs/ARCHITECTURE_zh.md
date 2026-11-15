@@ -45,6 +45,12 @@ OperationPolicies 持有有界的本地意图和存档/服务器选择；LocalJs
 
 本地 `/mcb policy` 与 MCP `mcb_policy` 都调用 bridge.policy。公开 Python schema 通过有界 policy_schema 移除执行器选择；私有工作流保留对应证明。Adapter 在组合前解析已保存的移动意图，原生导航在既有前置检查中解析。玩家组独立；远程 OP 观察使用会过期的实际样本，不永久信任握手。
 
+## 服务端运行信息读取
+
+`RemoteReadServer` 通过已认证的 Forge 连接处理 `server.observe`。`logs`、`diagnostics` 和 `mods` 沿用每位玩家的在途请求上限及服务端 tick 预算，同时要求客户端观察策略和当前 OP 2 级权限。`common.diagnostics.ServerDiagnostics` 采样公开的服务端/JVM 状态，并分页读取已加载的 FML 元数据，不扫描区块或 JAR 文件。
+
+`ServerLogReader` 使用按需创建的单线程执行器读取固定、有界的日志尾部，最多排队 16 项。后台线程仅接收请求副本、服务端根路径及服务端类型，不访问游戏对象。服务端所属线程在返回已完成任务的结果前，再次核对玩家、会话、维度及权限。超时、断开连接及服务端重置会取消待完成读取；重置还会关闭执行器。结果仍受现有 Forge 响应大小限制。字段及上限见[协议说明](../PROTOCOL_zh.md#服务端运行信息读取)。
+
 ## 领域实现
 
 | 领域 | 模块 |
@@ -79,6 +85,7 @@ Java 使用 `src/main/java/com/Goderium/BridgeNH/`，BridgeNH.java 为根包入�
 | --- | --- |
 | common.bridge | 分派、队列、请求校验、就绪及能力 |
 | common.dialogue | 服务器指令与带来源玩家对话 |
+| common.diagnostics | 有界服务端运行信息及固定日志异步读取 |
 | common 下 ae/inventory/machine/recipe/structure/world/qa | 共享领域适配及状态 |
 | client 下 control/lifecycle/recording | 原生控制、菜单/世界生命周期、录制 |
 | client 下 gui/nei/navigation/render | GUI、NEI、移动和帧缓冲读取 |

@@ -54,6 +54,8 @@ Modes define ceilings. **Actual authority, client/server support, individual too
 
 Ordinary operations include supported movement, GUI, inventory and native interaction, not every tool. Choosing creative does not switch game mode; full does not bypass server permission or enable local-only tools remotely. An actually creative player cannot perform protected mutations under a survival policy, preventing free-material behavior from being treated as survival.
 
+Server log, runtime-diagnostic and mod-list reads use the enhanced-observation ceiling: `survival_efficient`, `creative` or `full`, plus actual server OP level 2. These read-only operations remain available under `readOnly=true`. See [server observations](../mcp-server/src/minecraft_codex_bridge/guides/operations.md#server-logs-and-runtime-observations) for scope and limits.
+
 Policies live in the **client's** `config/codexbridge/policies.json`, separately scoped by singleplayer save or server endpoint. New scopes use defaults: survival, path, readOnly=false, terrainChanges=false, qa=auto. This file differs from server player permissions.
 
 Local client commands share the `mcb_policy` endpoint:

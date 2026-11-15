@@ -728,6 +728,22 @@ cursor is `busy`; expired, consumed or context-invalid cursors return
 retries a cursor or caches its state and marks `mcb_world_scan` read-only but
 non-idempotent. It is excluded from `mcb_wait_for` polling.
 
+## Server runtime observations
+
+`server.observe` / `mcb_server_observe` extends the existing status/self/blocks/machine reads with `kind=logs|diagnostics|mods`. Each data read requires the current `expectedSessionId`, `expectedConnectionId` and `dimension`. The client applies enhanced-observation policy; the server independently checks live player/session/dimension identity and OP command level 2 on each owning-thread dispatch, including completion of asynchronous log reads. The handshake advertises `serverLogsVersion=1`, `serverDiagnosticsVersion=1` and `serverModsVersion=1`, and includes the kinds in `readOperations`. Older servers do not acquire these capabilities from a client-only update.
+
+| Kind | Additional arguments | Data scope |
+| --- | --- | --- |
+| `logs` | `log?:latest|fml-server-latest`, `level?:ANY|WARN|ERROR`, `query?:string`, `limit?:1..128` | Fixed current server-process log tail; defaults latest/WARN/128. Query is a case-insensitive literal, at most 256 characters. |
+| `diagnostics` | None | Server version/brand/build fingerprint, player/mod counts, JVM memory/uptime, up to 100 existing native tick durations, bounded loaded-world metadata and log-reader queue counters. |
+| `mods` | `offset?:0..10000`, `limit?:1..64` | Loaded FML IDs/names/versions, defaults 0/16; `nextOffset`/`hasMore`, `byteLimited`, per-row `fieldsTruncated`. No JAR inspection. |
+
+Log filters, offset and limit are accepted only by their respective kinds; unknown fields are rejected. Logs use only `logs/latest.log` or `logs/fml-server-latest.log` below the server process directory and reject redirected path components/non-regular files. Missing/unreadable files return `log_unavailable`. Each read consumes at most 65,536 bytes, discards a partial initial line and redacts sensitive lines before query matching. Lines are bounded to 2,048 UTF-16 characters; data JSON is bounded to 24,000 UTF-8 bytes before the normal 28,672-byte Forge envelope limit. `ANY` retains unlabelled stack-trace lines; WARN includes ERROR/FATAL and ERROR includes FATAL.
+
+Log I/O runs on one background worker with at most 16 queued jobs. `readSource=server_process_log_file` and `capturedOutsideGameThread=true` distinguish file capture from guarded `source=remote_server_tick` delivery. Results include file size/mtime, bytes read, read timestamp, redaction/clipping counts, `truncated`, `byteLimited` and non-atomic historical coverage. No result proves the absence of older or concurrently written messages. Integrated servers set `sharedClientServerLog=true`; their JVM metrics and FML list also describe the shared client process.
+
+Diagnostics inspect at most 256 world-array entries and return at most 64 rows; incomplete counts are null with `worldCountComplete=false`, and omitted rows set `worldsTruncated=true`. No world/entity traversal or new continuous sampler is installed. `tickDurations` describes completed native execution time excluding sleep; `estimatedTpsIfSustained` is an estimate, not observed wall-clock TPS. Paused/stalled servers may retain old samples. `jvm.uptimeMillis` measures JVM uptime, not time since a world/server started. `samplingMillis` and log `backgroundReadMillis` report per-request elapsed work.
+
 ## Development operations
 
 | Operation | Arguments | Purpose |

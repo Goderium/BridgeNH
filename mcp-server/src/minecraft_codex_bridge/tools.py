@@ -155,16 +155,24 @@ TOOLS = [replace(tool, schema={**tool.schema,
     if tool.name == "mcb_navigate" else tool for tool in TOOLS]
 
 TOOLS.append(ToolSpec("mcb_server_observe", "server.observe", "Read the optional server MCB Forge bridge through this local client. First read health.serverBridge or kind=status. Other kinds require the exact advertised connectionId, runtime session and dimension. self returns own server pose/abilities and optional inventory; blocks reads 1..64 explicit loaded positions; machine reuses existing GT state/components and actual inventory/fluid adapters. Block/machine reads require current server operator level 2. No server HTTP port, commands, world mutation or chunk loading. Replies are connection/player/dimension bound with server tick, RTT and receipt age. Local client performs planning/comparison; remote navigation execution, QA and full build/recipe workflows are currently unavailable. Server absence is explicit unsupported. Never infer machine formation from matching block predicates.", obj({
-    "kind":{"enum":["status","self","blocks","machine"],"default":"status"},
+    "kind":{"enum":["status","self","blocks","machine","logs","diagnostics","mods"],"default":"status"},
     "expectedSessionId":EXPECTED_SESSION, "expectedConnectionId":LIVE_ID, "dimension":DIMENSION,
     "positions":{"type":"array","minItems":1,"maxItems":64,"items":obj(POSITION,["x","y","z"])},
     "includeInventory":{"type":"boolean","default":False}, **POSITION,
-    "componentOffset":integer(0,100000), "componentLimit":integer(1,128)
+    "componentOffset":integer(0,100000), "componentLimit":integer(1,128),
+    "log":{"enum":["latest","fml-server-latest"],"default":"latest"},
+    "level":{"enum":["ANY","WARN","ERROR"],"default":"WARN"},
+    "query":{"type":"string","maxLength":256}, "limit":integer(1,128), "offset":integer(0,10000)
 },["expectedSessionId"]) | {"allOf":[
-    {"if":{"required":["kind"],"properties":{"kind":{"enum":["self","blocks","machine"]}}},
+    {"if":{"required":["kind"],"properties":{"kind":{"enum":["self","blocks","machine","logs","diagnostics","mods"]}}},
      "then":{"required":["expectedConnectionId","dimension"]}},
     {"if":{"required":["kind"],"properties":{"kind":{"const":"blocks"}}},"then":{"required":["positions"]}},
-    {"if":{"required":["kind"],"properties":{"kind":{"const":"machine"}}},"then":{"required":["x","y","z"]}}
+    {"if":{"required":["kind"],"properties":{"kind":{"const":"machine"}}},"then":{"required":["x","y","z"]}},
+    {"if":{"anyOf":[{"required":["log"]},{"required":["level"]},{"required":["query"]}]},
+     "then":{"required":["kind"],"properties":{"kind":{"const":"logs"}}}},
+    {"if":{"required":["offset"]},"then":{"required":["kind"],"properties":{"kind":{"const":"mods"}}}},
+    {"if":{"required":["limit"]},"then":{"required":["kind"],"properties":{"kind":{"enum":["mods","logs"]}}}},
+    {"if":{"required":["kind"],"properties":{"kind":{"const":"mods"}}},"then":{"properties":{"limit":integer(1,64)}}}
 ]}, True))
 
 TOOLS = [replace(tool, takeover=True) if tool.operation in TAKEOVER_OPERATIONS else tool for tool in TOOLS]
@@ -303,7 +311,7 @@ TOOLS.append(ToolSpec("mcb_qa_test_once", None,
     QA_TEST_ONCE_SCHEMA, False, idempotent=False))
 TOOLS = [replace(tool, description="For a current remote server, MCP automatically routes this read through authenticated server.observe, binds the exact session/connection/dimension/XYZ, and preserves the machine shape plus remoteReadReceipt. It does not submit to the local server queue. Remote outputQueries and guarded local reads are explicitly unsupported, never silently dropped. The following detailed provider behavior applies to the local integrated route. " + tool.description)
     if tool.name == "mcb_machine_inspect" else tool for tool in TOOLS]
-TOOLS = [replace(tool, description="Read the authenticated MCB server bridge through this local client. kind=status reads connection capabilities; self reads the authoritative pose/abilities and optional inventory; blocks reads 1..64 loaded XYZ; machine reads current GT state/components and inventory/fluids. Data kinds bind exact advertised connectionId, runtime session and current dimension; blocks/machine require operator level 2. No commands, mutation or chunk loading. Local client performs computation. Remote QA is separately available when health.serverBridge.qaExecutionSupported=true; native navigation execution and full build/recipe workflows remain unsupported. Use actual self.flying for flight proof, not creative/allowFlying. A dimension transfer invalidates old connection/flight evidence. Formation comes from actual machine.processing.structureFormed, not matching blocks. No action replay.")
+TOOLS = [replace(tool, description="Read the authenticated MCB server bridge through this local client. kind=status reads connection capabilities; self reads authoritative pose/abilities and optional inventory; blocks reads 1..64 loaded XYZ; machine reads GT state/components and inventory/fluids. kind=logs reads only server logs/latest.log or logs/fml-server-latest.log: log=latest|fml-server-latest, level=ANY|WARN|ERROR (default WARN), literal query up to 256 characters, limit 1..128. Input is capped at 64 KiB and JSON data at 24000 bytes; authentication/password/token lines are redacted. ANY retains stack-trace continuation. File I/O runs on one bounded background reader; authority is checked again before delivery. kind=diagnostics reads version, player counts, JVM memory/uptime, bounded loaded-world metadata and native tick-duration samples with a labelled sustained-load TPS estimate. kind=mods pages actual server FML metadata using offset and limit 1..64 (default 16), without jar scans/hashes. First check serverLogsVersion/serverDiagnosticsVersion/serverModsVersion in status.server; both endpoints need supporting MCB versions. Integrated-server log/JVM data is shared with the client; dedicated-server data comes from the server process. All data kinds bind exact connectionId, runtime session and current dimension; kinds other than self require operator level 2 and the current enhanced observation policy. Missing logs and incomplete tails are explicit, never proof of absence. No commands, mutation or chunk loading. Remote QA remains separately advertised; navigation execution/full build workflows are unsupported. Use actual self.flying for flight proof; machine.processing.structureFormed for formation. No action replay.")
     if tool.name == "mcb_server_observe" else tool for tool in TOOLS]
 KNOWLEDGE_SCHEMA = {
     **obj({"action": {"enum": ["status", "configure", "query", "candidates", "sites", "diagnostics", "forget", "lessons", "learn", "review", "retire"], "default": "status"},

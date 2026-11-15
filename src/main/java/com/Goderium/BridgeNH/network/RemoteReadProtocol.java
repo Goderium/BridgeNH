@@ -27,7 +27,7 @@ import java.util.UUID;
 public final class RemoteReadProtocol {
     public static final int VERSION=1, REQUEST_BYTES=16384, RESPONSE_BYTES=28672, MAX_POSITIONS=64;
     public static final String OPERATION="server.observe";
-    public static final Set<String> READS=new HashSet<String>(Arrays.asList("hello","self","blocks","machine","gui.container"));
+    public static final Set<String> READS=new HashSet<String>(Arrays.asList("hello","self","blocks","machine","gui.container","logs","diagnostics","mods"));
     public static final Set<String> QA=new HashSet<String>(Arrays.asList("qa.catalog","qa.run","qa.status","qa.results","qa.command","qa.cancel"));
     public static final Set<String> OBSERVATIONS=new HashSet<String>(Arrays.asList("world.scan","world.tiles","world.entities","recipes.query","machine.inspect","world.inspect","world.inspect_many"));
     static boolean large(String operation) { return QA.contains(operation) || OBSERVATIONS.contains(operation); }
@@ -134,7 +134,9 @@ public final class RemoteReadProtocol {
     }
     @com.google.common.annotations.VisibleForTesting
     public static void permit(String operation,boolean operator) {
-        if(("blocks".equals(operation) || "machine".equals(operation) || "gui.container".equals(operation) || large(operation) || AgentDialogueMailbox.OPERATION.equals(operation)) && !operator)
-            throw new BridgeException("permission_denied","Authoritative block/machine reads require server operator level 2.");
+        if(("blocks".equals(operation) || "machine".equals(operation) || "gui.container".equals(operation)
+                || "logs".equals(operation) || "diagnostics".equals(operation) || "mods".equals(operation)
+                || large(operation) || AgentDialogueMailbox.OPERATION.equals(operation)) && !operator)
+            throw new BridgeException("permission_denied","Authoritative server observations require server operator level 2.");
     }
 }

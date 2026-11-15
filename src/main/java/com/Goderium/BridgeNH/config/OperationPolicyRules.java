@@ -51,7 +51,7 @@ public final class OperationPolicyRules {
         else if ("server.observe".equals(operation)) {
             String kind = text(args, "kind");
             if (!kind.isEmpty() && !"status".equals(kind) && !"self".equals(kind))
-                require(policies.permits("machineRead") && authority, "Server block/machine reads require the selected observation policy and current server permission.");
+                require(policies.permits("machineRead") && authority, "Authoritative server observations require the selected observation policy and current server permission.");
         } else if ("recipes.query".equals(operation)) {
             if (args.has("x") || args.has("machine") || args.has("machinePosition") || "backend_match".equals(text(args, "mode")))
                 require(policies.permits("machineRead") && authority, "Machine recipe matching requires enhanced observation.");

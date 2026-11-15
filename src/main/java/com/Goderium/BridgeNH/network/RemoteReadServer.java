@@ -1,6 +1,8 @@
 package com.Goderium.BridgeNH.network;
 
 import com.Goderium.BridgeNH.common.bridge.GameQueue;
+import com.Goderium.BridgeNH.common.diagnostics.ServerDiagnostics;
+import com.Goderium.BridgeNH.common.diagnostics.ServerLogReader;
 import com.Goderium.BridgeNH.common.dialogue.AgentDialogueCommand;
 import com.Goderium.BridgeNH.common.dialogue.AgentDialogueMailbox;
 import com.Goderium.BridgeNH.common.machine.DeveloperMachineTools;
@@ -43,15 +45,22 @@ public final class RemoteReadServer {
     private final Map<NetHandlerPlayServer,Integer> inflight=new IdentityHashMap<NetHandlerPlayServer,Integer>();
     private final Map<NetHandlerPlayServer,Session> sessions=new IdentityHashMap<NetHandlerPlayServer,Session>();
     private long tick;
+    private java.util.concurrent.ThreadPoolExecutor logExecutor;
     synchronized void enqueue(JsonObject request,NetHandlerPlayServer handler) {
         // Bound even malformed/HELLO requests; never read player/world on the network thread.
         if(inflight.getOrDefault(handler,0)>=4) return;
         if(queue.offer(new Work(request,handler))) inflight.put(handler,inflight.getOrDefault(handler,0)+1);
     }
-    public synchronized void reset() { queue.clear(); inflight.clear(); sessions.clear(); RemoteReadNetwork.requests.clear(); tick=0; AgentDialogueCommand.closeDialogue("Server session ended."); }
+    public synchronized void reset() {
+        for (Work work : queue) if (work.logRead != null) work.logRead.cancel(true);
+        queue.clear(); inflight.clear(); sessions.clear(); RemoteReadNetwork.requests.clear(); tick=0;
+        if (logExecutor != null) { logExecutor.shutdownNow(); logExecutor = null; }
+        AgentDialogueCommand.closeDialogue("Server session ended.");
+    }
     @SubscribeEvent public synchronized void disconnect(FMLNetworkEvent.ServerDisconnectionFromClientEvent event) {
         Session old=sessions.remove(event.handler); if(old!=null) old.scans.invalidate();
-        RemoteReadNetwork.requests.clear(event.handler); inflight.remove(event.handler); queue.removeIf(work -> work.handler==event.handler);
+        RemoteReadNetwork.requests.clear(event.handler); inflight.remove(event.handler);
+        queue.removeIf(work -> { if (work.handler != event.handler) return false; if (work.logRead != null) work.logRead.cancel(true); return true; });
     }
     @SubscribeEvent public synchronized void tick(TickEvent.ServerTickEvent event) {
         if(event.phase!=TickEvent.Phase.END) return;
@@ -81,7 +90,8 @@ public final class RemoteReadServer {
                     net.minecraft.server.MinecraftServer server=net.minecraft.server.MinecraftServer.getServer();
                     JsonObject world=new JsonObject(); world.addProperty("worldName",HorizonQaAdapter.serverWorldName(server)); world.addProperty("worldFolder",server.getFolderName());
                     world.addProperty("dimension",player.dimension); world.addProperty("providerClass",player.worldObj.provider.getClass().getName()); data.add("world",world);
-                    JsonArray capabilities=new JsonArray(); for(String read:new String[]{"self","blocks","machine"}) capabilities.add(new com.google.gson.JsonPrimitive(read));
+                    data.addProperty("serverLogsVersion",1); data.addProperty("serverDiagnosticsVersion",1); data.addProperty("serverModsVersion",1);
+                    JsonArray capabilities=new JsonArray(); for(String read:new String[]{"self","blocks","machine","logs","diagnostics","mods"}) capabilities.add(new com.google.gson.JsonPrimitive(read));
                     data.add("readOperations",capabilities); complete(work,data,null); continue;
                 }
                 Session session=sessions.get(work.handler);
@@ -89,6 +99,32 @@ public final class RemoteReadServer {
                 if(work.session==null) work.session=session;
                 if(work.session!=session) throw new BridgeException("stale_world","Remote read connection epoch changed.");
                 JsonObject args=work.request.getAsJsonObject("args");
+                if ("logs".equals(operation)) {
+                    if (work.logRead == null) {
+                        ServerLogReader.validate(args);
+                        net.minecraft.server.MinecraftServer server = net.minecraft.server.MinecraftServer.getServer();
+                        final java.nio.file.Path root = server.getFile(".").toPath();
+                        final boolean dedicated = server.isDedicatedServer();
+                        final JsonObject query = args.deepCopy();
+                        work.logRead = logExecutor().submit(() -> ServerLogReader.read(root, query, dedicated));
+                    }
+                    if (!work.logRead.isDone()) {
+                        if (!queue.offer(work)) throw new BridgeException("busy", "Server observation queue is full.");
+                        continue;
+                    }
+                    complete(work, logResult(work.logRead), null); continue;
+                }
+                if ("diagnostics".equals(operation)) {
+                    RemoteReadProtocol.keys(args);
+                    JsonObject data = ServerDiagnostics.inspect(net.minecraft.server.MinecraftServer.getServer());
+                    JsonObject reader = new JsonObject(); reader.addProperty("maximumWorkers", 1); reader.addProperty("maximumQueued", 16);
+                    reader.addProperty("active", logExecutor == null ? 0 : logExecutor.getActiveCount());
+                    reader.addProperty("queued", logExecutor == null ? 0 : logExecutor.getQueue().size()); data.add("logReader", reader);
+                    complete(work, data, null); continue;
+                }
+                if ("mods".equals(operation)) {
+                    complete(work, ServerDiagnostics.mods(cpw.mods.fml.common.Loader.instance().getActiveModList(), args), null); continue;
+                }
                 if(AgentDialogueMailbox.OPERATION.equals(operation)) {
                     complete(work,AgentDialogueCommand.performDialogue(player.getUniqueID().toString(),args,System.currentTimeMillis()),null);
                     continue;
@@ -177,10 +213,12 @@ public final class RemoteReadServer {
                     complete(work,data,null);
                 }
             } catch(BridgeException failure) { complete(work,null,failure); }
+            catch(java.util.concurrent.RejectedExecutionException busy) { complete(work,null,new BridgeException("busy","Server log reader queue is full.")); }
             catch(RuntimeException | LinkageError failure) { complete(work,null,new BridgeException("adapter_error","Server observation unavailable: "+failure.getClass().getSimpleName())); }
         }
     }
     private void complete(Work work,JsonObject data,BridgeException error) {
+        if (work.logRead != null) work.logRead.cancel(true);
         try {
             JsonObject response=new JsonObject(); response.addProperty("version",1);
             for(String key:new String[]{"requestId","nonce","operation"}) if(work.request.has(key)) response.add(key,work.request.get(key));
@@ -202,6 +240,23 @@ public final class RemoteReadServer {
             Session session=sessions.get(work.handler);
             if(work.scanControl!=null && session!=null) session.scans.responseFinished(work.scanControl,false);
             int count=inflight.getOrDefault(work.handler,0)-1; if(count<=0) inflight.remove(work.handler); else inflight.put(work.handler,count); }
+    }
+    private java.util.concurrent.ThreadPoolExecutor logExecutor() {
+        if (logExecutor == null) logExecutor = new java.util.concurrent.ThreadPoolExecutor(1, 1, 0,
+            java.util.concurrent.TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(16), runnable -> {
+                Thread thread = new Thread(runnable, "MCB-server-log-reader"); thread.setDaemon(true); return thread;
+            });
+        logExecutor.purge();
+        return logExecutor;
+    }
+    private static JsonObject logResult(java.util.concurrent.Future<JsonObject> read) {
+        try { return read.get(); }
+        catch (java.util.concurrent.ExecutionException failure) {
+            if (failure.getCause() instanceof BridgeException) throw (BridgeException) failure.getCause();
+            throw new BridgeException("log_unavailable", "Server log reader could not complete.");
+        } catch (InterruptedException failure) {
+            Thread.currentThread().interrupt(); throw new BridgeException("timeout", "Server log read was interrupted.");
+        }
     }
     static void requireSession(Session session,EntityPlayerMP player,JsonObject request) {
         if(session==null || !session.id.equals(request.get("connectionId").getAsString()) || !session.nonce.equals(request.get("nonce").getAsString())
@@ -238,6 +293,7 @@ public final class RemoteReadServer {
         final JsonObject request; final NetHandlerPlayServer handler; final long created=System.nanoTime();
         final JsonArray blocks=new JsonArray(); JsonArray positions; Session session; int next; long firstTick;
         JsonObject qaArgs; GameQueue.Control scanControl; java.util.concurrent.CompletableFuture<?> completion; long waitStarted;
+        java.util.concurrent.Future<JsonObject> logRead;
         Work(JsonObject request,NetHandlerPlayServer handler) { this.request=request; this.handler=handler; }
     }
 }

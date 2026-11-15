@@ -203,6 +203,7 @@ public class BridgeSelfTest {
         checks += CrosshairArrivalSelfTest.run();
         checks += MultipartInteractionSelfTest.run();
         checks += RemoteReadSelfTest.run();
+        checks += com.Goderium.BridgeNH.common.diagnostics.ServerDiagnosticsSelfTest.run();
         checks += RemoteQaSelfTest.run();
         checks += GroundedStepSelfTest.run();
         checks += InputDiagnosticsSelfTest.run();
