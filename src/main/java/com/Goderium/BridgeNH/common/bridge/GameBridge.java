@@ -1874,6 +1874,8 @@ public class GameBridge {
         result.addProperty("screenId", identifyScreen(client.currentScreen));
         ScreenSemantics.describe(result, client.currentScreen);
         result.addProperty("worldLoaded", client.theWorld != null);
+        result.addProperty("unloadedMenu", client.theWorld == null && client.thePlayer == null
+                && client.getIntegratedServer() == null && client.currentScreen != null && !lifecycle.active());
         result.add("lifecycle", lifecycle.inspect());
         result.add("clientRecovery", startupRecovery.inspect());
         result.add("lifecycleTarget", WorldLifecycle.target(client));

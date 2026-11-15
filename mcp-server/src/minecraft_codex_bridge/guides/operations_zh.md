@@ -24,6 +24,34 @@
 
 内置服务端与客户端共享日志、JVM 和已加载模组清单；`sharedClientServerLog` 和 `jvm.sharedWithClient` 标识这一范围。独立服务端通过现有 Forge 连接提供自身进程的数据。指定日志文件不存在时返回 `log_unavailable`。`mcb_logs` 仍读取所选客户端的日志。服务端诊断最多检查世界数组的 256 项、返回 64 行，不加载区块、不遍历实体。`samplingMillis` 和 `backgroundReadMillis` 是单次请求的耗时。按需读取，不安装持续监控。
 
+## 按目标值配置创建世界选项
+
+使用当前 `screenId` 读取 `mcb_gui_widgets`，设置 `actionableOnly=false` 以包含另一页面的选项。原版创建世界选项提供 `setting`（`game_mode`、`world_type`、`more_world_options`、`map_features`、`allow_commands`、`bonus_chest`）、当前 `selected`/`value` 和 `options[].index/value`。将目标值匹配到实际返回的索引，不根据翻译后的按钮文字或过滤数组位置推测索引。
+
+调用一次 `mcb_gui_widget_action(action="set_selected",widgetId=...,selected=...)`，工具会执行所需的原生切换，并在同一回执中返回 `localSelectionMatched`、`after` 和 `nativeSelection.afterState`。已满足目标时不调用按钮。已确认的本地菜单值不需要再次点击或另行读取以重复确认同一选择；需要服务器同步的游戏效果仍应单独验收。
+
+多个选项使用 `action="set_selected_many"`，提供 1..8 个不同控件的 `selections:[{widgetId,selected}]`，不使用顶层 widgetId。使用当前控件身份及实际选项索引，按需要修改的控件可见性排列顺序，例如先选创造模式，再进入更多选项页面，最后选择超平坦。组合前使用 `actionableOnly=false` 读取；隐藏页面的控件身份仍可观察，但修改前须先切换页面。已满足目标的隐藏选项无需切换页面。
+
+仅在 `localSelectionMatched=true` 且最终 `afterState` 与请求一致时，确认整组设置完成。`status=partial` 时检查各项回执和当前值，再处理未完成部分，不重放整个批次。创建及取消按钮不能加入批次。游戏模式与作弊默认值联动、世界类型切换时清空自定义预设等行为仍由原生逻辑处理。结果只配置待创建世界的菜单值，不创建或保存存档。需要组合更长的菜单流程时，使用下述 `mcb_sequence` 菜单模式。
+
+## 合并重复操作与结果回读
+
+执行已经明确的连续操作前，将存在依赖的动作和校验组合为一次 `mcb_sequence`。适用于连续控件编辑、物品槽操作、NEI 导航与读取、AE 配置及其他允许的工具。执行器对每个动作只调用一次，在内部等待声明的观察结果。已有目标值设置、库存、AE、书签批量操作或目标流程覆盖验收时，优先复用；互相独立的读取使用 `mcb_observe`。不能通过重复点击代替同步等待。
+
+动作可添加 `after`，包含独立 `id`、只读 `tool` 及可选 args/bind/fields。没有 `condition` 时读一次，有 condition 时进行有界只读等待，并关联父动作的验收。后续引用使用该 id 对应的完整新结果。展开后的全部步骤计入 32 步上限，所有身份、参数和引用在执行前统一校验。GUI、NEI、AE 动作明确返回部分完成、拒绝或未知结果时，停止其 after 及后续步骤；其他领域流程沿用各自的验收逻辑。根据保留的回执确认当前状态，再安排剩余操作。
+
+世界内流程需要 `expectedWorld`。未加载世界的菜单使用 `menuScreenId` 代替，要求客户端声明原生菜单边界检查能力，仅允许 health、GUI、控件读取、widget/key 动作及断言。每个动作都在客户端线程检查当前仍处于空闲且未加载世界的状态，并保留屏幕身份校验。界面跳转后，在同一流程内读取新屏幕并绑定其当前控件；世界开始加载或出现生命周期任务时停止后续操作。
+
+以下示例将已知菜单按钮操作和目标界面校验合并为一次调用：
+
+```json
+{"expectedSessionId":"<current-session>","menuScreenId":"<current-screen>","steps":[{"id":"open","kind":"action","tool":"mcb_gui_widget_action","args":{"screenId":"<current-screen>","widgetId":"<observed-button>","action":"activate"},"after":{"id":"opened","tool":"mcb_gui","condition":{"path":"screen","operator":"equals","value":"<observed-destination-class>"},"fields":["screenId","controls.widgets"]}}]}
+```
+
+后续动作可从 `opened.screenId` 绑定 screenId，从 `opened.controls.widgets` 精确唯一匹配 widgetId。NEI、AE 可声明相应 after 读取，物品槽操作之间可加入准确的光标与槽位验收。已知同步延迟使用 after 条件或显式 wait 步骤处理；超时后不重发前一动作。
+
+控件动作投影在可用时保留实际 `after` 状态和 `localSelectionMatched`。本地文本、选项、数值可复用同次调用的结果，不必仅为获取回执再次查询相同状态。涉及服务端的效果仍需实际同步或权威读取确认。批量操作减少 Agent 往返次数，原生回调、边界检查和必要的游戏等待仍然保留。
+
 ## 一次调用的快捷检查
 
 玩家操作历史直接使用 `mcb_recording({"view":"summary"})`，不再临时编写日志读取脚本。

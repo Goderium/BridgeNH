@@ -41,8 +41,11 @@ METHOD_VALUES = {
     "outputMode": {"inventory", "provider_cache"},
     "inventoryPreparation": {"clear", "preserve"},
     "catalystMode": {"physical", "configured_ghost"},
-    "action": {"use", "attack", "click", "set_value", "activate", "probe", "status", "run", "stop", "cancel", "open", "close",
+    "action": {"use", "attack", "click", "set_value", "set_text", "set_selected", "set_selected_many", "focus", "ghost_drag", "phantom_click", "activate", "probe", "status", "run", "stop", "cancel", "open", "close",
         "start", "resume", "take", "priority_open", "priority_set", "host_setting", "terminal_search", "terminal_setting",
+        "handler", "page", "back", "overlay", "pause", "bookmark", "search", "release", "add_item", "retain", "cleanup",
+        "remove", "remove_recipe", "remove_group", "namespace_select", "namespace_new", "group_rows", "group_mode",
+        "move_item", "move_group", "recipe_collapse", "quantity",
         "terminal_type_filter", "resource_take", "resource_deposit", "resource_container", "craft_open", "craft_request",
         "crafting_output", "pattern_set", "cell_config_set", "cell_config_clear", "pattern_mode", "pattern_multiply",
         "pattern_page", "pattern_encode", "pattern_clear", "preview_start", "cpu_select", "job_cancel", "job_pause"},
@@ -53,7 +56,7 @@ FACT_BOOLS = ("complete", "partial", "available", "arrivalConfirmed", "fullFlowV
     "placementConfirmed", "cleanupConfirmed", "materialSupplyConfirmed", "outputRecovered",
     "completeDualFullNbtConserved", "original_action_executed", "nativeSubmitted", "structureFormed",
     "serverStopConfirmed", "alreadyInRange", "interactionEffectConfirmed", "movementDispatched", "interactionDispatched",
-    "componentCoverageComplete", "confirmed")
+    "componentCoverageComplete", "confirmed", "localSelectionMatched")
 UNKNOWN_KEYS = ("outcomeUnknown", "outcome_unknown", "sideEffectsPossible")
 IDENTIFIER = re.compile(r"[A-Za-z0-9_.:-]{1,128}\Z")
 _CAPTURE: ContextVar["Capture | None"] = ContextVar("mcb_knowledge_capture", default=None)

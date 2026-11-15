@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class GuardedRpcSelfTest {
     private static int checks;
     static int run() throws Exception {
-        checks = 0; guards(); http(); slotHttp(); nativeControlHttp(); return checks;
+        checks = 0; guards(); menuGuards(); http(); slotHttp(); nativeControlHttp(); return checks;
     }
     private static JsonObject request() {
         JsonObject value = new JsonObject(); value.addProperty("version", 1); value.addProperty("expectedSessionId", "session");
@@ -82,6 +82,33 @@ final class GuardedRpcSelfTest {
             JsonObject denied = post(server.port(), "client.exit", request());
             check(!denied.get("ok").getAsBoolean() && bridge.actions.get() == actions + 1, "HTTP whitelist rejection cannot enter lifecycle or native dispatch");
         } finally { server.stop(); bridge.close(); }
+    }
+    private static void menuGuards() throws Exception {
+        JsonObject request = request(); request.remove("expectedWorld"); request.addProperty("menuOnly", true);
+        JsonObject menu = snapshot(); menu.remove("world"); menu.remove("player");
+        menu.addProperty("worldLoaded", false); menu.addProperty("unloadedMenu", true);
+        AtomicInteger calls = new AtomicInteger();
+        for (String operation : Arrays.asList("gui.widget_action", "gui.key")) {
+            GuardedContext.parse(operation, request).execute(() -> menu, () -> { calls.incrementAndGet(); return new JsonObject(); });
+            check(calls.get() > 0, "Menu actions use the normal guarded callback");
+            for (String field : Arrays.asList("worldLoaded", "unloadedMenu")) {
+                JsonObject changed = menu.deepCopy(); changed.addProperty(field, field.equals("worldLoaded"));
+                int before = calls.get();
+                try { GuardedContext.parse(operation, request).execute(() -> changed, () -> { calls.incrementAndGet(); return new JsonObject(); }); throw new AssertionError("Unsafe menu accepted"); }
+                catch (BridgeException expected) { check(expected.code.equals("MENU_CONTEXT_CHANGED") && calls.get() == before, "Menu/world drift blocks the callback on its owning thread"); }
+                changed.remove(field);
+                try { GuardedContext.parse(operation, request).check(changed); throw new AssertionError("Missing menu evidence accepted"); }
+                catch (BridgeException expected) { check(expected.code.equals("MENU_CONTEXT_CHANGED"), "Missing menu evidence is not an unloaded menu"); }
+            }
+        }
+        for (String operation : Arrays.asList("gui.slot_click", "player.hotbar", "world.inspect")) {
+            try { GuardedContext.parse(operation, request); throw new AssertionError("Menu operation escaped whitelist"); }
+            catch (BridgeException expected) { check(expected.code.equals("invalid_request"), "Menu context never substitutes for world guards"); }
+        }
+        request.addProperty("expectedWorld", "world");
+        try { GuardedContext.parse("gui.key", request); throw new AssertionError("Mixed world/menu guards accepted"); }
+        catch (BridgeException expected) { check(expected.code.equals("invalid_request"), "Menu and loaded-world guards are exclusive"); }
+        check(GuardedContext.capabilities().get("unloadedMenuVersion").getAsInt() == 1, "Menu guard is versioned for fail-closed worker discovery");
     }
     private static void slotHttp() throws Exception {
         Fixture bridge = new Fixture(); BridgeHttpServer server = new BridgeHttpServer(bridge, "guarded-self-test");

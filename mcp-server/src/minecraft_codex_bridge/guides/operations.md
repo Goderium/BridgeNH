@@ -22,6 +22,34 @@ Log reads use one background worker with at most 16 queued jobs. Each read exami
 
 An integrated server shares its logs, JVM and loaded mod list with the client; `sharedClientServerLog` and `jvm.sharedWithClient` identify this scope. A dedicated server supplies its own process data through the existing Forge connection. Missing fixed log files return `log_unavailable`. `mcb_logs` continues to read the selected client's logs. Server diagnostics inspect at most 256 world-array entries and return at most 64 rows, without loading chunks or traversing entities. Read `samplingMillis` and `backgroundReadMillis` as individual request measurements. Read on demand; no continuous monitor is installed.
 
+## Set create-world options by target value
+
+Read `mcb_gui_widgets` with the current `screenId` and `actionableOnly=false` to include choices on the other page. Native create-world choices expose `setting` (`game_mode`, `world_type`, `more_world_options`, `map_features`, `allow_commands`, `bonus_chest`), current `selected`/`value` and `options[].index/value`. Match the desired value to its observed index; do not infer it from translated button text or filtered array position.
+
+Use `mcb_gui_widget_action(action="set_selected",widgetId=...,selected=...)` once. It performs the required native transitions and returns `localSelectionMatched`, `after` and `nativeSelection.afterState` in that same call. Already-matching values invoke no callback. A confirmed local menu value does not need another click or a separate read merely to establish the same selection; synchronized game effects still require their own acceptance.
+
+For several choices, use `action="set_selected_many"` and 1..8 unique `selections:[{widgetId,selected}]`, without a top-level widgetId. Use current widget identities and runtime option indices. Order the choices so each changed control is visible when reached: select creative mode, select the advanced page, then select flat world type. Read with `actionableOnly=false` before composing this batch; hidden-page controls retain identities but cannot be changed while hidden. Already-matching hidden choices require no page change.
+
+Accept the whole batch only when `localSelectionMatched=true` and the final `afterState` matches the request. On `status=partial`, inspect per-selection receipts and current values before continuing; do not replay the entire batch. Creation/cancel buttons cannot be included. Normal mode/cheat defaults and world-type preset clearing remain native behavior. The result configures pending menu values; it does not create or save a world. For a longer menu chain, use the guarded `mcb_sequence` menu mode below.
+
+## Combine repeated operations and readbacks
+
+Before issuing a prepared series of actions, combine the dependent actions and checks into one `mcb_sequence`. This covers repeated widget edits, slot gestures, NEI navigation/readback, AE configuration and other allowed tools. The worker performs each native action once and waits for declared observations internally. Use direct target setters, existing inventory/AE/bookmark batches and goal workflows when they already own the required acceptance. Independent reads use `mcb_observe`. Do not replace synchronization with repeated clicks.
+
+An action may include `after` with its own `id`, read-only `tool` and optional args/bind/fields. Without `condition` it reads once; with `condition` it performs a bounded read-only wait and accepts the parent action. References to that ID use the complete fresh result. All expanded steps count toward 32; all IDs, arguments and references are checked before execution. An explicit partial, refused or unknown GUI, NEI or AE action stops before its `after` and later steps; other domain workflows retain their own acceptance. Inspect retained receipts and plan only reconciled remaining work.
+
+Loaded-world chains require `expectedWorld`. At an unloaded menu, use `menuScreenId` instead. This requires the advertised native unloaded-menu guard and permits only health/GUI/widget reads, widget/key actions and assertions. Each action checks the current idle unloaded state on the client thread; screen identity remains mandatory. Re-read a newly opened screen within the chain and bind its observed controls. World loading or a pending lifecycle task stops continuation.
+
+For example, a known menu button and expected destination class can be opened and verified in one call:
+
+```json
+{"expectedSessionId":"<current-session>","menuScreenId":"<current-screen>","steps":[{"id":"open","kind":"action","tool":"mcb_gui_widget_action","args":{"screenId":"<current-screen>","widgetId":"<observed-button>","action":"activate"},"after":{"id":"opened","tool":"mcb_gui","condition":{"path":"screen","operator":"equals","value":"<observed-destination-class>"},"fields":["screenId","controls.widgets"]}}]}
+```
+
+Later actions can bind screenId from `opened.screenId` and widgetId from `opened.controls.widgets` with an exact unique match. Use equivalent `after` reads for NEI/AE results and exact cursor/slot acceptance between inventory gestures. Known synchronization delays belong in an `after` condition or an explicit wait step; never replay the preceding action on timeout.
+
+Widget action projections retain actual `after` state and `localSelectionMatched` when available. Use that same-call result for local text/selection/value checks; do not read the identical state again merely to obtain a receipt. Server-backed effects still require their actual synchronized or authoritative observation. A batch reduces agent round trips, while native callbacks, guard checks and necessary game waits remain.
+
 ## History and one-call diagnosis
 
 Use `mcb_recording(view="summary")` for passive player history, rather than custom log scripts. `list` pages this client's recordings; `events` uses recordingId/since/nextSince and optional kinds. Summaries cover commands, GUI, movement, slots and server block/AE-part changes, while reporting sequence gaps, omitted payloads, incomplete tails and truncation. Repeated state observations are not action counts. Disk history works offline and after restart, with no takeover/replay; a missing stop marker means unknown. `live` reads current enablement/queue metrics. A supported standalone CLI entry is `scripts/mcb.ps1 -Profile <profile> -Action Recording`; its selected profile is not a live chat binding.

@@ -39,6 +39,21 @@ def finish(journal, *, payload=None, elapsed=20, tool="mcb_approach", args=None)
         {"adapterElapsedMs": elapsed})
 
 
+@pytest.mark.parametrize("action", ["set_text", "set_selected", "set_selected_many", "handler", "page", "remove_recipe", "group_rows"])
+def test_gui_batch_journal_keeps_action_kind_without_widget_or_text_payload(tmp_path, action):
+    journal, _ = setup(tmp_path)
+    receipt = capture("mcb_sequence")
+    args = {"action": action, "widgetId": "PRIVATE_WIDGET_ID", "text": "PRIVATE_FIELD_TEXT"}
+    receipt.observe("gui.widget_action", {"localSelectionMatched": True}, None, None, None, args)
+    journal.finish(receipt, args, {"ok": True, "data": {"localSelectionMatched": True}}, {"adapterElapsedMs": 20})
+    row = journal.command({"action": "read", "category": "normal"})["entries"][0]
+    assert row["method"] == {"action": action}
+    assert row["methods"] == [{"operation": "gui.widget_action", "action": action, "observedCalls": 1}]
+    assert row["facts"]["localSelectionMatched"] is True
+    encoded = json.dumps(row)
+    assert "PRIVATE_WIDGET_ID" not in encoded and "PRIVATE_FIELD_TEXT" not in encoded
+
+
 def test_rotation_deletes_oldest_only_and_keeps_issue_summaries(tmp_path):
     journal, _ = setup(tmp_path)
     journal.command({"action": "configure", "normalMaxMiB": 4})

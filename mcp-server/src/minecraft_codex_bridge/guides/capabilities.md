@@ -60,7 +60,7 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_snapshot` | Read current player/world/screen, pause, focus, crosshair and available server-control evidence. Keep stable screen kinds separate from raw class names. |
 | `mcb_observe` | Combine 1..8 supported read views with field projection and explicit coverage. Non-atomic; does not take over, write, include screenshots or automatically exhaust pages. |
 | `mcb_wait_for` | Bounded wait on a repeatable read's structured condition. Repeats observations, never the original action; timeout leaves completion unresolved. |
-| `mcb_sequence` | Run guarded read/action/wait/assert steps with current bindings. Also carries one guarded compatibility call to a current worker tool; no recursion or automatic rollback/replay. |
+| `mcb_sequence` | Combine guarded actions and reads/waits in one call, with optional inline `after` observations and guarded unloaded-menu mode; see [batching](operations.md#combine-repeated-operations-and-readbacks). Also carries one guarded compatibility call to a current worker tool; no recursion or automatic rollback/replay. |
 | `mcb_state_diff` | Freeze selected player/inventory/GUI/message baselines and page comparisons with current state. Continuations cannot change sections; inspect omissions and consumed cursor rules. |
 | `mcb_capture` | Collect bounded diagnostics and selected observations. Non-atomic; screenshots are off by default and require an actual visual need. |
 | `mcb_screenshot` | Read the real client framebuffer when visual evidence is needed. It is not an OS capture or a substitute for available structured observations. |
@@ -73,7 +73,7 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | --- | --- |
 | `mcb_gui` | Read current screen/window, slots, text, controls and coverage. Supported native waits can prove synchronization; `screenOpen` alone does not. |
 | `mcb_gui_widgets` | Discover current widget IDs, supported named actions, values and bounds. Prefer actionable filtering; page incomplete coverage before declaring a control absent. |
-| `mcb_gui_widget_action` | Activate or edit an advertised native widget; supported phantom/ghost actions use real adapter semantics. Verify synchronized values and ghost cleanup, not only submission. |
+| `mcb_gui_widget_action` | Activate or edit an advertised native widget. Create-world choices support target selection and `set_selected_many` with same-call final readback; see [menu choices](operations.md#set-create-world-options-by-target-value). Supported phantom/ghost actions retain native synchronization and cleanup. |
 | `mcb_gui_tooltip` | Read a real slot or current scaled-position tooltip without moving the physical mouse. Prefer actual stack/NBT/fluid data to registry templates. |
 | `mcb_gui_pointer` | Set/clear a short-lived logical, screen-bound hover without OS mouse movement. Observe a completed native frame before claiming hover-dependent text. |
 | `mcb_gui_click` | One low-level scaled GUI click under the exact screen ID. Prefer semantic actions; AE virtual grids and MUI2 controls can refuse generic coordinates. |

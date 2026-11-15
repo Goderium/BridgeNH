@@ -28,7 +28,7 @@ Compatible reload preserves the conversation binding, AE order phases and unreso
 
 If the restart response is lost or uncertain, inspect status first. Reusing the same request ID with the identical arguments retrieves that recorded restart result; it is not a second restart. A changed argument set with the same ID is refused. After a definite refusal and a corrected cause, a new attempt uses a new ID and fresh generation. This restart-specific result retrieval never authorizes repeating a game action.
 
-**Verified scope:** on 2026-11-11, Codex desktop 26.1103.7773.0 with `mcp_tool_list_changed` enabled rediscovered a newly added read-only tool, exposed it in the current chat's native catalog and executed it. Removal propagated on the next worker reload. The frontend and binding were unchanged, with no Codex/Minecraft restart and no game calls. Other host versions still need their own observed support.
+**Verified scope:** Codex desktop 26.1103.7773.0 with `mcp_tool_list_changed` enabled rediscovered a newly added read-only tool, exposed it in the current chat's native catalog and executed it. Removal propagated on the next worker reload. The frontend and binding were unchanged, with no Codex/Minecraft restart and no game calls. Other host versions still need their own observed support.
 
 ## Discover and call current tools
 

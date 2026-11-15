@@ -34,10 +34,18 @@ def fixture_tool(monkeypatch, schema):
 
 def test_required_feedback_lists_all_missing_fields_and_current_allowed_keys():
     result = invalid("mcb_gui_widget_action", {})
-    assert {"screenId", "widgetId", "action"} <= set(result["missing_keys"])
+    assert {"screenId", "action"} <= set(result["missing_keys"])
+    assert "widgetId" not in result["missing_keys"]  # Batch selection uses selections instead.
     assert {"screenId", "widgetId", "action", "text", "value"} <= set(result["allowed_keys"])
     assert result["missing_keys_complete"] and result["allowed_keys_complete"]
     assert result["argument_path"] == [] and result["tool"] == "mcb_gui_widget_action"
+
+
+@pytest.mark.parametrize("action,required", [("set_text", {"widgetId", "text"}), ("set_selected_many", {"selections"})])
+def test_widget_feedback_uses_the_selected_action_required_fields(action, required):
+    result = invalid("mcb_gui_widget_action", {"screenId": "current-screen", "action": action})
+    assert set(result["missing_keys"]) == required
+    assert result["missing_keys_complete"]
 
 
 def test_unknown_fields_report_allowed_schema_names_without_echoing_names_or_values():

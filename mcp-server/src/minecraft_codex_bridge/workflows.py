@@ -36,6 +36,11 @@ NEI_PREVIEW_ACTION_FIELDS = (*ACTION_FIELDS, "source", "contextToken", "channel"
 GUI_POINTER_ACTION_FIELDS = (*ACTION_FIELDS, "pointer", "generation", "remainingTTL", "currentScreenBound", "source", "target", "acceptance")
 NEI_ITEM_ACTION_FIELDS = (*ACTION_FIELDS, "before", "after", "filterCompletion", "item", "inventoryCountBefore", "expectedInventoryDelta", "acquisitionVerified")
 AE_ACTION_FIELDS = (*ACTION_FIELDS, "source", "before", "target", "acceptedType", "configurationOnly", "inventoryConsumed", "nativeProtocol", "syncFlushInvoked", "serverAcceptance")
+GUI_WIDGET_ACTION_FIELDS = (*ACTION_FIELDS, "widgetId", "after", "afterState", "nativeSelection",
+    "localValueChanged", "localSelectionMatched", "confirmation", "readbackUnavailable", "currentScreen", "selections",
+    "completedSelections", "outcomeUnknown", "nativeSlider", "nativeCallbackReturns", "phantomAction")
+MENU_READ_NAMES = frozenset({"mcb_health", "mcb_gui", "mcb_gui_widgets"})
+MENU_ACTION_NAMES = frozenset({"mcb_gui_widget_action", "mcb_gui_key"})
 BINDABLE = frozenset({"screenId", "windowId", "slot", "hotbarSlot", "side", "button", "mode", "widgetId", "resourceId", "neiItemId", "source", "runId", "expectedMetaTileId", "expectedWorld",
     "expectedSessionId", "materialSource", "yaw", "pitch", "x", "y", "z", "amount", "value", "text", "selected", "serial",
     "expectedCpuSerial", "index", "working", "paused", "since", "captureId", "contextToken", "offset", "handlerIndex", "recipeIndex",
@@ -298,7 +303,23 @@ def _witness(name: str, key: str) -> Any:
 def validate_plan(arguments: dict[str, Any], observe: bool) -> list[dict[str, Any]]:
     if json_size(arguments) > MAX_PLAN_BYTES:
         raise BridgeError("PLAN_TOO_LARGE", "A workflow plan is limited to 64 KiB.")
-    steps = [{**view, "kind": "read"} for view in arguments["views"]] if observe else arguments["steps"]
+    declared = [{**view, "kind": "read"} for view in arguments["views"]] if observe else arguments["steps"]
+    steps = []
+    for step in declared:
+        steps.append({key: value for key, value in step.items() if key != "after"})
+        if "after" in step:
+            if observe or step["kind"] != "action":
+                raise BridgeError("INVALID_ARGUMENTS", "Only actions can declare an after observation.")
+            after = dict(step["after"])
+            after["kind"] = "wait" if "condition" in after else "read"
+            if after["kind"] == "wait":
+                after["accepts"] = [step["id"]]
+            steps.append(after)
+    if len(steps) > (8 if observe else 32):
+        raise BridgeError("INVALID_ARGUMENTS", "The expanded workflow, including after observations, exceeds its step limit.")
+    menu = "menuScreenId" in arguments
+    if menu and (observe or "expectedWorld" in arguments or arguments.get("cleanup")):
+        raise BridgeError("INVALID_ARGUMENTS", "Menu workflows cannot include a world or machine cleanup.")
     seen: set[str] = set()
     actions = {}
     positions = {}
@@ -317,6 +338,8 @@ def validate_plan(arguments: dict[str, Any], observe: bool) -> list[dict[str, An
         if step["kind"] != "assert":
             name = step["tool"]
             allowed = SEQUENCE_ACTION_NAMES if step["kind"] == "action" else SEQUENCE_READ_NAMES
+            if menu:
+                allowed = MENU_ACTION_NAMES if step["kind"] == "action" else MENU_READ_NAMES
             if name not in allowed:
                 raise BridgeError("INVALID_ARGUMENTS", "The selected tool is not allowed for this step kind.", step_index=index)
             args = dict(step.get("args", {}))
@@ -501,6 +524,7 @@ def project(data: dict[str, Any], step: dict[str, Any]) -> dict[str, Any]:
         defaults = [field for field in (NEI_PREVIEW_ACTION_FIELDS if step.get("tool") == "mcb_nei_preview_control" else
             GUI_POINTER_ACTION_FIELDS if step.get("tool") == "mcb_gui_pointer" else
             NEI_ITEM_ACTION_FIELDS if step.get("tool") == "mcb_nei_item_action" else
+            GUI_WIDGET_ACTION_FIELDS if step.get("tool") == "mcb_gui_widget_action" else
             AE_ACTION_FIELDS if step.get("tool") == "mcb_ae_action" else ACTION_FIELDS) if field in data]
     fields = step.get("fields", defaults)
     metadata, summary = _metadata(data)
@@ -902,11 +926,16 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                        _snapshot_checks: _WorkflowSnapshotChecks | None = None) -> dict[str, Any]:
     start = time.monotonic()
     steps = validate_plan(arguments, observe)
+    menu = "menuScreenId" in arguments
     timeout = arguments.get("timeout_ms", 10_000) / 1000
     report: dict[str, Any] = {"status": "completed", "nonAtomic": True, "rolledBack": False, "steps": [
         {"id": step["id"], "kind": step["kind"], "status": "not_executed"} for step in steps],
         "acknowledgedActions": 0, "dispatchedActions": 0, "outcomeUnknown": False, "completedSteps": 0, "failedIndex": None,
         "takeoverEstablished": False, "timeout_ms": int(timeout * 1000)}
+    if not observe and len(arguments["steps"]) != len(steps):
+        report.update(declaredSteps=len(arguments["steps"]), expandedSteps=len(steps))
+    if menu:
+        report.update(scope="unloaded_menu", initialScreenId=arguments["menuScreenId"])
     raw: dict[str, Any] = {}
     native_wait_progress: dict[str, dict[int, int]] = {}
     pending_zero_bindings: dict[str, tuple[Any, ...]] = {}
@@ -931,6 +960,8 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
 
     def guard_snapshot(snapshot: dict[str, Any], required: bool = protection) -> None:
         _guard(snapshot, session, profile, arguments.get("expectedWorld"), required)
+        if menu and (snapshot.get("worldLoaded") is not False or snapshot.get("unloadedMenu") is not True):
+            raise BridgeError("MENU_CONTEXT_CHANGED", "The client left its idle unloaded menu; subsequent steps were blocked.")
         if _snapshot_checks is not None and active is not None:
             for identifier, fields in _snapshot_checks.rules:
                 if identifier == active["id"] and not all((found := path_get(snapshot, path))[0]
@@ -947,6 +978,8 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
         context = {"version": 1, "expectedSessionId": session, "expectedProfile": profile, "requireBackground": protection} if guarded else None
         if context is not None and arguments.get("expectedWorld") is not None:
             context["expectedWorld"] = arguments["expectedWorld"]
+        if context is not None and menu:
+            context["menuOnly"] = True
         if "nativeWait" in args and active is not None:
             active["nativeWaitWindows"] = active.get("nativeWaitWindows", 0) + 1
         with request_context(context):
@@ -999,7 +1032,7 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
 
     async def check_observation(value: dict[str, Any], operation: str) -> None:
         nonlocal fresh_after_guard
-        if protection or arguments.get("expectedWorld") is not None:
+        if protection or arguments.get("expectedWorld") is not None or menu:
             evidence = response_context(value)
             snapshot = evidence["snapshot"] if evidence is not None and evidence["phase"] == "after" else value if operation == "client.snapshot" else await call("client.snapshot", {})
             guard_snapshot(snapshot)
@@ -1031,6 +1064,13 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                     raise BridgeError("SESSION_CHANGED", "The expected session does not match current capability discovery.")
                 session, profile = actual_session, health.get("profile")
                 context_reads, context_actions = _context_capabilities(health)
+                if menu:
+                    menu_version = health.get("contextRpc", {}).get("unloadedMenuVersion")
+                    if type(menu_version) is not int or menu_version < 1 or profile not in ("player", "developer"):
+                        raise BridgeError("UNSUPPORTED_CAPABILITY", "Menu workflows require the native unloaded-menu guard; no unguarded fallback is used.")
+                    for step in steps:
+                        if step["kind"] != "assert" and TOOL_BY_NAME[step["tool"]].operation not in (context_actions if step["kind"] == "action" else context_reads):
+                            raise BridgeError("UNSUPPORTED_CAPABILITY", "Every menu operation requires its advertised native context guard.")
                 report.update(sessionId=session, profile=profile, expectedWorld=arguments.get("expectedWorld"))
                 for step in steps:
                     if step["kind"] != "assert":
@@ -1055,7 +1095,7 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                 # Cached discovery contains no background/world truth. Once the
                 # task established takeover, the first live guard must preserve it.
                 entry_protected = _require_background if _discovery is not None else _background(health.get("background"))
-                if protection or arguments.get("expectedWorld") is not None:
+                if protection or arguments.get("expectedWorld") is not None or menu:
                     _require_capability(health, "client.snapshot")
                     first = steps[0]
                     first_snapshot_guards_entry = first["kind"] in {"read", "wait"} \
@@ -1069,9 +1109,11 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                         and first["kind"] == "action"
                     # The first AFTER read or native BEFORE action guards entry
                     # itself. Keep the legacy guard before any takeover/non-context RPC.
-                    if not first_snapshot_guards_entry and not first_context_guards_entry and not first_action_guards_entry:
+                    if menu or not first_snapshot_guards_entry and not first_context_guards_entry and not first_action_guards_entry:
                         initial = await call("client.snapshot", {})
-                        _guard(initial, session, profile, arguments.get("expectedWorld"), _require_background)
+                        guard_snapshot(initial, _require_background)
+                        if menu and initial.get("screenId") != arguments["menuScreenId"]:
+                            raise BridgeError("stale_screen", "menuScreenId no longer matches the initial menu; no action was sent.")
                 if protection_actions:
                     _require_capability(health, "client.background")
                     current_background = initial.get("background") if _discovery is not None and initial is not None else health.get("background")
@@ -1140,6 +1182,15 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                                 report["dispatchedActions"] += 1
                                 report["acknowledgedActions"] += 1
                                 active.update(dispatched=True, requestId=trace.get("request_id"), completion="acknowledged; use a read/wait/assert for server confirmation")
+                                # GUI chains stop on explicit incomplete receipts. Other
+                                # domain workflows retain their own acceptance contracts.
+                                if operation.startswith(("gui.", "nei.", "ae.")) and (value.get("outcomeUnknown") is True or value.get("partial") is True \
+                                        or isinstance(value.get("status"), str) and value["status"] in {"partial", "failed", "not_confirmed"} \
+                                        or value.get("accepted") is False or value.get("localSelectionMatched") is False \
+                                        or isinstance(value.get("phantomAction"), dict) and value["phantomAction"].get("accepted") is False):
+                                    phase = "action_result"
+                                    active.update(observation=project(value, step), outcomeUnknown=value.get("outcomeUnknown") is True)
+                                    raise BridgeError("ACTION_NOT_CONFIRMED", "The action returned an incomplete or refused result; subsequent steps were not executed.", outcome_unknown=value.get("outcomeUnknown") is True)
                             else:
                                 await check_observation(value, operation)
                     if step["kind"] == "assert":
@@ -1187,7 +1238,7 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
     except (BridgeError, TimeoutError) as error:
         if isinstance(error, TimeoutError):
             error = BridgeError("WORKFLOW_TIMEOUT", "The total execution budget expired; subsequent steps were not executed.")
-        unknown = False
+        unknown = error.details.get("outcome_unknown") is True if phase == "action_result" else False
         if phase == "action" and trace.get("dispatched"):
             unknown = trace.get("outcome_unknown", error.details.get("outcome_unknown", error.code not in KNOWN_REFUSALS))
             if not active.get("dispatched"):

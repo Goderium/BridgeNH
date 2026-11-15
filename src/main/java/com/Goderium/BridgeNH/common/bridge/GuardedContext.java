@@ -20,13 +20,14 @@ public final class GuardedContext {
     private static final String[] READS = {"bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets",
             "structure.goal", "registry.item", "world.inspect", "world.inspect_many", "world.spatial", "world.structure", "machine.inspect", "player.plan_approach", "ae.material_source"};
     private static final String[] ACTIONS = {"player.hotbar", "player.interact", "player.place_block", "player.look",
-            "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.pointer", "player.replace_owned_block", "structure.survival_build"};
-    private static final Set<String> KEYS = new HashSet<String>(Arrays.asList("version", "expectedSessionId", "expectedProfile", "expectedWorld", "requireBackground"));
+            "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.pointer", "player.replace_owned_block", "structure.survival_build"};
+    private static final Set<String> KEYS = new HashSet<String>(Arrays.asList("version", "expectedSessionId", "expectedProfile", "expectedWorld", "requireBackground", "menuOnly"));
     final String operation;
     @com.google.common.annotations.VisibleForTesting
     public final boolean action;
     private final String session, profile, world;
     private final boolean protection;
+    private boolean menuOnly;
     private volatile boolean actionStarted;
 
     private GuardedContext(String operation, boolean action, String session, String profile, String world, boolean protection) {
@@ -34,7 +35,7 @@ public final class GuardedContext {
     }
 
     static JsonObject capabilities() {
-        JsonObject result = new JsonObject(); result.addProperty("version", 1);
+        JsonObject result = new JsonObject(); result.addProperty("version", 1); result.addProperty("unloadedMenuVersion", 1);
         JsonArray reads = new JsonArray(), actions = new JsonArray();
         for (String operation : READS) reads.add(new com.google.gson.JsonPrimitive(operation));
         for (String operation : ACTIONS) actions.add(new com.google.gson.JsonPrimitive(operation));
@@ -55,7 +56,15 @@ public final class GuardedContext {
             throw new BridgeException("unsupported", "Operation is outside the fixed context RPC whitelist.");
         String session = text(request, "expectedSessionId"), profile = text(request, "expectedProfile");
         if (!"developer".equals(profile) && !"player".equals(profile)) throw new BridgeException("invalid_request", "Unknown expectedProfile.");
-        return new GuardedContext(operation, action, session, profile, request.has("expectedWorld") ? text(request, "expectedWorld") : null, protectedValue.getAsBoolean());
+        GuardedContext result = new GuardedContext(operation, action, session, profile, request.has("expectedWorld") ? text(request, "expectedWorld") : null, protectedValue.getAsBoolean());
+        if (request.has("menuOnly")) {
+            JsonElement menu = request.get("menuOnly");
+            if (!menu.isJsonPrimitive() || !menu.getAsJsonPrimitive().isBoolean() || !menu.getAsBoolean()
+                    || request.has("expectedWorld") || !Arrays.asList("bridge.health", "gui.inspect", "gui.widgets", "gui.widget_action", "gui.key").contains(operation))
+                throw new BridgeException("invalid_request", "menuOnly=true requires a fixed GUI operation without expectedWorld.");
+            result.menuOnly = true;
+        }
+        return result;
     }
 
     private static String text(JsonObject object, String key) {
@@ -69,6 +78,8 @@ public final class GuardedContext {
     public void check(JsonObject snapshot) {
         if (!string(snapshot, "sessionId", session)) throw new BridgeException("SESSION_CHANGED", "Client session changed; context operation refused.");
         if (!string(snapshot, "profile", profile)) throw new BridgeException("PROFILE_CHANGED", "Access profile changed; context operation refused.");
+        if (menuOnly && (!bool(snapshot, "worldLoaded", false) || !bool(snapshot, "unloadedMenu", true)))
+            throw new BridgeException("MENU_CONTEXT_CHANGED", "The client left its idle unloaded menu; subsequent GUI actions were blocked.");
         JsonObject current = object(snapshot, "world");
         if (world != null && (!bool(snapshot, "worldLoaded", true) || current == null
                 || (!string(current, "worldName", world) && !string(current, "worldFolder", world))))

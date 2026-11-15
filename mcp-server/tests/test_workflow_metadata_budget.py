@@ -23,7 +23,7 @@ def test_expired_metadata_budget_keeps_root_and_nearby_coverage(monkeypatch, wra
     compact = workflows.project(data, {"kind": "action", "tool": "mcb_gui_widget_action"})
     prefix = "coverage" if wrapper is None else wrapper + ".coverage"
 
-    assert compact["values"] == {"submitted": True}
+    assert compact["values"] == {"submitted": True, **({"after": {"coverage": coverage}} if wrapper == "after" else {})}
     assert compact["metadata"]["byteLimited"] is True
     assert compact["metadata"][prefix + ".partial"] is True
     assert compact["metadata"][prefix + ".nextCursor"] == "actual-next"

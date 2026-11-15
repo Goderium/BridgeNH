@@ -144,7 +144,9 @@ public final class GuiControlAdapter {
     }
     private static JsonObject perform(Object screen, JsonObject args, List<?> buttons, InventoryPlayer inventory, BooleanSupplier stillCurrent, MachineSlotBinding.Context owner, java.util.function.Consumer<PersonalSpaceGuiAdapter.Control> hover) {
         String screenId = ExpandedGuiApi.string(args, "screenId", 128); bind(screen, screenId);
-        String widgetId = ExpandedGuiApi.string(args, "widgetId", 128), action = ExpandedGuiApi.option(args, "action", null, "activate", "set_text", "set_value", "set_selected", "focus", "recheck_structure", "ghost_drag", "phantom_click");
+        String action = ExpandedGuiApi.option(args, "action", null, "activate", "set_text", "set_value", "set_selected", "set_selected_many", "focus", "recheck_structure", "ghost_drag", "phantom_click");
+        if (action.equals("set_selected_many")) return selectMenuChoices(screen, args, buttons, inventory, stillCurrent, owner, hover);
+        String widgetId = ExpandedGuiApi.string(args, "widgetId", 128);
         if (action.equals("set_text")) ExpandedGuiApi.keys(args, "widgetId", "text", "commit", "expectedText");
         else if (action.equals("set_value")) ExpandedGuiApi.keys(args, "widgetId", "value");
         else if (action.equals("set_selected")) ExpandedGuiApi.keys(args, "widgetId", "selected");
@@ -156,7 +158,10 @@ public final class GuiControlAdapter {
         for (Node candidate : snapshot.nodes) if (widgetId.equals(id(candidate.widget))) { node = candidate; break; }
         if (node == null) throw new BridgeException(snapshot.truncated ? "target_unverified" : "stale_widget", "The exact widget is no longer present in the bounded current live tree.");
         JsonObject before = describe(node, snapshot);
-        if (!before.get("enabled").getAsBoolean() || !before.get("valid").getAsBoolean()) throw new BridgeException("disabled", "The live control or its parent is disabled/invalid.");
+        boolean menuNoop = action.equals("set_selected") && before.has("valueSource")
+                && "native_create_world_fields".equals(before.get("valueSource").getAsString())
+                && JsonData.integer(args, "selected", 0, Integer.MAX_VALUE) == before.get("selected").getAsInt();
+        if ((!before.get("enabled").getAsBoolean() && !menuNoop) || !before.get("valid").getAsBoolean()) throw new BridgeException("disabled", "The live control or its parent is disabled/invalid.");
         boolean allowed = false; for (JsonElement value : before.getAsJsonArray("supportedActions")) if (action.equals(value.getAsString())) allowed = true;
         if (!allowed) throw new BridgeException("unsupported", "The current control does not advertise this semantic action.");
         if (!(action.equals("set_value") && GhostCircuitGuiAdapter.supports(node.widget)) && !stillCurrent.getAsBoolean())
@@ -176,7 +181,7 @@ public final class GuiControlAdapter {
             pending.add("before", before); pending.addProperty("completion", "The normal GT structure-update button is already selected; wait for a later machine inspection. No second toggle was sent.");
             return pending;
         }
-        JsonObject creativePickup = null, callbackReturns = null, phantomAction = null, nativeSlider = null; Integer requestedCircuitConfig = null;
+        JsonObject creativePickup = null, callbackReturns = null, phantomAction = null, nativeSlider = null, nativeSelection = null; Integer requestedCircuitConfig = null;
         JsonElement beforePhantomCursor = PhantomGuiAdapter.supports(widget) && inventory != null ? JsonData.item(inventory.getItemStack()) : JsonNull.INSTANCE;
         JsonElement beforeCursor = snapshot.creative == null || inventory == null ? JsonNull.INSTANCE : JsonData.item(inventory.getItemStack());
         if (snapshot.sodium != null) {
@@ -201,7 +206,9 @@ public final class GuiControlAdapter {
             double value = JsonData.number(args, "value", ((Number) ExpandedGuiApi.call(widget, "getMin")).doubleValue(), ((Number) ExpandedGuiApi.call(widget, "getMax")).doubleValue());
             ExpandedGuiApi.call(widget, "setValue", value, true);
         } else if (action.equals("set_selected")) {
-            if (widget instanceof net.minecraft.client.gui.GuiSlot) {
+            if (widget instanceof GuiButton && VanillaCreateWorldControls.read(screen, widget) != null) {
+                nativeSelection = VanillaCreateWorldControls.select(screen, (GuiButton) widget, JsonData.integer(args, "selected", 0, Integer.MAX_VALUE), stillCurrent);
+            } else if (widget instanceof net.minecraft.client.gui.GuiSlot) {
                 neutralInput(); NativeMenuLists.setSelected((net.minecraft.client.gui.GuiSlot) widget, args, stillCurrent);
             } else if (ExpandedGuiApi.is(widget, MUI + "widgets.menu.DropdownWidget")) {
                 List<?> options = (List<?>) ExpandedGuiApi.field(widget, MUI + "widgets.menu.DropdownWidget", "values");
@@ -284,7 +291,87 @@ public final class GuiControlAdapter {
                 } catch (RuntimeException | LinkageError error) { result.addProperty("readbackError", error.getClass().getSimpleName()); }
             } else result.addProperty("readbackUnavailable", afterSnapshot.truncated ? "current_tree_scan_incomplete" : "native_widget_removed");
         } else result.addProperty("readbackUnavailable", "native_screen_or_container_changed");
-        result.addProperty("completion", "Native control invocation completed locally; synchronized server effects require a later inspection. The after value is a client widget readback, not authoritative server confirmation."); return result;
+        result.addProperty("completion", "Native control invocation completed locally; synchronized server effects require a later inspection. The after value is a client widget readback, not authoritative server confirmation.");
+        if (nativeSelection != null) {
+            result.add("nativeSelection", nativeSelection); result.addProperty("nativeAction", "native_create_world_choice");
+            for (String key : new String[]{"localSelectionMatched", "status", "outcomeUnknown"}) result.add(key, nativeSelection.get(key));
+            result.addProperty("submitted", nativeSelection.get("callbackAttempts").getAsInt() > 0);
+            result.addProperty("nativeCallbackCompleted", nativeSelection.get("callbackAttempts").getAsInt() == nativeSelection.get("nativeTransitions").getAsInt());
+            result.addProperty("confirmation", "local_menu_state_readback");
+            result.addProperty("completion", "Use localSelectionMatched and after/nativeSelection.afterState for the selected menu value. No world was created or saved. On nonconfirmation inspect current state before another request; do not replay the batch.");
+        }
+        return result;
+    }
+
+    private static JsonObject selectMenuChoices(Object screen, JsonObject args, List<?> buttons, InventoryPlayer inventory, BooleanSupplier current,
+            MachineSlotBinding.Context owner, java.util.function.Consumer<PersonalSpaceGuiAdapter.Control> hover) {
+        ExpandedGuiApi.keys(args, "selections");
+        if (!VanillaCreateWorldControls.screen(screen)) throw new BridgeException("unsupported", "Selection batches require the native create-world menu.");
+        if (!args.has("selections") || !args.get("selections").isJsonArray()) throw new BridgeException("invalid_args", "selections must be an array.");
+        JsonArray selections = args.getAsJsonArray("selections");
+        if (selections.size() < 1 || selections.size() > 8) throw new BridgeException("invalid_args", "Expected 1..8 explicit menu selections.");
+        Snapshot snapshot = snapshot(screen, buttons, System.nanoTime(), inventory, owner);
+        java.util.Set<String> targets = new java.util.HashSet<String>();
+        List<Object> widgets = new ArrayList<Object>();
+        for (JsonElement raw : selections) {
+            if (!raw.isJsonObject()) throw new BridgeException("invalid_args", "Each selection must be an object.");
+            JsonObject selection = raw.getAsJsonObject(); menuSelectionKeys(selection);
+            String target = ExpandedGuiApi.string(selection, "widgetId", 128);
+            if (!targets.add(target)) throw new BridgeException("invalid_args", "Each widget may appear only once in a selection batch.");
+            Object widget = null;
+            for (Node node : snapshot.nodes) if (target.equals(id(node.widget))) { widget = node.widget; break; }
+            if (widget == null) throw new BridgeException("stale_widget", "A selected widget is absent from the current bounded tree.");
+            VanillaCreateWorldControls.validate(VanillaCreateWorldControls.read(screen, widget), JsonData.integer(selection, "selected", 0, Integer.MAX_VALUE));
+            widgets.add(widget);
+        }
+        JsonObject result = new JsonObject(); JsonArray receipts = new JsonArray();
+        result.add("screenId", args.get("screenId")); result.addProperty("action", "set_selected_many");
+        result.add("beforeState", VanillaCreateWorldControls.state(screen)); result.add("selections", receipts);
+        boolean submitted = false, matched = true, unknown = false; int completed = 0;
+        long deadline = System.nanoTime() + 100000000L;
+        for (int index = 0; index < selections.size(); index++) {
+            JsonObject selection = selections.get(index).getAsJsonObject(), receipt = new JsonObject();
+            receipt.add("widgetId", selection.get("widgetId")); receipt.add("selected", selection.get("selected")); receipts.add(receipt);
+            if (!matched) { receipt.addProperty("status", "not_executed"); continue; }
+            if (!current.getAsBoolean() || System.nanoTime() >= deadline) {
+                matched = false; receipt.addProperty("status", "not_executed"); receipt.addProperty("reason", "screen_changed_or_budget_exhausted"); continue;
+            }
+            JsonObject call = selection.deepCopy(); call.add("screenId", args.get("screenId")); call.addProperty("action", "set_selected");
+            try {
+                JsonObject outcome = perform(screen, call, buttons, inventory, current, owner, hover);
+                JsonObject compact = new JsonObject();
+                for (String key : new String[]{"submitted", "localSelectionMatched", "status", "outcomeUnknown", "nativeSelection"})
+                    if (outcome.has(key)) compact.add(key, outcome.get(key));
+                receipt.add("receipt", compact); submitted |= outcome.get("submitted").getAsBoolean();
+                matched = outcome.has("localSelectionMatched") && outcome.get("localSelectionMatched").getAsBoolean();
+                unknown |= outcome.has("outcomeUnknown") && outcome.get("outcomeUnknown").getAsBoolean();
+                receipt.addProperty("status", matched ? "completed" : "not_confirmed"); if (matched) completed++;
+            } catch (RuntimeException | LinkageError error) {
+                matched = false; receipt.addProperty("status", "failed");
+                String code = error instanceof BridgeException ? ((BridgeException) error).code : "adapter_error";
+                receipt.addProperty("code", code);
+                if (!java.util.Arrays.asList("disabled", "stale_screen", "stale_widget", "target_unverified", "invalid_args", "unsupported", "data_limit").contains(code)) {
+                    unknown = true; submitted = true;
+                }
+            }
+        }
+        boolean same = current.getAsBoolean(); matched &= same;
+        if (same) try {
+            result.add("afterState", VanillaCreateWorldControls.state(screen));
+            for (int index = 0; index < selections.size(); index++) {
+                JsonObject observed = VanillaCreateWorldControls.read(screen, widgets.get(index));
+                if (observed == null || !observed.get("selected").equals(selections.get(index).getAsJsonObject().get("selected"))) matched = false;
+            }
+        } catch (RuntimeException | LinkageError unavailable) { matched = false; result.addProperty("readbackUnavailable", true); }
+        result.addProperty("localSelectionMatched", matched); result.addProperty("status", matched ? "completed" : "partial");
+        result.addProperty("completedSelections", completed); result.addProperty("submitted", submitted); result.addProperty("outcomeUnknown", unknown);
+        result.addProperty("currentScreen", same); result.addProperty("serverConfirmed", false); result.addProperty("worldCreationRequested", false); result.addProperty("persistenceVerified", false);
+        result.addProperty("completion", "All requested values require localSelectionMatched=true in the final menu readback. Partial changes remain; inspect receipts/current state before continuing. No rollback or automatic replay.");
+        return result;
+    }
+    private static void menuSelectionKeys(JsonObject args) {
+        for (Map.Entry<String, JsonElement> entry : args.entrySet()) if (!entry.getKey().equals("widgetId") && !entry.getKey().equals("selected"))
+            throw new BridgeException("invalid_args", "Selection entries accept only widgetId and selected.");
     }
     private static MachineSlotBinding.Context machineOwner(Minecraft client, GuiScreen screen) {
         if (client == null || client.currentScreen != screen || !(screen instanceof GuiContainer))
@@ -603,6 +690,11 @@ public final class GuiControlAdapter {
             entry.addProperty("kind", "button"); entry.addProperty("nativeButtonId", button.id); entry.addProperty("text", JsonData.bounded(button.displayString, 512));
             entry.addProperty("visible", button.visible); entry.addProperty("enabled", button.enabled && button.visible); entry.addProperty("valid", true);
             bounds(entry, button.xPosition, button.yPosition, button.width, button.height); actions.add(new JsonPrimitive("activate"));
+            JsonObject choice = VanillaCreateWorldControls.read(snapshot.screen, button);
+            if (choice != null) {
+                for (Map.Entry<String, JsonElement> value : choice.entrySet()) entry.add(value.getKey(), value.getValue());
+                actions.add(new JsonPrimitive("set_selected")); entry.addProperty("selectionBatchAction", "set_selected_many");
+            }
         } else if (widget instanceof GuiTextField) {
             GuiTextField field = (GuiTextField) widget;
             entry.addProperty("kind", "text"); entry.addProperty("text", JsonData.bounded(field.getText(), 1024)); entry.addProperty("focused", field.isFocused());

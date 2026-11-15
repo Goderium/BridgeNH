@@ -189,6 +189,7 @@ public class BridgeSelfTest {
         checks += AePhantomSlotsSelfTest.run();
         checks += AeObservationSelfTest.run();
         checks += GuiControlsSelfTest.run();
+        checks += com.Goderium.BridgeNH.client.gui.CreateWorldControlsSelfTest.run();
         checks += PersonalSpaceGuiSelfTest.run();
         checks += VanillaSettingsControlsSelfTest.run();
         checks += NativeMenuListsSelfTest.run();

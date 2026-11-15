@@ -36,7 +36,7 @@ NEI 临时工作验收后自动清理临时假物品和仅供本次使用的收�
 
 按一个主代理独立识别，规划和执行设计，不依赖子代理。优先用 `mcb_observe` 在一次调用内读取最多 8 个视图，指定所需 dotted fields，保留真实槽号和 coverage。默认过滤明确为空的真实槽位，不压缩 AE 虚拟资源身份。缺失字段列入 missingFields，不解释为 false/0/空数组。
 
-已经明确的简单操作优先发送一次 `mcb_sequence`：read -> assert -> action -> wait -> assert。steps 为 1..32 个声明式步骤，不包含可执行代码，不生成临时脚本。`expectedSessionId` 必需，含 action 时还必须指定 `expectedWorld`。每步用 `tool` 和 `args` 调用现有白名单工具，用 `fields` 选择返回字段。`bind: {"windowId":{"step":"gui","path":"windowId"}}` 从此前完整 read 结果绑定当前身份，不从投影值或旧屏幕猜测。assert 的 source 指向此前步骤；wait 的 condition 可用 valueFrom 引用此前基线。
+已经明确的简单操作优先发送一次 `mcb_sequence`：read -> assert -> action -> wait -> assert。steps 为 1..32 个声明式步骤，不包含可执行代码，不生成临时脚本。`expectedSessionId` 必需，世界内动作还必须指定 `expectedWorld`；未加载世界的菜单使用受保护的 `menuScreenId` 模式。动作可添加 `after` 读取或等待，避免每步回执都需要一次 Agent 往返，见[操作合并](operations_zh.md#合并重复操作与结果回读)。每步用 `tool` 和 `args` 调用现有白名单工具，用 `fields` 选择返回字段。`bind: {"windowId":{"step":"gui","path":"windowId"}}` 从此前完整 read 结果绑定当前身份，不从投影值或旧屏幕猜测。assert 的 source 指向此前步骤；wait 的 condition 可用 valueFrom 引用此前基线。
 
 默认总执行预算 10000 ms，最大 60000 ms；返回默认 64 KiB，可设 16..256 KiB。计划限制 64 KiB，完整原始结果总量限制 2 MiB。元数据遍历限制 8192 个节点及 10 ms 的协作预算；截断通过 metadataOmitted 明确报告。身份/NBT/十进制 long 不截断重建，超预算时整体省略字段。轮询只重复幂等读取，不重复动作，不自动分页；原始结果只在此次调用的内存中保留。执行前检查完整计划和能力，最多接管一次；读取/等待和完成边界核对 world/session/profile，动作前额外核对鼠标保护。数据仍为 nonAtomic，不承诺跨 tick 原子快照。
 

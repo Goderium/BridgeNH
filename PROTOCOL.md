@@ -92,9 +92,17 @@ actions remain protected. See the [scope and procedure](mcp-server/src/minecraft
 service; they do not require a separate workflow operation in the mod. They support one agent doing
 discovery, planning and execution without generated scripts or subagents.
 
-`mcb_sequence` requires `expectedSessionId` and 1..32 `steps`. Any action also
-requires `expectedWorld`. Steps have unique ASCII IDs (at most 32 characters),
-`kind` (`read`, `action`, `wait`, `assert`), and existing `tool`/`args`. An assert
+`mcb_sequence` requires `expectedSessionId` and 1..32 `steps`. Loaded-world actions also
+require `expectedWorld`; unloaded-menu actions use the guarded menu mode below. Steps have unique ASCII IDs (at most 32 characters),
+`kind` (`read`, `action`, `wait`, `assert`), and existing `tool`/`args`.
+
+An action may contain `after:{id,tool,args?,bind?,condition?,timeout_ms?,interval_ms?,fields?,omitEmptySlots?}`. It expands to a read, or a read-only wait when condition is present, immediately after that action. A wait automatically accepts its parent action; the result ID can be referenced by later steps. Unique IDs, schemas, reference order, 64 KiB plan size and the 32-step limit apply after expansion. All steps are validated before any game call. No action is repeated while waiting.
+
+Unloaded-menu plans provide `menuScreenId` instead of `expectedWorld`. They permit only `mcb_health`, `mcb_gui`, `mcb_gui_widgets`, `mcb_gui_widget_action` and `mcb_gui_key`, plus assertions. The initial screen is checked before takeover. They require `contextRpc.unloadedMenuVersion>=1`; each action carries `includeContext.menuOnly=true`, checked on the owning client thread before dispatch. The native snapshot must report `worldLoaded=false` and `unloadedMenu=true` (no player, integrated server or pending lifecycle task, with an open screen). Every menu read has the same AFTER guard. World entry or context loss stops subsequent steps; a prior button effect is not undone. This mode cannot include world actions or machine cleanup. Old clients refuse before mutation.
+
+GUI, NEI and AE action receipts reporting explicit partial, failed, not-confirmed, refused or unknown results stop the sequence with `ACTION_NOT_CONFIRMED`, retaining the receipt and unexecuted steps. Widget projections include `after`, target-match and relevant native readback fields. Local widget values do not prove server effects.
+
+An assert
 uses `source` to identify an earlier result. Conditions contain `path`,
 `operator` (`equals`, `not_equals`, `exists`, `contains`, `gt`, `gte`, `lt`, `lte`)
 and a literal `value` or `valueFrom:{step,path}`. Numeric comparisons preserve
@@ -508,6 +516,32 @@ publicly identified two-state GT structure-recheck widget; pending state does
 not get toggled off. It follows the normal MUI2 press/value/C2S synchronization,
 not a direct machine-specific validator. Re-read components after the server check.
 Only the live control's advertised actions are accepted.
+
+Vanilla `GuiCreateWorld` mode, world type, more-options page, map features,
+commands and bonus-chest buttons expose `kind=choice`, `setting`, `selected`,
+`value` and `options[].index/value`. `set_selected` uses the observed option index
+and invokes normal button callbacks until that value is read back. Already-matching
+values require no callback, including a hidden choice whose value is still readable.
+World-type options come from the current creatable registry entries; indices may
+have gaps. Native side effects, such as command defaults and clearing custom
+generator options when changing world type, are preserved.
+
+For this menu only, `set_selected_many` accepts `selections:[{widgetId,selected}]`
+with 1..8 unique current widgets and no top-level widgetId. All target identities
+and option indices are validated before changes. Execute in explicit page order,
+for example game mode, more-options page, then world type. Hidden targets that need
+a change require their page to have been selected by an earlier step. Create,
+Cancel and arbitrary buttons are excluded. Each choice permits at most 32 native
+transitions with a cooperative 25 ms budget; the batch checks a 100 ms budget
+between choices. It stops on an unchanged/unexpected transition, disabled control,
+screen change or failed callback. Partial effects are retained without rollback or replay.
+
+Use `localSelectionMatched=true` as the menu-selection acceptance condition.
+Single selections include `after` and `nativeSelection` with callback counts and
+before/after menu state; batches include per-selection receipts and a final
+`afterState` that must match every requested value. These are local pending menu
+settings, not a created world, saved configuration or server confirmation.
+
 Public MUI2 phantom inputs additionally advertise `ghost_drag` with exactly one
 `source`: `{registryName,metadata?,count?}`, `{playerSlot,count?}`, or
 `{fluidName,amount?}` for a phantom fluid slot. Item metadata/count default to
