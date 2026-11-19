@@ -15,6 +15,7 @@ from qa_examples import ACTION_QA
 CONTROL_EXAMPLES = {
     "mcb_look": ("player.look", {"yaw": 10, "pitch": 5}),
     "mcb_hotbar": ("player.hotbar", {"slot": 2}),
+    "mcb_world_mouse": ("player.world_mouse", {"action": "pick_block"}),
     "mcb_input": ("player.input", {"keys": ["forward"], "ticks": 2}),
     "mcb_flight_check": ("player.flight_check", {"action": "inspect", "expectedSessionId": "first-session", "expectedWorld": "test", "dimension": 0}),
     "mcb_interact": ("player.interact", {"action": "use"}),
@@ -29,6 +30,9 @@ CONTROL_EXAMPLES = {
     "mcb_chat": ("chat.send", {"message": "test"}),
     "mcb_supply_items": ("inventory.supply", {"expectedSessionId": "first-session", "expectedWorld": "test",
         "items": [{"registryName": "IC2:itemFluidCell", "metadata": 0, "count": 1}]}),
+    "mcb_copy_block": ("inventory.copy_block", {"expectedSessionId": "first-session", "expectedWorld": "test",
+        "dimension": 0, "x": 0, "y": 64, "z": 0, "registryName": "minecraft:stone",
+        "metadata": 0, "destinationSlot": 2}),
     "mcb_machine_work": ("machine.set_working", {"x": 0, "y": 64, "z": 0, "expectedWorld": "test", "expectedMetaTileId": 1, "working": False}),
     "mcb_teleport": ("dev.teleport", {"x": 0.5, "y": 64, "z": 0.5, "expectedWorld": "test"}),
     "mcb_load_world": ("client.load_world", {"folder": "test", "expectedSessionId": "session"}),

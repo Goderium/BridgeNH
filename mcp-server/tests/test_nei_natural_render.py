@@ -100,7 +100,9 @@ async def test_native_capture_refusal_never_falls_back_to_draw_script_or_screens
 
 
 @pytest.mark.parametrize("status", ["pending", "unavailable", "captured", "partial"])
-def test_empty_projection_retains_native_snapshot_limits_gaps_and_preview_owner(status):
+def test_empty_projection_retains_native_snapshot_limits_gaps_and_preview_owner(status, monkeypatch):
+    # This field contract assumes an unexpired budget. Deadline behavior has its own controlled-clock tests.
+    monkeypatch.setattr("minecraft_codex_bridge.workflows.MAX_METADATA_MILLIS", float("inf"))
     data = {**deepcopy(VIEW), "section": "detail", "data": {**deepcopy(DIAGNOSTICS), "captureStatus": status,
         "target": "preview_render_geometry", "entries": [{"vertexCount": 2048}]}}
     compact = project(data, {"kind": "read", "tool": "mcb_nei_view", "fields": []})
