@@ -6,7 +6,7 @@ from typing import Any
 LOCAL_ONLY = frozenset({
     "dev.teleport", "player.navigate", "player.plan_approach", "player.flight", "player.flight_check",
     "player.place_block", "player.replace_owned_block", "structure.survival_build", "world.structure",
-    "inventory.supply", "machine.set_working", "ae.material_source", "machine.capture", "ae.order",
+    "inventory.supply", "inventory.copy_block", "machine.set_working", "ae.material_source", "machine.capture", "ae.order",
 })
 
 

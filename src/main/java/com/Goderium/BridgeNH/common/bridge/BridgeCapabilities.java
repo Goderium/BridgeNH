@@ -42,7 +42,7 @@ import com.google.gson.JsonPrimitive;
 @com.google.common.annotations.VisibleForTesting
 public final class BridgeCapabilities {
     private static final String[] OPERATIONS = {"bridge.health", "bridge.policy", "client.snapshot", "gui.inspect", "inventory.inspect", "baubles.inspect", "gui.open_baubles", "gui.open_pause_menu",
-            "world.inspect", "world.scan", "client.screenshot", "player.look", "player.hotbar", "player.input", "player.task", "player.follow",
+            "world.inspect", "world.scan", "client.screenshot", "player.look", "player.hotbar", "player.input", "player.world_mouse", "player.task", "player.follow",
             "server.observe", "agent.dialogue", "structure.goal", "player.interact", "player.place_block", "player.plan_approach", "player.navigate", "player.replace_owned_block", "player.flight", "player.flight_check", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.close", "gui.open_inventory", "gui.click", "gui.key", "gui.pointer", "chat.send",
             "client.diagnostics", "client.window", "client.window_action", "client.mods", "client.messages", "client.recording", "registry.items", "registry.item", "registry.variants",
             "world.inspect_many", "world.tiles", "machine.set_working", "dev.teleport", "client.worlds", "client.load_world",
@@ -53,7 +53,7 @@ public final class BridgeCapabilities {
 
     static void append(JsonObject result, JsonObject recording, ScanSettings scanSettings, Iterable<String> inputKeys,
             boolean publicCatalog, boolean localBackend, boolean remoteBackend) {
-        operations(result, recording);
+        operations(result, recording, localBackend);
         interaction(result);
         recipes(result, publicCatalog, localBackend, remoteBackend);
         movement(result);
@@ -62,14 +62,16 @@ public final class BridgeCapabilities {
         input(result, inputKeys);
     }
 
-    private static void operations(JsonObject result, JsonObject recording) {
+    private static void operations(JsonObject result, JsonObject recording, boolean localBackend) {
         JsonArray capabilities = new JsonArray();
         for (String operation : OPERATIONS) {
             if ("gui.click".equals(operation) && !GuiCallbacks.supportsClick()) continue;
             if ("gui.key".equals(operation) && !GuiCallbacks.supportsKey()) continue;
             capabilities.add(new JsonPrimitive(operation));
         }
+        if (localBackend) capabilities.add(new JsonPrimitive("inventory.copy_block"));
         result.add("capabilities", capabilities);
+        result.addProperty("nativeWidgetGesturesVersion", 1);
         result.addProperty("playerActivityRecordingVersion", 1);
         result.add("playerActivityRecording", recording);
         result.add("contextRpc", GuardedContext.capabilities());

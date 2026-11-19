@@ -144,10 +144,12 @@ public final class GuiControlAdapter {
     }
     private static JsonObject perform(Object screen, JsonObject args, List<?> buttons, InventoryPlayer inventory, BooleanSupplier stillCurrent, MachineSlotBinding.Context owner, java.util.function.Consumer<PersonalSpaceGuiAdapter.Control> hover) {
         String screenId = ExpandedGuiApi.string(args, "screenId", 128); bind(screen, screenId);
-        String action = ExpandedGuiApi.option(args, "action", null, "activate", "set_text", "set_value", "set_selected", "set_selected_many", "focus", "recheck_structure", "ghost_drag", "phantom_click");
+        String action = ExpandedGuiApi.option(args, "action", null, "activate", "set_text", "scroll", "drag_scrollbar", "set_value", "set_selected", "set_selected_many", "focus", "recheck_structure", "ghost_drag", "phantom_click");
         if (action.equals("set_selected_many")) return selectMenuChoices(screen, args, buttons, inventory, stillCurrent, owner, hover);
         String widgetId = ExpandedGuiApi.string(args, "widgetId", 128);
         if (action.equals("set_text")) ExpandedGuiApi.keys(args, "widgetId", "text", "commit", "expectedText");
+        else if (action.equals("scroll")) ExpandedGuiApi.keys(args, "widgetId", "axis", "direction");
+        else if (action.equals("drag_scrollbar")) ExpandedGuiApi.keys(args, "widgetId", "axis", "percent");
         else if (action.equals("set_value")) ExpandedGuiApi.keys(args, "widgetId", "value");
         else if (action.equals("set_selected")) ExpandedGuiApi.keys(args, "widgetId", "selected");
         else if (action.equals("focus")) ExpandedGuiApi.keys(args, "widgetId", "focused");
@@ -166,8 +168,12 @@ public final class GuiControlAdapter {
         if (!allowed) throw new BridgeException("unsupported", "The current control does not advertise this semantic action.");
         if (!(action.equals("set_value") && GhostCircuitGuiAdapter.supports(node.widget)) && !stillCurrent.getAsBoolean())
             throw new BridgeException("stale_screen", "The native screen/container changed before invocation.");
+        boolean commandInput = action.equals("set_text") && commandField(screen, node.widget);
+        String previousCommand = commandInput ? ((GuiTextField) node.widget).getText() : null;
+        int textLimit = commandInput ? COMMAND_LENGTH : 1024;
+        if (action.equals("set_text")) ExpandedGuiApi.string(args, "text", textLimit);
         if (snapshot.sodium == null && action.equals("set_text") && args.has("expectedText")
-                && !ExpandedGuiApi.string(args, "expectedText", 1024).equals(currentText(node.widget)))
+                && !ExpandedGuiApi.string(args, "expectedText", textLimit).equals(currentText(node.widget)))
             throw new BridgeException("value_changed", "The current native field text differs from expectedText; no text was written.");
         Object widget = node.widget;
         int activateButton = action.equals("activate") && args.has("button") ? JsonData.integer(args, "button", 0, 2) : 0;
@@ -195,7 +201,21 @@ public final class GuiControlAdapter {
         else if (action.equals("phantom_click")) phantomAction = PhantomGuiAdapter.click(widget, screen, args, inventory, stillCurrent);
         else if (nativeStructureState) ExpandedGuiApi.call(widget, "setState", 1, true);
         else if (action.equals("activate") || action.equals("recheck_structure")) callbackReturns = activate(screen, widget, activateButton, stillCurrent);
-        else if (action.equals("set_text")) setText(widget, args, stillCurrent);
+        else if (action.equals("scroll") || action.equals("drag_scrollbar")) {
+            neutralInput();
+            callbackReturns = MuiScrollControls.perform(widget, args, action);
+        } else if (commandInput) {
+            String command = args.get("text").getAsString();
+            if (command.getBytes(StandardCharsets.UTF_8).length > COMMAND_BYTES || command.indexOf('\n') >= 0
+                    || command.indexOf('\r') >= 0 || command.indexOf('\0') >= 0)
+                throw new BridgeException("invalid_args", "The command must be a single line within the native packet budget.");
+            GuiTextField field = (GuiTextField) widget;
+            if (command.length() > field.getMaxStringLength()) throw new BridgeException("invalid_args", "Command exceeds native field length.");
+            GuiButton done = cpw.mods.fml.relauncher.ReflectionHelper.getPrivateValue(net.minecraft.client.gui.GuiCommandBlock.class,
+                    (net.minecraft.client.gui.GuiCommandBlock) screen, "doneBtn", "field_146490_i");
+            field.setText(command);
+            done.enabled = !field.getText().trim().isEmpty();
+        } else if (action.equals("set_text")) setText(widget, args, stillCurrent);
         else if (action.equals("set_value") && (widget instanceof net.minecraft.client.gui.GuiSlot || NativeMenuLists.keyRow(widget))) {
             neutralInput(); NativeMenuLists.setValue(widget, args, stillCurrent);
         } else if (action.equals("set_value") && VanillaSettingsControls.supports(widget)) {
@@ -235,7 +255,12 @@ public final class GuiControlAdapter {
             result.add("beforeCursorItem", beforePhantomCursor);
             result.add("afterCursorItem", inventory == null ? JsonNull.INSTANCE : JsonData.item(inventory.getItemStack()));
         }
-        if (callbackReturns != null) { result.add("nativeCallbackReturns", callbackReturns); result.addProperty("button", activateButton); }
+        if (callbackReturns != null && callbackReturns.has("accepted"))
+            result.add("accepted", callbackReturns.get("accepted"));
+        if (callbackReturns != null) {
+            result.add("nativeCallbackReturns", callbackReturns);
+            if (!action.equals("scroll") && !action.equals("drag_scrollbar")) result.addProperty("button", activateButton);
+        }
         if (nativeStructureState) { result.addProperty("nativeAction", "mui2_structure_recheck_state"); result.addProperty("serverConfirmed", false); }
         if (snapshot.creative != null && (widget instanceof CreativeTabs || widget instanceof Slot)) {
             result.addProperty("nativeAction", widget instanceof Slot ? "creative_inventory_left_pickup" : "creative_tab_click");
@@ -276,8 +301,12 @@ public final class GuiControlAdapter {
                     JsonObject after = describe(afterNode, afterSnapshot); if (!result.has("after")) result.add("after", after);
                     result.addProperty("localValueChanged", !observable(before).equals(observable(after)));
                     if (snapshot.sodium == null && action.equals("set_text")) {
-                        String requested = ExpandedGuiApi.string(args, "text", 1024);
-                        result.addProperty("requestedText", requested); result.addProperty("commitRequested", GuiDataAdapter.booleanArg(args, "commit", true));
+                        String requested = ExpandedGuiApi.string(args, "text", textLimit);
+                        if (commandInput) {
+                            result.addProperty("requestedTextLength", requested.length());
+                            result.addProperty("localValueChanged", !previousCommand.equals(currentText(widget)));
+                        } else result.addProperty("requestedText", requested);
+                        result.addProperty("commitRequested", GuiDataAdapter.booleanArg(args, "commit", true));
                         result.addProperty("nativeCommitInvoked", GuiDataAdapter.booleanArg(args, "commit", true)
                                 && !(widget instanceof GuiTextField) && !ExpandedGuiApi.is(widget, AE_TEXT) && !PersonalSpaceGuiAdapter.supports(widget));
                         result.addProperty("localTextMatchesRequested", requested.equals(currentText(widget)));
@@ -489,7 +518,7 @@ public final class GuiControlAdapter {
     }
     private static JsonObject observable(JsonObject description) {
         JsonObject value = new JsonObject();
-        for (String key : new String[] {"text", "value", "pendingValue", "appliedValue", "pendingChanges", "selected", "focused", "item", "circuitConfig", "fluidSlot", "ghostSlot"})
+        for (String key : new String[] {"text", "value", "pendingValue", "appliedValue", "pendingChanges", "selected", "focused", "item", "circuitConfig", "fluidSlot", "ghostSlot", "scrollAxes"})
             if (description.has(key)) value.add(key, description.get(key));
         return value;
     }
@@ -613,7 +642,7 @@ public final class GuiControlAdapter {
         }
         if (LegacyModularGuiAdapter.supports(widget)) return (LegacyModularGuiAdapter.editable(widget) || LegacyModularGuiAdapter.button(widget))
                 && muiEnabled(node, snapshot) && LegacyModularGuiAdapter.valid(widget) && LegacyModularGuiAdapter.currentWindow(widget, snapshot.screen);
-        if (!ExpandedGuiApi.is(widget, MUI + "widgets.ButtonWidget") && !ExpandedGuiApi.is(widget, MUI + "widgets.textfield.TextFieldWidget")
+        if (!MuiScrollControls.supports(widget) && !ExpandedGuiApi.is(widget, MUI + "widgets.ButtonWidget") && !ExpandedGuiApi.is(widget, MUI + "widgets.textfield.TextFieldWidget")
                 && !ExpandedGuiApi.is(widget, MUI + "widgets.AbstractCycleButtonWidget") && !ExpandedGuiApi.is(widget, MUI + "widgets.SliderWidget")
                 && !ExpandedGuiApi.is(widget, MUI + "widgets.menu.DropdownWidget") && !GhostCircuitGuiAdapter.supports(widget) && !FluidGuiAdapter.supports(widget) && !PhantomGuiAdapter.item(widget)) return false;
         return muiEnabled(node, snapshot) && (Boolean) ExpandedGuiApi.call(widget, "isValid")
@@ -700,6 +729,10 @@ public final class GuiControlAdapter {
             entry.addProperty("kind", "text"); entry.addProperty("text", JsonData.bounded(field.getText(), 1024)); entry.addProperty("focused", field.isFocused());
             entry.addProperty("textLength", field.getText().length()); entry.addProperty("textTruncated", field.getText().length() > 1024);
             entry.addProperty("valueSource", "native_client_field_text"); entry.addProperty("commitSemantics", "Native setText replaces the field; generic submit callback unavailable.");
+            if (commandField(snapshot.screen, field)) {
+                entry.addProperty("semantic", "command_block_input"); entry.addProperty("maxInputUtf8Bytes", COMMAND_BYTES);
+                entry.addProperty("maxInputLength", Math.min(COMMAND_LENGTH, field.getMaxStringLength()));
+            }
             entry.addProperty("enabled", vanillaEnabled(field)); entry.addProperty("valid", field.getVisible());
             bounds(entry, field.xPosition, field.yPosition, field.width, field.height); actions.add(new JsonPrimitive("set_text")); actions.add(new JsonPrimitive("focus"));
         } else if (ExpandedGuiApi.is(widget, AE_TEXT)) {
@@ -719,6 +752,7 @@ public final class GuiControlAdapter {
             entry.addProperty("enabled", muiEnabled(node, snapshot)); entry.addProperty("valid", (Boolean) ExpandedGuiApi.call(widget, "isValid"));
             Object area = ExpandedGuiApi.call(widget, "getArea"); if (area instanceof Rectangle) { Rectangle box = (Rectangle) area; bounds(entry, box.x, box.y, box.width, box.height); }
             if (ExpandedGuiApi.is(widget, MUI + "widgets.TextWidget")) { Object key = ExpandedGuiApi.call(widget, "getKey"); entry.addProperty("text", JsonData.bounded(String.valueOf(ExpandedGuiApi.call(key, "getFormatted")), 512)); }
+            if (MuiScrollControls.supports(widget)) MuiScrollControls.describe(widget, entry, actions);
             if (ExpandedGuiApi.is(widget, MUI + "widgets.ButtonWidget")) { entry.addProperty("kind", "button"); actions.add(new JsonPrimitive("activate")); }
             if (GhostCircuitGuiAdapter.supports(widget)) {
                 JsonObject circuit = GhostCircuitGuiAdapter.read(widget); entry.add("circuitConfig", circuit);
@@ -774,6 +808,16 @@ public final class GuiControlAdapter {
         if (!entry.get("valid").getAsBoolean()) entry.addProperty("invalidReason", "native_control_not_initialized_or_not_visible");
         if (actions.size() == 0 && !entry.has("readOnlyReason")) entry.addProperty("readOnlyReason", "no_verified_native_mutation_api");
         entry.add("supportedActions", actions); return entry;
+    }
+    // MC|AdvCdm sends the Netty backing array, which rounds up. Keep the position/type
+    // header and the UTF-8 command inside the final legal power-of-two allocation.
+    private static final int COMMAND_BYTES = 16368;
+    private static final int COMMAND_LENGTH = 16384;
+
+    private static boolean commandField(Object screen, Object widget) {
+        return screen instanceof net.minecraft.client.gui.GuiCommandBlock && widget instanceof GuiTextField
+                && widget == cpw.mods.fml.relauncher.ReflectionHelper.getPrivateValue(net.minecraft.client.gui.GuiCommandBlock.class,
+                    (net.minecraft.client.gui.GuiCommandBlock) screen, "commandTextField", "field_146485_f");
     }
     private static boolean vanillaEnabled(GuiTextField field) {
         for (String name : new String[] {"isEnabled", "field_146226_p"}) { try { return (Boolean) ExpandedGuiApi.field(field, GuiTextField.class, name); } catch (BridgeException e) { /* Fixed mapping fallback. */ } }

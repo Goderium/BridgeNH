@@ -41,7 +41,7 @@ READ_OPERATIONS = frozenset({
 
 CONTEXT_READS = frozenset({"bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets", "registry.item",
     "structure.goal", "world.inspect", "world.inspect_many", "world.spatial", "player.plan_approach", "world.structure", "machine.inspect", "ae.material_source"})
-CONTEXT_ACTIONS = frozenset({"player.hotbar", "player.interact", "player.place_block", "structure.survival_build", "player.look",
+CONTEXT_ACTIONS = frozenset({"player.hotbar", "player.world_mouse", "player.interact", "player.place_block", "structure.survival_build", "player.look",
     "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", "gui.transfer_whole_stack", "player.replace_owned_block"})
 _OWNED_REPLACEMENT_STAGES = frozenset({"prepare", "before_dig", "attack_plan", "move_before_dig",
     "await_move_before_dig", "native_dig", "after_dig", "place_plan", "move_before_place",

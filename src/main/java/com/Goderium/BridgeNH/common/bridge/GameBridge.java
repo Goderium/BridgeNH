@@ -351,7 +351,7 @@ public class GameBridge {
             JsonObject args = supplied.deepCopy();
             boolean creative = client.thePlayer != null && client.thePlayer.capabilities.isCreativeMode;
             OperationPolicyRules.check(operation, args, policies, serverContext != null || RemoteReadClient.INSTANCE.operatorReady(), creative, canTeleport(client) || RemoteReadClient.INSTANCE.operatorReady());
-            if (("gui.key".equals(operation) || "gui.click".equals(operation)) && client.currentScreen != null
+            if (("gui.key".equals(operation) || "gui.click".equals(operation) || "gui.widget_action".equals(operation)) && client.currentScreen != null
                     && (client.currentScreen instanceof net.minecraft.client.gui.GuiChat || client.currentScreen instanceof GuiCommandBlock))
                 OperationPolicyRules.require(policies.permits("direct") && !policies.selected().get("readOnly").getAsBoolean(), "Chat/command GUI input requires full mutable policy.");
             if (PlayerNavigation.OPERATION.equals(operation) || "player.plan_approach".equals(operation)) {
@@ -418,7 +418,7 @@ public class GameBridge {
             return renderQueue.await(renderQueue.submit(() -> FramebufferCapture.capture(Minecraft.getMinecraft()), 8000, control), 8000);
         }
         if ("structure.goal".equals(operation) || "world.tiles".equals(operation) || "world.structure".equals(operation) || "machine.inspect".equals(operation) || MachineObservationCapture.OPERATION.equals(operation) || "recipes.query".equals(operation)
-                || AeOrderAdapter.OPERATION.equals(operation) || "machine.set_working".equals(operation) || "dev.teleport".equals(operation) || "inventory.supply".equals(operation) || operation.startsWith("qa.") || BaublesInventoryAdapter.serverRead(operation, args)) {
+                || AeOrderAdapter.OPERATION.equals(operation) || "machine.set_working".equals(operation) || "dev.teleport".equals(operation) || "inventory.supply".equals(operation) || "inventory.copy_block".equals(operation) || operation.startsWith("qa.") || BaublesInventoryAdapter.serverRead(operation, args)) {
             requireUnpausedServer();
             return serverQueue.await(serverQueue.submit(() -> developerOperation(operation, args), 8000, control), 8000);
         }
@@ -1592,6 +1592,10 @@ public class GameBridge {
                 requirePlayer(client);
                 client.thePlayer.inventory.currentItem = JsonData.integer(args, "slot", 0, 8);
                 return status("selectedHotbarSlot", client.thePlayer.inventory.currentItem);
+            case "player.world_mouse":
+                requireWorldControls(client);
+                if (navigation != null) throw new BridgeException("busy", "Navigation owns world input.");
+                return com.Goderium.BridgeNH.client.control.WorldMouseInput.perform(client, args);
             case "player.input": return input(client, args);
             case "player.task": return inputTask(args);
             case "player.follow": return follow(args);
@@ -2255,6 +2259,13 @@ public class GameBridge {
             accessories.addProperty("sessionId", sessionId);
             accessories.addProperty("worldFolder", context.server.getFolderName());
             return accessories;
+        }
+        if ("inventory.copy_block".equals(operation)) {
+            requireExpectedWorld(context, args);
+            if (!sessionId.equals(JsonData.string(args, "expectedSessionId")))
+                throw new BridgeException("stale_session", "Block copy requires the current session.");
+            EntityPlayerMP player = (EntityPlayerMP) operationPlayer(true);
+            return com.Goderium.BridgeNH.common.inventory.PortableBlockCopy.copy(player, args);
         }
         if ("inventory.supply".equals(operation)) {
             requireExpectedWorld(context, args);

@@ -38,11 +38,14 @@ NEI_ITEM_ACTION_FIELDS = (*ACTION_FIELDS, "before", "after", "filterCompletion",
 AE_ACTION_FIELDS = (*ACTION_FIELDS, "source", "before", "target", "acceptedType", "configurationOnly", "inventoryConsumed", "nativeProtocol", "syncFlushInvoked", "serverAcceptance")
 GUI_WIDGET_ACTION_FIELDS = (*ACTION_FIELDS, "widgetId", "after", "afterState", "nativeSelection",
     "localValueChanged", "localSelectionMatched", "confirmation", "readbackUnavailable", "currentScreen", "selections",
-    "completedSelections", "outcomeUnknown", "nativeSlider", "nativeCallbackReturns", "phantomAction")
+    "completedSelections", "outcomeUnknown", "nativeSlider", "nativeCallbackReturns", "phantomAction",
+    "requestedTextLength", "localTextMatchesRequested")
+WORLD_MOUSE_FIELDS = (*ACTION_FIELDS, "slotBefore", "selectedSlot", "eventCanceled", "sneakKeyDown", "creativeSlotPacketSent", "item")
+COPY_BLOCK_FIELDS = (*ACTION_FIELDS, "source", "dimension", "destinationSlot", "serverSlotConfirmed", "item", "tagPreview")
 MENU_READ_NAMES = frozenset({"mcb_health", "mcb_gui", "mcb_gui_widgets"})
 MENU_ACTION_NAMES = frozenset({"mcb_gui_widget_action", "mcb_gui_key"})
 BINDABLE = frozenset({"screenId", "windowId", "slot", "hotbarSlot", "side", "button", "mode", "widgetId", "resourceId", "neiItemId", "source", "runId", "expectedMetaTileId", "expectedWorld",
-    "expectedSessionId", "materialSource", "yaw", "pitch", "x", "y", "z", "amount", "value", "text", "selected", "serial",
+    "expectedSessionId", "registryName", "metadata", "dimension", "destinationSlot", "materialSource", "yaw", "pitch", "x", "y", "z", "amount", "value", "text", "selected", "serial",
     "expectedCpuSerial", "index", "working", "paused", "since", "captureId", "contextToken", "offset", "handlerIndex", "recipeIndex",
     "positionIndex", "alternativeIndex", "itemIndex", "lineIndex", "metadataIndex", "groupId", "badgeIndex", "configPath", "subsetPath", "channel", "controlIndex",
     "rotationYaw", "rotationPitch", "zoom", "center", "position", "groupIndex", "textureSide", "previewPosition", "modifiers"})
@@ -525,6 +528,8 @@ def project(data: dict[str, Any], step: dict[str, Any]) -> dict[str, Any]:
             GUI_POINTER_ACTION_FIELDS if step.get("tool") == "mcb_gui_pointer" else
             NEI_ITEM_ACTION_FIELDS if step.get("tool") == "mcb_nei_item_action" else
             GUI_WIDGET_ACTION_FIELDS if step.get("tool") == "mcb_gui_widget_action" else
+            WORLD_MOUSE_FIELDS if step.get("tool") == "mcb_world_mouse" else
+            COPY_BLOCK_FIELDS if step.get("tool") == "mcb_copy_block" else
             AE_ACTION_FIELDS if step.get("tool") == "mcb_ae_action" else ACTION_FIELDS) if field in data]
     fields = step.get("fields", defaults)
     metadata, summary = _metadata(data)
@@ -1182,11 +1187,11 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                                 report["dispatchedActions"] += 1
                                 report["acknowledgedActions"] += 1
                                 active.update(dispatched=True, requestId=trace.get("request_id"), completion="acknowledged; use a read/wait/assert for server confirmation")
-                                # GUI chains stop on explicit incomplete receipts. Other
+                                # Stop these native action chains on explicit incomplete receipts. Other
                                 # domain workflows retain their own acceptance contracts.
-                                if operation.startswith(("gui.", "nei.", "ae.")) and (value.get("outcomeUnknown") is True or value.get("partial") is True \
+                                if (operation.startswith(("gui.", "nei.", "ae.")) or operation in {"player.world_mouse", "inventory.copy_block"}) and (value.get("outcomeUnknown") is True or value.get("partial") is True \
                                         or isinstance(value.get("status"), str) and value["status"] in {"partial", "failed", "not_confirmed"} \
-                                        or value.get("accepted") is False or value.get("localSelectionMatched") is False \
+                                        or value.get("accepted") is False or value.get("localSelectionMatched") is False or value.get("localTextMatchesRequested") is False \
                                         or isinstance(value.get("phantomAction"), dict) and value["phantomAction"].get("accepted") is False):
                                     phase = "action_result"
                                     active.update(observation=project(value, step), outcomeUnknown=value.get("outcomeUnknown") is True)

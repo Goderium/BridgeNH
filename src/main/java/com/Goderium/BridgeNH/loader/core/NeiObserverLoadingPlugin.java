@@ -23,7 +23,7 @@ public final class NeiObserverLoadingPlugin implements IFMLLoadingPlugin, IEarly
     @Override public String getMixinConfig() { return "mixins.codexbridge.nei_observer.json"; }
     @Override public List<String> getMixins(Set<String> loadedCoreMods) {
         if (!FMLLaunchHandler.side().isClient()) return Collections.<String>emptyList();
-        List<String> mixins = new ArrayList<String>(Arrays.asList("NeiFontRendererMixin", "GuiPointerEntityRendererMixin", "GuiPointerGuiDrawMixin", "NeiBlockGeometryMixin", "NeiTessellatorGeometryMixin", "NeiTileGeometryMixin", "OwnedLogicalKeyBindingMixin", "OwnedAttackMinecraftMixin", "LoadingScreenQueueMixin", "ActivityChatMixin", "ActivityGuiInputMixin", "ActivitySlotClickMixin"));
+        List<String> mixins = new ArrayList<String>(Arrays.asList("NeiFontRendererMixin", "GuiPointerEntityRendererMixin", "GuiPointerGuiDrawMixin", "NeiBlockGeometryMixin", "NeiTessellatorGeometryMixin", "NeiTileGeometryMixin", "OwnedLogicalKeyBindingMixin", "OwnedAttackMinecraftMixin", "WorldWheelEventMixin", "LoadingScreenQueueMixin", "ActivityChatMixin", "ActivityGuiInputMixin", "ActivitySlotClickMixin"));
         ClassLoader loader = getClass().getClassLoader();
         if (loader.getResource("com/prupe/mcpatcher/ctm/CTMUtils.class") != null) mixins.add("NeiCtmGeometryMixin");
         if (loader.getResource("com/gtnewhorizons/angelica/rendering/tesr/TesrBatchRenderer.class") != null) mixins.add("NeiTesrGeometryMixin");

@@ -19,7 +19,7 @@ import java.util.concurrent.Callable;
 public final class GuardedContext {
     private static final String[] READS = {"bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets",
             "structure.goal", "registry.item", "world.inspect", "world.inspect_many", "world.spatial", "world.structure", "machine.inspect", "player.plan_approach", "ae.material_source"};
-    private static final String[] ACTIONS = {"player.hotbar", "player.interact", "player.place_block", "player.look",
+    private static final String[] ACTIONS = {"player.hotbar", "player.world_mouse", "player.interact", "player.place_block", "player.look",
             "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.pointer", "player.replace_owned_block", "structure.survival_build"};
     private static final Set<String> KEYS = new HashSet<String>(Arrays.asList("version", "expectedSessionId", "expectedProfile", "expectedWorld", "requireBackground", "menuOnly"));
     final String operation;

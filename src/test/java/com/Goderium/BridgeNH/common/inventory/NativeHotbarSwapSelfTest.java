@@ -20,6 +20,9 @@ public final class NativeHotbarSwapSelfTest {
         checks=0;
         Fixture f=new Fixture(); f.fill();
         check(NativeHotbarSwap.wrappedPlayerSlot(f.target,f.inventory), "public isHere recognizes a wrapper despite its dummy inventory");
+        f.container.add(new Slot(new InventoryBasic("extra equipment", false, 1), 0, 0, 0));
+        check(PlayerSlotBinding.requireHotbar(f.container,f.inventory,5)==f.hotbar,
+                "creative pick and swaps identify the real hotbar slot even with trailing equipment slots");
         JsonObject sent=f.run();
         check(sent.get("localSwapObserved").getAsBoolean() && f.clicks==3 && f.inventory.getItemStack()==null,
                 "full-inventory wrapped slots swap with exactly three real native pickups");

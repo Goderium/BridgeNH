@@ -103,6 +103,19 @@ T_MCB_INTERACT = ToolSpec("mcb_interact", "player.interact", "Normal player use/
 T_MCB_CHAT = ToolSpec("mcb_chat", "chat.send", "Send up to 100 characters through native Forge client commands and player chat (Minecraft 1.7.10 packet limit). Works in player profile, singleplayer, LAN and servers without a server MCB requirement; the game/server enforces command permissions. sent is only submission, never proof of execution or permission. Inspect native feedback and actual state; commands are never retried. /give is not inventory receipt; await actual pickup/slot counts before moving. Survival marking uses NEI ghosts, never grants.", obj({"message": {"type": "string", "minLength": 1, "maxLength": 100, "pattern": r"^[^\r\n\x00]+$"}}, ["message"]))
 
 
+T_MCB_WORLD_MOUSE = ToolSpec("mcb_world_mouse", "player.world_mouse",
+    "In the current playable world, post one Forge wheel notch (direction=up/down, optional sneaking=true for the bound sneak key), or pick the block under the live crosshair with normal Forge middle-click semantics. Inspect eventCanceled, selectedSlot and item. Picking does not dismantle a block or manufacture its saved tile state.",
+    {**obj({"action": {"enum": ["wheel", "pick_block"]}, "direction": {"enum": ["up", "down"]},
+            "sneaking": {"type": "boolean"}}, ["action"]),
+     "if": {"properties": {"action": {"const": "wheel"}}}, "then": {"required": ["direction"]},
+     "else": {"propertyNames": {"enum": ["action"]}}}, idempotent=False)
+
+T_MCB_COPY_BLOCK = ToolSpec("mcb_copy_block", "inventory.copy_block",
+    "Copy one loaded block to an empty inventory slot in the bound local creative world. Pass its observed block registryName and metadata. For GT machines and pipes also pass expectedMetaTileId. GT uses portable item NBT including covers and meta-specific settings. Other blocks use their Forge pick item. Inspect the returned authoritative destination; never replay an uncertain grant.",
+    obj({**POSITION, "expectedSessionId": EXPECTED_SESSION, "expectedWorld": EXPECTED_WORLD, "dimension": DIMENSION,
+         "registryName": REGISTRY_NAME, "metadata": integer(0, 15), "expectedMetaTileId": integer(0, 32767),
+         "side": integer(0, 5), "destinationSlot": integer(0, 35)}, ["x", "y", "z", "expectedSessionId", "expectedWorld", "dimension", "registryName", "metadata", "destinationSlot"]), idempotent=False)
+
 T_MCB_SUPPLY_ITEMS = ToolSpec("mcb_supply_items", "inventory.supply", "Batch 1..8 distinct untagged creative supplies through native commands in one server-thread operation. Exact expectedSessionId/expectedWorld and empty cursor required. Default retains the empty-inventory contract. With nativeSupplyPreserveInventoryVersion=1, preserveInventory=true preserves existing inventory and reserves capacity for the entire batch in the 36 ordinary slots before any command, accounting for exact identity/NBT and public stack limits. No equipment/offhand capacity or inventory clearing. Each count is additional stock, not a target total. Recipe/build tasks already own their supply; do not grant twice. Native command receipts are not inventory acceptance: reconcile the actual synchronized inventory once after the batch. Partial/unknown receipts never permit replay or chat fallback.", obj({
         "expectedSessionId": LIVE_ID, "expectedWorld": {"type": "string", "minLength": 1, "maxLength": 128},
         "preserveInventory": {"type": "boolean", "default": False},

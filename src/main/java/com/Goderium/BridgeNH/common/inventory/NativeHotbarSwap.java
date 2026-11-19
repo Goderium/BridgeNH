@@ -29,19 +29,8 @@ public final class NativeHotbarSwap {
         JsonObject targetBinding = new JsonObject(); PlayerSlotBinding.describe(targetBinding, target, inventory);
         if (!targetBinding.get("playerInventoryBindingVerified").getAsBoolean())
             throw new BridgeException("unsupported", "Pickup hotbar swap requires a uniquely verified actual player-inventory target; use swapStrategy=native for other slots.");
-        if (container.inventorySlots.size() > 4096 || hotbarIndex < 0 || hotbarIndex > 8)
-            throw new BridgeException("target_unverified", "The bounded native hotbar binding is unavailable.");
-        Slot hotbar = null;
-        for (Object value : container.inventorySlots) {
-            Slot slot = (Slot) value;
-            if (slot.isHere(inventory, hotbarIndex)) {
-                if (hotbar != null) throw new BridgeException("target_unverified", "The actual hotbar slot has multiple native bindings.");
-                hotbar = slot;
-            }
-        }
-        if (hotbar == null || !ItemStack.areItemStacksEqual(hotbar.getStack(), inventory.getStackInSlot(hotbarIndex)))
-            throw new BridgeException("target_unverified", "The actual hotbar slot cannot be verified.");
-        bound(container, target); bound(container, hotbar);
+        Slot hotbar = PlayerSlotBinding.requireHotbar(container, inventory, hotbarIndex);
+        bound(container, target);
         ItemStack a = copy(target.getStack()), b = copy(hotbar.getStack());
         JsonObject result = new JsonObject(); JsonArray steps = new JsonArray(); result.add("steps", steps);
         result.addProperty("nativeAction", "native_pickup_hotbar_swap"); result.addProperty("hotbarContainerSlot", hotbar.slotNumber);

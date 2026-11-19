@@ -14,7 +14,7 @@ public final class OperationPolicyRules {
     private static final Set<String> READ = set("registry.items registry.item registry.variants gui.inspect gui.tooltip gui.widgets inventory.inspect baubles.inspect nei.inspect nei.view nei.bookmarks research.read waila.inspect ae.inspect state.diff client.screenshot world.inspect world.inspect_many world.scan world.entities world.spatial player.plan_approach player.flight_check");
     private static final Set<String> MACHINE = set("machine.inspect machine.capture world.structure world.tiles structure.goal ae.material_source");
     private static final Set<String> MOVE = set("player.look player.hotbar player.navigate player.flight dev.teleport gui.open_inventory gui.open_pause_menu gui.open_baubles gui.close gui.pointer nei.open nei.navigate nei.preview_control");
-    private static final Set<String> MUTATE = set("player.interact player.place_block player.replace_owned_block structure.survival_build gui.slot_click gui.transfer_whole_stack gui.click gui.key gui.widget_action ae.action nei.item_action nei.bookmark_action");
+    private static final Set<String> MUTATE = set("player.world_mouse player.interact player.place_block player.replace_owned_block structure.survival_build gui.slot_click gui.transfer_whole_stack gui.click gui.key gui.widget_action ae.action nei.item_action nei.bookmark_action");
     public static boolean control(String operation) { return CONTROL.contains(operation) || "client.window".equals(operation) || "client.window_action".equals(operation); }
     public static String execution(String movement, boolean flying, boolean canTp) {
         return "tp".equals(movement) && canTp ? "developer_teleport" : flying ? "ability_flight" : "walking";
@@ -55,7 +55,7 @@ public final class OperationPolicyRules {
         } else if ("recipes.query".equals(operation)) {
             if (args.has("x") || args.has("machine") || args.has("machinePosition") || "backend_match".equals(text(args, "mode")))
                 require(policies.permits("machineRead") && authority, "Machine recipe matching requires enhanced observation.");
-        } else if ("inventory.supply".equals(operation)) { require(supply, "Supply requires creative/full policy and actual game authority."); mutation = true; }
+        } else if ("inventory.supply".equals(operation) || "inventory.copy_block".equals(operation)) { require(supply, "Supply requires creative/full policy and actual game authority."); mutation = true; }
         else if ("machine.set_working".equals(operation)) {
             require(direct, "Direct backend actions require full policy and actual game authority."); mutation = true;
         } else if ("ae.order".equals(operation)) {

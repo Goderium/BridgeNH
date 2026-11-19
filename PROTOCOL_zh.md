@@ -50,6 +50,8 @@ GUI、NEI、AE 动作明确返回部分完成、拒绝、未确认或未知结�
 
 ## GUI、NEI 与 AE
 
+MUI2 滚动区域通过 `scrollAxes` 报告可用轴、当前偏移、最大偏移及动画目标。`scroll` 接受 `axis=vertical|horizontal` 和 `direction=up|down`，每次滚动一格。`drag_scrollbar` 接受同一轴及 `percent=0..100`。行按钮的 `activate` 根据布局变换后的边界和面板原生事件顺序命中，允许事件穿过可透传的文字和布局子控件。点击后可读取选中行或详情。命令方块可编辑字段标记为 `command_block_input`，单行上限为 16,384 个 UTF-16 单元、16,368 个 UTF-8 字节，并受原生字段限制。`expectedText` 和 `localTextMatchesRequested` 均比较完整文本。另行点击“完成”后，再核对命令的实际效果。
+
 原版 `GuiCreateWorld` 的游戏模式、世界类型、更多选项页面、地图特性、作弊及奖励箱按钮提供 `kind=choice`、`setting`、`selected`、`value` 和 `options[].index/value`。`set_selected` 按观察到的选项索引调用原生按钮回调，直至回读目标值。已满足目标时不调用按钮，当前隐藏但仍可读取值的选项也适用。世界类型取自当前可创建的注册项，索引可能不连续。游戏模式对作弊默认值的影响，以及切换世界类型时清空自定义生成参数等原生行为均保留。
 
 仅在此菜单中，`set_selected_many` 接受 `selections:[{widgetId,selected}]`，包含 1..8 个不同的当前控件，不使用顶层 widgetId。修改前统一核对身份和目标选项，再按明确的页面顺序执行，例如游戏模式、更多选项页面、世界类型。需要修改隐藏选项时，应先通过前一步切换到所在页面。创建、取消和任意按钮不属于批量选择范围。单项最多执行 32 次原生切换，并检查 25 ms 协作式预算；批量在各项之间检查 100 ms 预算。状态不变或异常、控件禁用、页面改变或回调失败时停止，保留已发生的变化，不回滚、不自动重放。
@@ -73,6 +75,12 @@ AE 真实物品槽、网络 resourceId、VirtualMESlot 和幽灵样板各自独�
 结构规划只使用公开接口。缺少控制器偏移时只能返回 piece-origin 几何，不提供猜测世界坐标。piece/variant/alignment、分页、元素候选和实际 observed 各有边界；候选不等于完整接受规则，规划不等于结构成立。布局需要覆盖整体体积、地板、空气、附属设备和访问空间。
 
 移动依实际步行/飞行/TP 策略、游戏授权及执行后端。允许飞行不等于实际飞行；跨维度后重绑并重新取得必要的双端姿态。原生距离、身体空间、支撑、危险和射线检查保留；临时避障高度不等于抵达。开发读取、物资生成、直接后台修改及 QA 有各自能力/权限，详见[玩家权限组与操作策略](docs/PERMISSIONS_zh.md)。
+
+### 世界滚轮、准星选取与按坐标复制
+
+`player.world_mouse` 在关闭 GUI 后使用当前玩家视角。`wheel` 向 Forge 发送一格滚轮事件，`sneaking=true` 在派发期间按住当前绑定的潜行键。模组可消费事件，其余情况执行原生快捷栏滚动。回执包含 `eventCanceled`、`slotBefore`、`selectedSlot` 和 `item`。`pick_block` 调用准星所指方块的 Forge 选取逻辑，已有匹配物品时只切换快捷栏选择。创造模式生成新物品时，通过该快捷栏索引实际绑定的容器槽位同步，回执包含 `creativeSlotPacketSent` 和 `nativeContainerSlotId`。
+
+`inventory.copy_block` 要求当前会话、自有集成世界、实际创造模式及创造补给权限。提供维度、坐标、已观察到的方块注册名和元数据，以及索引为 0..35 的背包空槽。先关闭容器并清空光标。GT 机器及管道另需 `expectedMetaTileId`，副本保留物品形式的覆盖板及机器自行导出的设置和子类型标记。其他方块采用原生 Forge 选取结果，`side` 为 0..5，默认顶面。源方块保留在原位。无物品形态或物品标签超限时，操作在写入前结束。`serverSlotConfirmed` 表示服务端槽位回读结果，`tagPreview` 是有界预览。回执不确定时，先检查指定槽位。
 
 ## 生命周期与后台控制
 

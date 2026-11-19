@@ -20,6 +20,13 @@ BlockRenderer6343 **1.4.25** preview reads and controls were verified on GT New 
 
 Returned creative placement recovery was verified through `mcb_action_recovery`: place once, observe the server block, remove it normally, restart the selected client and preserve the original unresolved record through worker reload. The identical placement remained blocked until explicit fresh-evidence reconciliation. Recovery itself left the target empty; a separately requested identical placement then succeeded. An occupied target was refused. Final cleanup preserved all 41 inventory slots with full NBT, the support block and an empty target. The new tool appeared and ran in the same chat without restarting Codex. See the [supported recovery scope](../mcp-server/src/minecraft_codex_bridge/guides/maintenance.md#reconcile-a-returned-creative-placement).
 
+The following operations were verified through the installed bridge on **GT New Horizons 2.9.0**.
+
+- In the MUI2 structure terminal, eight wheel steps moved the material list from offset 0 to 144. Dragging the scrollbar also reached the last material and returned to the top. In the recipe browser, activating the Assembler row through its text and layout children opened the Assembler details.
+- A regular world wheel step changed the selected hotbar slot. With the sneak binding held, the structure preview switched materials and the hotbar stayed on the same slot. The reverse step restored the original selection in both cases.
+- The command-block editor accepted 4,521 characters. After saving and powering the block, the resulting command block contained the exact command supplied at the end of the long input.
+- In creative mode, crosshair pick selected an existing machine stack without an inventory write. Picking a new chest affected only the selected slot, as verified against the server inventory. Coordinate copy placed a chest in the requested empty slot and preserved the source. A copied GregTech prototype retained its portable subtype after placement, with the marker read from both machines in the same server tick. A machine ID mismatch and an occupied destination were both refused.
+
 ## Open gaps
 
 | Area | Current boundary | Required native acceptance |

@@ -182,6 +182,8 @@ Individual tools and script-driven tests remain supported.
 | `world.scan_config` | `{radiusChunks?,verticalRadiusChunks?,cacheRadiusChunks?,cacheVerticalRadiusChunks?,cacheMaxMiB?}` | Read or change independent probe/cache radii and cache budget; startup defaults come from Forge config, runtime changes are session-only |
 | `client.screenshot` | `{}` | Actual client framebuffer as base64 PNG, width/height |
 | `player.look` | `{yaw,pitch}` | Change local player look through game state |
+| `player.world_mouse` | `{action:"wheel",direction:"up"\|"down",sneaking?}` or `{action:"pick_block"}` | Forge wheel event or native pick on the current block under the crosshair |
+| `inventory.copy_block` | `{expectedSessionId,expectedWorld,dimension,x,y,z,registryName,metadata,destinationSlot,expectedMetaTileId?,side?}` | One portable item from a loaded block, written to a verified empty slot in the owned creative world |
 | `player.hotbar` | `{slot}` | Select hotbar slot 0 through 8 |
 | `player.input` | `{keys:[...],ticks}` | Hold a supported movement/use/attack binding for a bounded number of client ticks; release automatically |
 | `player.interact` | `{action:"use"|"attack",x?,y?,z?,side?,sneaking?,restoreView?}` | Normal interaction; explicit use keeps target view; local developer mode can restore the prior view |
@@ -508,7 +510,7 @@ byteLimited, nonAtomic and budget describe a bounded observation. childIds caps
 through the paginated tree.
 
 `gui.widget_action` requires screenId/widgetId and exactly the named action's
-fields: activate has no value; set_text requires text (0..1024) with commit
+fields: activate has no value; set_text accepts up to 1024 characters on ordinary fields with commit
 default true; set_value requires a finite number checked against native slider
 ranges; set_selected requires a native state index 0..2147483647; focus requires
 focused boolean. `recheck_structure` has no value and is accepted only on a
@@ -516,6 +518,10 @@ publicly identified two-state GT structure-recheck widget; pending state does
 not get toggled off. It follows the normal MUI2 press/value/C2S synchronization,
 not a direct machine-specific validator. Re-read components after the server check.
 Only the live control's advertised actions are accepted.
+
+A MUI2 `scroll_area` reports active `scrollAxes`, current offset, maximum and any animation target. Use `scroll` with `axis=vertical|horizontal` and `direction=up|down` for one notch. Use `drag_scrollbar` with the same axis and `percent=0..100` to move the native thumb. `activate` on a row button uses its transformed bounds and the panel's native press order, including passive click-through children. Re-read the selected row or detail panel after activation.
+
+The command block's editable field advertises `semantic=command_block_input`. Its `set_text` limit is 16,384 UTF-16 units and 16,368 UTF-8 bytes on a single line, subject to the native field limit. `expectedText` compares the complete previous value. `localTextMatchesRequested` compares the complete result even when the preview is truncated. Activate Done separately to submit and observe the resulting world state.
 
 Vanilla `GuiCreateWorld` mode, world type, more-options page, map features,
 commands and bonus-chest buttons expose `kind=choice`, `setting`, `selected`,
@@ -777,6 +783,12 @@ Log filters, offset and limit are accepted only by their respective kinds; unkno
 Log I/O runs on one background worker with at most 16 queued jobs. `readSource=server_process_log_file` and `capturedOutsideGameThread=true` distinguish file capture from guarded `source=remote_server_tick` delivery. Results include file size/mtime, bytes read, read timestamp, redaction/clipping counts, `truncated`, `byteLimited` and non-atomic historical coverage. No result proves the absence of older or concurrently written messages. Integrated servers set `sharedClientServerLog=true`; their JVM metrics and FML list also describe the shared client process.
 
 Diagnostics inspect at most 256 world-array entries and return at most 64 rows; incomplete counts are null with `worldCountComplete=false`, and omitted rows set `worldsTruncated=true`. No world/entity traversal or new continuous sampler is installed. `tickDurations` describes completed native execution time excluding sleep; `estimatedTpsIfSustained` is an estimate, not observed wall-clock TPS. Paused/stalled servers may retain old samples. `jvm.uptimeMillis` measures JVM uptime, not time since a world/server started. `samplingMillis` and log `backgroundReadMillis` report per-request elapsed work.
+
+### World wheel, pick and portable block copies
+
+`player.world_mouse` requires a live player view with the GUI closed. A wheel event is posted once to Forge. `sneaking=true` holds the configured sneak binding during dispatch. If a mod consumes the event, its handler owns the effect. Otherwise the normal hotbar wheel behavior applies. `eventCanceled`, `slotBefore`, `selectedSlot` and `item` describe the client result. `pick_block` uses the Forge pick result at the live crosshair and selects a matching hotbar stack in place. A newly granted creative stack is synchronized through the container slot bound to that player inventory index. The receipt includes `creativeSlotPacketSent` and `nativeContainerSlotId`.
+
+`inventory.copy_block` requires the current session, owned integrated world, actual creative mode and creative supply permission. Supply the observed block registry name, block metadata and an empty inventory index 0..35. Close any container and clear the carried cursor stack first. For a GT machine or pipe also supply its observed `expectedMetaTileId`. The bridge exports GT's item-form covers and meta-tile settings, including subtype markers supplied by the machine. For other blocks it uses the block's Forge pick result for `side` (0..5, default top). The source stays in the world. A missing item form or an oversized portable tag fails before the inventory write. `serverSlotConfirmed` reports server inventory readback. `tagPreview` has its own display limit. After an uncertain response, inspect the specified slot before taking another action.
 
 ## Development operations
 

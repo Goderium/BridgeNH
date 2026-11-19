@@ -73,7 +73,7 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | --- | --- |
 | `mcb_gui` | Read current screen/window, slots, text, controls and coverage. Supported native waits can prove synchronization; `screenOpen` alone does not. |
 | `mcb_gui_widgets` | Discover current widget IDs, supported named actions, values and bounds. Prefer actionable filtering; page incomplete coverage before declaring a control absent. |
-| `mcb_gui_widget_action` | Activate or edit an advertised native widget. Create-world choices support target selection and `set_selected_many` with same-call final readback; see [menu choices](operations.md#set-create-world-options-by-target-value). Supported phantom/ghost actions retain native synchronization and cleanup. |
+| `mcb_gui_widget_action` | Activate or edit an advertised native widget. MUI2 lists support wheel scrolling, thumb dragging and row activation. Command blocks accept bounded long text. Create-world choices support target selection and `set_selected_many` with same-call final readback; see [menu choices](operations.md#set-create-world-options-by-target-value). Supported phantom/ghost actions retain native synchronization and cleanup. |
 | `mcb_gui_tooltip` | Read a real slot or current scaled-position tooltip without moving the physical mouse. Prefer actual stack/NBT/fluid data to registry templates. |
 | `mcb_gui_pointer` | Set/clear a short-lived logical, screen-bound hover without OS mouse movement. Observe a completed native frame before claiming hover-dependent text. |
 | `mcb_gui_click` | One low-level scaled GUI click under the exact screen ID. Prefer semantic actions; AE virtual grids and MUI2 controls can refuse generic coordinates. |
@@ -94,6 +94,7 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_slot_click` | Perform a native click on an actual container slot with current window ID. Modes have distinct semantics; AE virtual resource IDs are not slot numbers. |
 | `mcb_transfer_whole_stack` | Transfer one declared untagged whole stack into an empty supported MUI2 destination. Requires fresh slot/owner bindings and full conservation verification. |
 | `mcb_inventory_moves` | Batch 1..16 disjoint untagged whole-stack moves between player slots through normal inventory actions. Stops on uncertainty; does not grant or recreate items. |
+| `mcb_copy_block` | Copy one loaded block into an empty player slot in an owned creative world. GT machines and pipes export their portable item NBT. Verify the destination with `serverSlotConfirmed`. |
 | `mcb_supply_items` | Explicit creative supply of a bounded item batch under real authority. Honor empty-inventory or advertised preserve-inventory preflight and verify actual additions. |
 | `mcb_baubles` | Read optional accessory inventory, identities and available ability/slot evidence. Client/server ownership and API coverage remain explicit; no equipment writes. |
 | `mcb_open_baubles` | Send one normal accessory-inventory opening packet from world view. Wait for matching current GUI/server container; the receipt does not prove equipment or flight. |
@@ -104,6 +105,7 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | --- | --- |
 | `mcb_look` | Set native player yaw/pitch. Preserve accumulated yaw when restoring and verify the current crosshair/target before use. |
 | `mcb_input` | Hold supported in-game keys for bounded ticks and release automatically. Uses game input, not OS injection; inspect effects after timeout rather than replaying. |
+| `mcb_world_mouse` | Scroll one notch in the world with an optional sneak modifier, or use `pick_block` on the live crosshair target. Read the selected slot and item. |
 | `mcb_interact` | Normal player use/attack on a current or explicit reachable target/face. Optional sneak/hit-point semantics need advertised support; controller use may differ from the full Forge input chain. |
 | `mcb_interact_sample` | A declared bounded series of real right-clicks on one already-reachable target. Not a machine-state setter or an excuse to repeat an uncertain batch. |
 | `mcb_navigate` | Execute one guarded navigation goal using saved movement policy and actual walking/flying state. Arrival needs current client/server evidence; no automatic terrain clearing. |
