@@ -253,7 +253,12 @@ def test_query_metadata_keeps_nonrepeatable_scan_cursors_out_of_wait_for():
     # the operation as mutable; the status tool itself still preserves control.
     # Recording now selects native live data or bounded offline history in its handler.
     assert TOOL_BY_NAME["mcb_recording"].operation is None
-    assert public_reads - {"player.task"} == READ_OPERATIONS - {"player.plan_approach", "client.recording"}
+    # The order workflow reads pickup evidence, container counts and existing transfer receipts internally.
+    internal_reads = {"player.plan_approach", "client.recording", "survival.gather_observe",
+                      "survival.storage_count", "survival.storage_receipt"}
+    assert READ_OPERATIONS == (public_reads - {"player.task"}) | internal_reads
+    assert not public_reads.intersection(internal_reads)
+    assert READ_OPERATIONS.isdisjoint({"survival.storage_open", "survival.storage_move"})
     assert TOOL_BY_NAME["mcb_task_status"].read_only
     assert not TOOL_BY_NAME["mcb_task_cancel"].read_only
     assert "player.plan_approach" in READ_OPERATIONS

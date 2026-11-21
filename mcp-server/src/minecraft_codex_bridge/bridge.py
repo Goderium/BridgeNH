@@ -32,7 +32,8 @@ MAX_IMAGE_BYTES = 8_388_608
 MAX_SCREENSHOT_RESPONSE_BYTES = 12_000_000
 READ_OPERATIONS = frozenset({
     "bridge.health", "client.snapshot", "client.window", "gui.inspect", "inventory.inspect", "baubles.inspect",
-    "quest.progress", "survival.gather_observe", "server.observe", "structure.goal", "world.inspect", "world.scan", "world.structure", "gui.tooltip", "nei.inspect", "nei.view", "nei.bookmarks", "research.read", "recipes.query", "client.screenshot",
+    "quest.progress", "survival.gather_observe", "survival.storage_count", "survival.storage_receipt",
+    "server.observe", "structure.goal", "world.inspect", "world.scan", "world.structure", "gui.tooltip", "nei.inspect", "nei.view", "nei.bookmarks", "research.read", "recipes.query", "client.screenshot",
     "client.diagnostics", "input.bindings", "client.mods", "client.messages", "client.recording", "registry.items",
     "registry.item", "registry.variants", "world.inspect_many", "world.tiles", "client.worlds",
     "gui.widgets", "ae.inspect", "ae.material_source", "machine.inspect", "waila.inspect", "world.entities", "world.spatial", "player.plan_approach", "state.diff",
