@@ -96,12 +96,18 @@ public class GuiConfirmationSelfTest {
         com.cleanroommc.modularui.widgets.TextWidget late = new com.cleanroommc.modularui.widgets.TextWidget(); late.text = "Late ordinary machine label";
         com.cleanroommc.modularui.widgets.RichTextWidget rich = new com.cleanroommc.modularui.widgets.RichTextWidget(); rich.rich.lines.add("Energy: 123 EU");
         screen.root.children.add(late); screen.root.children.add(rich);
-        JsonObject extracted = GuiControlAdapter.visibleText(screen, "gui confirmation fixture", Collections.emptyList(), null);
+        JsonObject extracted = GuiControlAdapter.visibleText(screen, "gui confirmation fixture",
+                Collections.emptyList(), null, generousStart());
         check(extracted.getAsJsonArray("entries").size() == 2 && extracted.get("completeForSupportedWidgets").getAsBoolean(),
-                "text extraction reaches labels beyond inventory slots independently of the first widget page");
+                "full scan reaches labels beyond the first widget page: " + extracted);
         check(extracted.getAsJsonArray("entries").get(0).getAsJsonObject().get("text").getAsString().equals("Late ordinary machine label")
                 && extracted.getAsJsonArray("entries").get(1).getAsJsonObject().getAsJsonArray("textLines").get(0).getAsString().equals("Energy: 123 EU"),
                 "public plain and rich labels both expose their current native text without drawing");
+        JsonObject partial = GuiControlAdapter.visibleText(screen, "gui confirmation fixture",
+                Collections.emptyList(), null, System.nanoTime() - 60_000_000_000L);
+        check(partial.get("truncated").getAsBoolean() && !partial.get("completeForSupportedWidgets").getAsBoolean()
+                && partial.get("visited").getAsInt() < extracted.get("visited").getAsInt(),
+                "an expired scan budget reports partial widget coverage: " + partial);
     }
 
     private static void callbackReceipt() {

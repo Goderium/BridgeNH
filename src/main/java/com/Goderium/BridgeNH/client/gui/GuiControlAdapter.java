@@ -457,10 +457,11 @@ public final class GuiControlAdapter {
     }
     public static JsonObject visibleText(Minecraft client, GuiScreen screen, String screenId, List<?> buttons) {
         bind(screen, screenId);
-        return visibleText(screen, screenId, buttons, client == null || client.thePlayer == null ? null : client.thePlayer.inventory);
+        return visibleText(screen, screenId, buttons,
+                client == null || client.thePlayer == null ? null : client.thePlayer.inventory, System.nanoTime());
     }
-    static JsonObject visibleText(Object screen, String screenId, List<?> buttons, InventoryPlayer inventory) {
-        bind(screen, screenId); long started = System.nanoTime();
+    static JsonObject visibleText(Object screen, String screenId, List<?> buttons, InventoryPlayer inventory, long started) {
+        bind(screen, screenId);
         Snapshot snapshot = snapshot(screen, buttons, started, inventory, MachineSlotBinding.Context.unavailable("text_observation_only"));
         JsonArray text = new JsonArray(); boolean truncated = snapshot.truncated, errors = snapshot.error != null; int bytes = 0, visited = 0;
         for (Node node : snapshot.nodes) {
