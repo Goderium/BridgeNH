@@ -16,12 +16,17 @@ def build(jar: Path, output: Path):
     files = {}
     for name in ('install.cmd', 'install.ps1', 'README.md', 'README_zh.md', 'INSTALL.md', 'INSTALL_zh.md',
                  'AGENTS.md', 'PROTOCOL.md', 'PROTOCOL_zh.md',
+                 'docs/codex-compaction-hooks.json',
                  'docs/PERMISSIONS.md', 'docs/PERMISSIONS_zh.md',
                  'docs/PLAYER_DIALOGUE.md', 'docs/PLAYER_DIALOGUE_zh.md',
                  'docs/ARCHITECTURE.md', 'docs/ARCHITECTURE_zh.md',
                  'docs/NATIVE_CONTROL_GAPS.md', 'docs/NATIVE_CONTROL_GAPS_zh.md',
                  'LICENSE', 'mcb-config.example.json',
-                 'scripts/mcb.ps1', 'scripts/mcb-common.ps1', 'mcp-server/pyproject.toml',
+                 'scripts/mcb.ps1', 'scripts/mcb-common.ps1', 'scripts/update_packdata.py',
+                 'scripts/packdata_nei.py',
+                 'scripts/packdata_runner/AiPlayerMod.java', 'scripts/packdata_runner/ExportRun.java',
+                 'scripts/packdata_runner/SelectedTooltips.java', 'scripts/packdata_runner/TooltipKeys.java',
+                 'mcp-server/pyproject.toml',
                  'mcp-server/README.md', 'mcp-server/README_zh.md', 'mcp-server/LICENSE', 'mcp-server/MANIFEST.in', 'mcp-server/codex-config.example.toml'):
         files[name] = (ROOT / name).read_bytes()
     package = ROOT / 'mcp-server/src/minecraft_codex_bridge'

@@ -1,6 +1,8 @@
 package com.Goderium.BridgeNH.loader;
 
 import com.Goderium.BridgeNH.client.control.ClientControlCommand;
+import com.Goderium.BridgeNH.client.control.EmergencyReleaseKey;
+import org.lwjgl.input.Keyboard;
 import com.Goderium.BridgeNH.client.nei.NeiPreviewResources;
 import com.Goderium.BridgeNH.client.nei.NeiRenderCapture;
 import com.Goderium.BridgeNH.common.bridge.GameBridge;
@@ -74,6 +76,15 @@ public class ClientBootstrap {
             NavigationCosts.dropRecoveryTicks = config.getFloat("dropRecoveryTicks","navigation",3F,0F,100F,"Estimated landing recovery ticks after falling.");
             NavigationCosts.placeTicks = config.getFloat("placeTicks","navigation",4F,1F,100F,"Estimated native placement ticks.");
             NavigationCosts.materialPenaltyTicks = config.getFloat("materialPenaltyTicks","navigation",8F,0F,1000F,"Resource item penalty in the same tick cost unit.");
+            String shortcut = config.getString("emergencyReleaseHotkey", "input", EmergencyReleaseKey.DEFAULT,
+                    "Release agent control. Use one LWJGL key name with optional Ctrl, Shift or Alt, e.g. CTRL+SHIFT+L or ALT+F8. Restart the client after editing.");
+            EmergencyReleaseKey releaseKey;
+            try {
+                releaseKey = EmergencyReleaseKey.parse(shortcut, Keyboard::getKeyIndex);
+            } catch (IllegalArgumentException badKey) {
+                event.getModLog().warn("Invalid input.emergencyReleaseHotkey. Using " + EmergencyReleaseKey.DEFAULT + ".");
+                releaseKey = EmergencyReleaseKey.parse(EmergencyReleaseKey.DEFAULT, Keyboard::getKeyIndex);
+            }
             if (config.hasChanged()) config.save();
             byte[] bytes = new byte[32];
             new SecureRandom().nextBytes(bytes);
@@ -98,6 +109,7 @@ public class ClientBootstrap {
             MinecraftForge.EVENT_BUS.register(bridge);
             bridge.registerActivityListeners();
             MinecraftForge.EVENT_BUS.register(new NeiRenderCapture());
+            bridge.bindEmergencyKey(releaseKey);
             activeBridge = bridge;
             final BridgeHttpServer service = http;
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {

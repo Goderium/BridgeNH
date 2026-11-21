@@ -24,6 +24,17 @@ public class JsonData {
         } catch (RuntimeException e) { throw new BridgeException("invalid_args", key + " must be a string."); }
     }
 
+    public static long nonnegativeLong(JsonObject object, String key) {
+        JsonElement element = object.get(key);
+        if (element != null && element.isJsonPrimitive() && element.getAsJsonPrimitive().isNumber()) {
+            try {
+                long value = element.getAsBigDecimal().longValueExact();
+                if (value >= 0) return value;
+            } catch (ArithmeticException | NumberFormatException invalid) { /* Rejected below. */ }
+        }
+        throw new BridgeException("invalid_args", key + " must be a nonnegative 64-bit integer.");
+    }
+
     public static int integer(JsonObject object, String key, int minimum, int maximum) {
         try {
             JsonElement element = object.get(key);
@@ -56,6 +67,16 @@ public class JsonData {
         result.addProperty("count", stack.stackSize);
         result.addProperty("metadata", stack.getMetadata());
         result.addProperty("hasTag", stack.hasTagCompound());
+        return result;
+    }
+
+    public static JsonObject itemWithNbt(ItemStack stack) {
+        JsonObject result = item(stack).getAsJsonObject();
+        if (stack.hasTagCompound()) {
+            String nbt = stack.getTagCompound().toString();
+            result.addProperty("nbt", bounded(nbt, 4096));
+            result.addProperty("nbtTruncated", nbt.length() > 4096);
+        }
         return result;
     }
 

@@ -122,7 +122,7 @@ public final class GuiControlAdapter {
         InventoryPlayer inventory = client.thePlayer == null ? null : client.thePlayer.inventory;
         Object container = client.thePlayer == null ? null : client.thePlayer.openContainer;
         int windowId = client.thePlayer == null || client.thePlayer.openContainer == null ? -1 : client.thePlayer.openContainer.windowId;
-        return perform(screen, args, buttons, inventory, () -> client.currentScreen == screen
+        JsonObject result = perform(screen, args, buttons, inventory, () -> client.currentScreen == screen
                 && (client.thePlayer == null ? inventory == null && container == null
                     : client.thePlayer.inventory == inventory && client.thePlayer.openContainer == container
                         && (client.thePlayer.openContainer == null ? windowId == -1 : client.thePlayer.openContainer.windowId == windowId)), machineOwner(client, screen), control -> {
@@ -131,6 +131,10 @@ public final class GuiControlAdapter {
                     pointer.addProperty("x", control.bounds.x + control.bounds.width / 2); pointer.addProperty("y", control.bounds.y + control.bounds.height / 2); pointer.addProperty("ttl_ms", 5000);
                     LogicalGuiPointer.nativeWidget(client, screen, pointer, session, protection);
                 });
+        String action = args.get("action").getAsString();
+        if ("set_text".equals(action)) VirtualGuiMouse.INSTANCE.textInput(screen, true);
+        else if ("focus".equals(action)) VirtualGuiMouse.INSTANCE.textInput(screen, args.get("focused").getAsBoolean());
+        return result;
     }
     static JsonObject perform(Object screen, JsonObject args, List<?> buttons) {
         return perform(screen, args, buttons, null, () -> true);
@@ -819,9 +823,14 @@ public final class GuiControlAdapter {
                 && widget == cpw.mods.fml.relauncher.ReflectionHelper.getPrivateValue(net.minecraft.client.gui.GuiCommandBlock.class,
                     (net.minecraft.client.gui.GuiCommandBlock) screen, "commandTextField", "field_146485_f");
     }
-    private static boolean vanillaEnabled(GuiTextField field) {
-        for (String name : new String[] {"isEnabled", "field_146226_p"}) { try { return (Boolean) ExpandedGuiApi.field(field, GuiTextField.class, name); } catch (BridgeException e) { /* Fixed mapping fallback. */ } }
-        throw new BridgeException("unsupported", "Native text field enabled state is unavailable.");
+    private static final class TextFieldAccess {
+        static final java.lang.reflect.Field ENABLED = cpw.mods.fml.relauncher.ReflectionHelper.findField(
+                GuiTextField.class, "field_146226_p", "isEnabled");
+    }
+
+    static boolean vanillaEnabled(GuiTextField field) {
+        try { return TextFieldAccess.ENABLED.getBoolean(field); }
+        catch (IllegalAccessException e) { throw new BridgeException("unsupported", "Native text field enabled state is unavailable."); }
     }
     private static boolean nativeStructureState(Object widget, JsonObject entry) {
         return widget.getClass().getName().equals(MUI + "widgets.ToggleButton")

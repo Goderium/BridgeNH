@@ -1,6 +1,8 @@
 package com.Goderium.BridgeNH.mixin;
 
 import com.Goderium.BridgeNH.client.gui.LogicalGuiPointer;
+import com.Goderium.BridgeNH.client.gui.VirtualGuiMouse;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import java.awt.Point;
@@ -18,7 +20,10 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 @Mixin(targets = "net.minecraft.client.renderer.EntityRenderer", remap = false)
 public abstract class GuiPointerEntityRendererMixin {
     @Inject(method = {"updateCameraAndRender(F)V", "func_78480_b(F)V"}, at = @At("HEAD"), remap = false, require = 1, allow = 1)
-    private void codexbridge$renderStart(float partial, CallbackInfo callback) { LogicalGuiPointer.renderStart(); }
+    private void codexbridge$renderStart(float partial, CallbackInfo callback) {
+        VirtualGuiMouse.INSTANCE.beginFrame();
+        LogicalGuiPointer.renderStart();
+    }
     @ModifyArgs(method = {"updateCameraAndRender(F)V", "func_78480_b(F)V"}, at = @At(value = "INVOKE", target = "Lnet/minecraftforge/client/event/GuiScreenEvent$DrawScreenEvent$Pre;<init>(Lnet/minecraft/client/gui/GuiScreen;IIF)V"), remap = false, require = 1, allow = 1)
     private void codexbridge$prePoint(Args args) { Point point = LogicalGuiPointer.beforePre(args.get(0), args.get(1), args.get(2)); if (point != null) { args.set(1, point.x); args.set(2, point.y); } }
     @Group(name = "codexbridge_pointer_draw", min = 1, max = 1)
@@ -35,7 +40,15 @@ public abstract class GuiPointerEntityRendererMixin {
     @Redirect(method = {"updateCameraAndRender(F)V", "func_78480_b(F)V"}, at = @At(value = "INVOKE", target = "Lcpw/mods/fml/common/eventhandler/EventBus;post(Lcpw/mods/fml/common/eventhandler/Event;)Z"), remap = false, require = 2, allow = 2)
     private boolean codexbridge$frameEventOnce(EventBus bus, Event event) {
         boolean completed = false;
-        try { boolean canceled = bus.post(event); completed = true; return canceled; }
+        try {
+            boolean canceled = bus.post(event);
+            completed = true;
+            if (event instanceof GuiScreenEvent.DrawScreenEvent.Post) {
+                GuiScreenEvent.DrawScreenEvent.Post post = (GuiScreenEvent.DrawScreenEvent.Post)event;
+                if (LogicalGuiPointer.drewScreen(post.gui)) VirtualGuiMouse.INSTANCE.afterDraw(post.gui,post.mouseX,post.mouseY);
+            }
+            return canceled;
+        }
         finally { if (!completed) LogicalGuiPointer.renderFailed(); }
     }
     @ModifyArgs(method = {"updateCameraAndRender(F)V", "func_78480_b(F)V"}, at = @At(value = "INVOKE", target = "Lnet/minecraftforge/client/event/GuiScreenEvent$DrawScreenEvent$Post;<init>(Lnet/minecraft/client/gui/GuiScreen;IIF)V"), remap = false, require = 1, allow = 1)

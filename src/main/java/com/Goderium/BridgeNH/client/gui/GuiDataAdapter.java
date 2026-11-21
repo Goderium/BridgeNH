@@ -64,7 +64,7 @@ public class GuiDataAdapter {
         while (walk.hasNext() && visited < WIDGET_LIMIT && (visited == 0 || !overBudget(started))) {
             Object widget = walk.next(); visited++;
             JsonObject entry;
-            try { entry = muiEntry(widget, walk.widgetApi, walk.tooltipApi, screen); }
+            try { entry = muiEntry(widget, walk, screen); }
             catch (RuntimeException | LinkageError error) { coverage.addProperty("mui2Error", error.getClass().getSimpleName()); continue; }
             int size = utf8(entry);
             if (bytes + size > BYTE_LIMIT) { truncated = true; break; }
@@ -149,10 +149,11 @@ public class GuiDataAdapter {
                 int count = 0;
                 while (walk.hasNext() && count < WIDGET_LIMIT && (count == 0 || !overBudget(started))) {
                     Object widget = walk.next(); count++;
+                    if (!walk.enabled || !walk.valid) continue;
                     try {
                         Object area = call(walk.widgetApi, widget, "getArea");
                         if (area instanceof Rectangle && ((Rectangle) area).contains(x, y)) {
-                            JsonObject entry = muiEntry(widget, walk.widgetApi, walk.tooltipApi, screen);
+                            JsonObject entry = muiEntry(widget, walk, screen);
                             // Return a bounded geometric match without claiming cached hover/topmost/clip equivalence.
                             if (entry.has("tooltip")) {
                                 result.add("widget", entry);
@@ -185,7 +186,7 @@ public class GuiDataAdapter {
 
     static void itemTooltip(JsonObject result, ItemStack stack, EntityPlayer player, boolean advanced, String containerFluid) {
         result.add("fluidContainer", FluidContainerDataAdapter.read(stack, containerFluid));
-        try { result.add("item", JsonData.item(stack)); }
+        try { result.add("item", stack == null ? com.google.gson.JsonNull.INSTANCE : JsonData.itemWithNbt(stack)); }
         catch (RuntimeException | LinkageError error) { result.addProperty("itemError", error.getClass().getSimpleName()); }
         result.addProperty("source", stack == null ? "empty ordinary container slot" : "current ItemStack.getTooltip(player, advanced); original NBT preserved");
         if (stack == null) { text(result, Collections.emptyList()); return; }
@@ -206,13 +207,14 @@ public class GuiDataAdapter {
         return null;
     }
 
-    private static JsonObject muiEntry(Object widget, Class<?> widgetApi, Class<?> tooltipApi, Object screen) {
+    private static JsonObject muiEntry(Object widget, MuiWalk walk, Object screen) {
+        Class<?> widgetApi = walk.widgetApi;
         JsonObject entry = new JsonObject();
         entry.addProperty("class", JsonData.bounded(widget.getClass().getName(), 256));
         entry.addProperty("name", JsonData.bounded(String.valueOf(call(widgetApi, widget, "getName")), 256));
         entry.addProperty("identity", "mui:" + Integer.toHexString(System.identityHashCode(widget)));
-        entry.addProperty("enabled", (Boolean) call(widgetApi, widget, "isEnabled"));
-        entry.addProperty("valid", (Boolean) call(widgetApi, widget, "isValid"));
+        entry.addProperty("enabled", walk.enabled);
+        entry.addProperty("valid", walk.valid);
         Object area = call(widgetApi, widget, "getArea");
         if (area instanceof Rectangle) {
             Rectangle rectangle = (Rectangle) area;
@@ -253,7 +255,7 @@ public class GuiDataAdapter {
     private static JsonObject coverage(GuiScreen screen) {
         JsonObject coverage = new JsonObject();
         coverage.addProperty("vanilla", "Forge-captured buttons and ordinary container slots; per-slot tooltip queried on demand");
-        coverage.addProperty("mui2", namedApi(screen == null ? null : screen.getClass(), MUI + "api.IMuiScreen") == null ? "not_applicable" : "bounded public open panels/widget tree, identities, bounds, enabled state");
+        coverage.addProperty("mui2", namedApi(screen == null ? null : screen.getClass(), MUI + "api.IMuiScreen") == null ? "not_applicable" : "bounded open panels and widgets; descendants of disabled or invalid parents are omitted");
         coverage.addProperty("mui1", LegacyModularGuiAdapter.screen(screen) ? "public native open windows/children and text fields available through controls/gui.widgets" : "not_applicable");
         coverage.addProperty("text", "visibleText scans supported native button/label/editable text and both ModularUI widget trees independently of inventory-slot ordering; cached RichText contents and public text drawables are included. Arbitrary direct drawString labels have no supported getter.");
         coverage.addProperty("richTooltips", "MUI2 public RichTooltip.isEmpty refreshes native dirty builders, then getRichText/getAsStrings; rich icons/clipping/topmost hit state not reconstructed");
@@ -317,14 +319,14 @@ public class GuiDataAdapter {
     private static final class MuiWalk {
         final ArrayDeque<Object> pending = new ArrayDeque<Object>();
         final Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
-        Class<?> widgetApi, tooltipApi;
+        Class<?> widgetApi;
+        boolean enabled, valid;
         String error; boolean truncated;
         MuiWalk(GuiScreen screen, long started) {
             Class<?> api = namedApi(screen == null ? null : screen.getClass(), MUI + "api.IMuiScreen");
             if (api == null) return;
             try {
                 widgetApi = Class.forName(MUI + "api.widget.IWidget", false, screen.getClass().getClassLoader());
-                tooltipApi = Class.forName(MUI + "api.widget.ITooltip", false, screen.getClass().getClassLoader());
                 Object modular = call(api, screen, "getScreen");
                 Object manager = call(modular.getClass(), modular, "getPanelManager");
                 add(call(manager.getClass(), manager, "getOpenPanels"));
@@ -333,8 +335,13 @@ public class GuiDataAdapter {
         boolean hasNext() { return !pending.isEmpty(); }
         Object next() {
             Object widget = pending.removeFirst();
-            try { add(call(widgetApi, widget, "getChildren")); }
-            catch (RuntimeException | LinkageError failure) { error = failure.getClass().getSimpleName(); }
+            enabled = false;
+            valid = false;
+            try {
+                enabled = (Boolean) call(widgetApi, widget, "isEnabled");
+                valid = (Boolean) call(widgetApi, widget, "isValid");
+                if (enabled && valid) add(call(widgetApi, widget, "getChildren"));
+            } catch (RuntimeException | LinkageError failure) { error = failure.getClass().getSimpleName(); }
             return widget;
         }
         void add(Object children) {

@@ -55,6 +55,7 @@ public final class LogicalGuiPointer {
     }
     private static JsonObject perform(Minecraft client, GuiScreen screen, JsonObject args, String session, BooleanSupplier protection, boolean needsGuiDraw) {
         validate(args);
+        VirtualGuiMouse.INSTANCE.requireIdle();
         String action = JsonData.string(args, "action");
         if ("clear".equals(action)) { clear("explicit_clear"); JsonObject out = inspect(); out.addProperty("status", "cleared"); return out; }
         if (!protection.getAsBoolean()) throw new BridgeException("background_required", "Logical GUI pointer requires current full background takeover.");
@@ -114,11 +115,33 @@ public final class LogicalGuiPointer {
     public static void tick() { if (state != null && state.thread == Thread.currentThread() && !state.valid(frame == null)) clear("expired_or_context_changed"); }
     public static void clear(String reason) { if (state != null || frame != null) { generation++; state = null; frame = null; clearReason = reason; NeiViewAdapter.invalidateRendered(); } }
     public static String context() { return "gui_pointer_generation=" + generation; }
+    static Point devicePoint(Object screen) {
+        InputPoint input = inputPoint.get();
+        if (input != null && input.screen == screen && input.valid()) return new Point(input.x,input.y);
+        State current = state;
+        return current != null && current.screen == screen && current.fastValid(true) ? current.target.point : null;
+    }
+    public static void completedCustomDraw(Object screen, int x, int y) {
+        Frame current = validFrame(screen);
+        if (current == null) return;
+        int expectedX = current.owner == null ? current.physicalX : current.owner.target.point.x;
+        int expectedY = current.owner == null ? current.physicalY : current.owner.target.point.y;
+        if (x == expectedX && y == expectedY) {
+            current.drawInvoked = true;
+            drawHookObserved = true;
+        }
+    }
+
+    public static boolean drewScreen(Object screen) {
+        Frame current = validFrame(screen);
+        return current != null && current.drawInvoked;
+    }
     public static JsonObject frameData() {
         JsonObject out = new JsonObject(); Frame current = frame;
         if (current != null && current.thread != Thread.currentThread()) current = null;
-        out.addProperty("cursorSource", current == null || current.owner == null ? "physical" : "agent_logical_gui"); out.addProperty("pointerGeneration", current == null ? generation : current.generation);
-        if (current != null) { out.addProperty("physicalMouseX", current.physicalX); out.addProperty("physicalMouseY", current.physicalY); out.addProperty("physicalCoordinateSource", "Original EntityRenderer scaled coordinates before logical Pre substitution; read only."); }
+        out.addProperty("cursorSource", current != null && current.owner != null ? "agent_logical_gui" : VirtualGuiMouse.INSTANCE.active() ? "agent_virtual_gui" : "physical"); out.addProperty("pointerGeneration", current == null ? generation : current.generation);
+        if (current != null && !VirtualGuiMouse.INSTANCE.active()) { out.addProperty("physicalMouseX", current.physicalX); out.addProperty("physicalMouseY", current.physicalY); out.addProperty("physicalCoordinateSource", "Original EntityRenderer scaled coordinates before logical Pre substitution; read only."); }
+        out.addProperty("virtualDeviceActive", VirtualGuiMouse.INSTANCE.active());
         out.addProperty("guiDrawHookCalls", current == null ? 0 : current.guiDrawHookCalls); out.addProperty("logicalReads", current == null ? 0 : current.logicalReads);
         if (current != null && current.logicalReads > 0) { out.addProperty("logicalReadX", current.logicalX); out.addProperty("logicalReadY", current.logicalY); }
         out.addProperty("logicalReadProvenance", "Per current natural frame calls through the existing GuiDraw.getMousePosition hook, counting only actual logical Point returns; arming or frame cursorSource alone is not a read.");
@@ -134,7 +157,7 @@ public final class LogicalGuiPointer {
         StringBuilder out = new StringBuilder(NeiPreviewResources.context());
         if (NeiUiAccess.is(screen, "codechicken.nei.recipe.GuiRecipe")) {
             ClassLoader loader = screen.getClass().getClassLoader(); String owner = "codechicken.nei.recipe.GuiRecipe";
-            out.append('/').append(NeiUiAccess.publicField(loader, owner, screen, "recipetype")).append('/').append(NeiUiAccess.publicField(loader, owner, screen, "page"));
+            out.append('/').append(NeiUiAccess.publicField(loader, owner, screen, "recipetype")).append('/').append(NeiUiAccess.recipePage(loader, screen));
             Object refs = NeiUiAccess.publicCall(loader, owner, screen, "getRecipeIndices", new Class<?>[0]);
             if (!(refs instanceof List<?>) || ((List<?>) refs).size() > 64) throw new BridgeException("unsupported", "Pointer view requires bounded native visible recipes.");
             out.append('/').append(refs); out.append('/').append(System.identityHashCode(NeiUiAccess.publicCall(loader, owner, screen, "getHandler", new Class<?>[0])));

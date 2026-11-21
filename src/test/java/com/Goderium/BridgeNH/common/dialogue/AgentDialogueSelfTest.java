@@ -16,6 +16,15 @@ public final class AgentDialogueSelfTest {
         try { action.run(); throw new AssertionError("Expected " + code); }
         catch (BridgeException failure) { check(code.equals(failure.code)); }
     }
+    private static void denied(Runnable action, String code, String capability, String assigned, String effective, String recovery) {
+        try { action.run(); throw new AssertionError("Expected " + code); }
+        catch (AgentPermissions.Denial failure) {
+            check(code.equals(failure.code) && capability.equals(failure.capability)
+                && assigned.equals(failure.assigned) && effective.equals(failure.effective));
+            check(failure.getMessage().startsWith("capability=" + capability + " assigned=" + assigned + " effective=" + effective)
+                && failure.getMessage().contains(recovery) && failure.getMessage().length() <= 256);
+        }
+    }
     public static int run() throws Exception {
         AgentDialogueCommand command = new AgentDialogueCommand();
         check("mcb".equals(command.getCommandName()) && command.getCommandAliases().contains("mcbagent"));
@@ -27,10 +36,13 @@ public final class AgentDialogueSelfTest {
         String owner = UUID.randomUUID().toString(), alice = UUID.randomUUID().toString(), bob = UUID.randomUUID().toString();
         check(!permissions.canBind(owner) && !permissions.allows(owner, true, "manage"));
         // Neither actual binding nor Minecraft OP (not a policy input) grants an unassigned player privileges.
-        refused(() -> permissions.require(owner, true, false, "manage"), "permission_denied");
+        denied(() -> permissions.require(owner, true, false, "manage"), "permission_denied", "manage", "guest", "guest", "/mcb whoami");
         permissions.require("", false, true, "manage"); check(true);
         permissions.setGroup(owner, "agent"); permissions.setGroup(alice, "user"); permissions.setGroup(bob, "user");
         check(!permissions.allows(owner, false, "manage") && permissions.allows(owner, true, "manage"));
+        denied(() -> permissions.require(owner, false, false, "manage"), "permission_denied", "manage", "agent", "guest", "dialogue lease");
+        denied(() -> permissions.require(alice, false, false, "debug"), "permission_denied", "debug", "user", "user", "/mcb whoami");
+        check(permissions.identity(owner, false).equals("assigned=agent effective=guest"));
         check(!permissions.debugEnabled(owner, true));
         permissions.setDebug(owner, true); check(permissions.debugEnabled(owner, true) && !permissions.debugEnabled(owner, false));
         permissions.setDebug(owner, false);
@@ -40,7 +52,7 @@ public final class AgentDialogueSelfTest {
         refused(() -> box.submit(alice, "Alice", "say", "hello", 1000, sink), "unavailable");
         JsonObject bind = args("bind", lease); bind.addProperty("threadId", UUID.randomUUID().toString());
         box.perform(owner, bind, 1000, sink);
-        refused(() -> box.perform(bob, bind, 1000, sink), "permission_denied");
+        denied(() -> box.perform(bob, bind, 1000, sink), "permission_denied", "bind", "user", "user", "agent assignment");
         String otherAgent = UUID.randomUUID().toString(); permissions.setGroup(otherAgent, "agent");
         refused(() -> box.perform(otherAgent, bind, 1000, sink), "busy");
         JsonObject message = box.submit(alice, "Alice", "steer", "保留 Case 与空格", 1000, sink);
@@ -117,8 +129,8 @@ public final class AgentDialogueSelfTest {
         check(revocation.perform(owner, args("poll", lease), 3002, sink).getAsJsonArray("messages").size() == 0);
         receipt.addProperty("messageId", revoked.get("id").getAsString()); receipt.addProperty("state", "dispatching"); receipt.addProperty("text", "sending");
         refused(() -> revocation.perform(owner, receipt, 3003, sink), "invalid_state");
-        refused(() -> revocation.submit(alice, "Alice", "say", "denied", 4000, sink), "permission_denied");
-        refused(() -> revocation.playerStatus(alice, "", 4000, sink), "permission_denied");
+        denied(() -> revocation.submit(alice, "Alice", "say", "denied", 4000, sink), "permission_denied", "send", "guest", "guest", "/mcb whoami");
+        denied(() -> revocation.playerStatus(alice, "", 4000, sink), "permission_denied", "send", "guest", "guest", "/mcb whoami");
         permissions.setGroup(bob, "admin"); permissions.setDebug(bob, true);
         AgentPermissions reopened = new AgentPermissions(); reopened.initialize(file);
         check(reopened.debugEnabled(bob, false) && reopened.allows(bob, false, "manage"));
@@ -132,6 +144,12 @@ public final class AgentDialogueSelfTest {
         refused(() -> permissions.setGroup(owner, "admin"), "config_changed");
         refused(permissions::reload, "config_unavailable");
         check(!permissions.allows(bob, true, "send") && !permissions.canBind(otherAgent));
+        check(permissions.identity(otherAgent, true).equals("assigned=unknown effective=guest"));
+        denied(() -> revocation.perform(otherAgent, bind, 4003, sink), "config_unavailable", "bind",
+            "unknown", "guest", "config/codexbridge/permissions.json");
+        denied(() -> permissions.require(bob, true, false, "manage"), "config_unavailable", "manage",
+            "unknown", "guest", "/mcb permissions reload");
+        permissions.require("", false, true, "manage"); // The console can repair and reload the unavailable configuration.
         java.nio.file.Files.write(file, valid); permissions.reload();
         check("guest".equals(permissions.assigned(owner)) && permissions.allows(bob, false, "send"));
         JsonObject invalid = AgentPermissions.defaults(); invalid.addProperty("opInheritsAdmin", true);

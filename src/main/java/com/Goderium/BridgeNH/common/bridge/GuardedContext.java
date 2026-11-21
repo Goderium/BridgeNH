@@ -17,17 +17,19 @@ import java.util.concurrent.Callable;
 
 /** Optional fixed-operation RPC context. It never supplies Java method names or replaces native gates. */
 public final class GuardedContext {
-    private static final String[] READS = {"bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets",
+    private static final String[] READS = {"survival.storage_count", "survival.storage_receipt", "quest.progress", "bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets",
             "structure.goal", "registry.item", "world.inspect", "world.inspect_many", "world.spatial", "world.structure", "machine.inspect", "player.plan_approach", "ae.material_source"};
-    private static final String[] ACTIONS = {"player.hotbar", "player.world_mouse", "player.interact", "player.place_block", "player.look",
-            "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.pointer", "player.replace_owned_block", "structure.survival_build"};
-    private static final Set<String> KEYS = new HashSet<String>(Arrays.asList("version", "expectedSessionId", "expectedProfile", "expectedWorld", "requireBackground", "menuOnly"));
+    private static final String[] ACTIONS = {"player.hotbar", "player.mine", "player.entity_interact", "gui.chest_transfer", "player.world_mouse", "player.interact", "player.place_block", "player.look",
+            "player.flight", "player.navigate", "survival.storage_open", "survival.storage_move", "quest.step", "survival.food", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.pointer", "player.replace_owned_block", "structure.survival_build"};
+    private static final Set<String> KEYS = new HashSet<String>(Arrays.asList("version", "expectedSessionId", "expectedProfile", "expectedWorld", "requireBackground", "menuOnly", "expectedDimension", "requireIdleInput"));
     final String operation;
     @com.google.common.annotations.VisibleForTesting
     public final boolean action;
     private final String session, profile, world;
     private final boolean protection;
     private boolean menuOnly;
+    private Integer expectedDimension;
+    private boolean requireIdleInput;
     private volatile boolean actionStarted;
 
     private GuardedContext(String operation, boolean action, String session, String profile, String world, boolean protection) {
@@ -35,7 +37,8 @@ public final class GuardedContext {
     }
 
     static JsonObject capabilities() {
-        JsonObject result = new JsonObject(); result.addProperty("version", 1); result.addProperty("unloadedMenuVersion", 1);
+        JsonObject result = new JsonObject(); result.addProperty("version", 1); result.addProperty("unloadedMenuVersion", 1); result.addProperty("dimensionGuardVersion", 1);
+        result.addProperty("idleInputGuardVersion", 1);
         JsonArray reads = new JsonArray(), actions = new JsonArray();
         for (String operation : READS) reads.add(new com.google.gson.JsonPrimitive(operation));
         for (String operation : ACTIONS) actions.add(new com.google.gson.JsonPrimitive(operation));
@@ -57,6 +60,17 @@ public final class GuardedContext {
         String session = text(request, "expectedSessionId"), profile = text(request, "expectedProfile");
         if (!"developer".equals(profile) && !"player".equals(profile)) throw new BridgeException("invalid_request", "Unknown expectedProfile.");
         GuardedContext result = new GuardedContext(operation, action, session, profile, request.has("expectedWorld") ? text(request, "expectedWorld") : null, protectedValue.getAsBoolean());
+        if (request.has("expectedDimension")) {
+            if (result.world == null || request.has("menuOnly"))
+                throw new BridgeException("invalid_request", "A dimension guard requires a loaded expectedWorld.");
+            result.expectedDimension = com.Goderium.BridgeNH.util.JsonData.integer(request, "expectedDimension", Integer.MIN_VALUE, Integer.MAX_VALUE);
+        }
+        if (request.has("requireIdleInput")) {
+            if (!action || !protectedValue.getAsBoolean() || result.expectedDimension == null
+                    || !bool(request, "requireIdleInput", true))
+                throw new BridgeException("invalid_request", "Idle-input checks require a protected action in an expected dimension.");
+            result.requireIdleInput = true;
+        }
         if (request.has("menuOnly")) {
             JsonElement menu = request.get("menuOnly");
             if (!menu.isJsonPrimitive() || !menu.getAsJsonPrimitive().isBoolean() || !menu.getAsBoolean()
@@ -81,9 +95,17 @@ public final class GuardedContext {
         if (menuOnly && (!bool(snapshot, "worldLoaded", false) || !bool(snapshot, "unloadedMenu", true)))
             throw new BridgeException("MENU_CONTEXT_CHANGED", "The client left its idle unloaded menu; subsequent GUI actions were blocked.");
         JsonObject current = object(snapshot, "world");
+        JsonObject lifecycle = object(snapshot, "lifecycleTarget");
+        if (expectedDimension != null && (current == null || !current.has("dimension") || !expectedDimension.toString().equals(current.get("dimension").toString())))
+            throw new BridgeException("DIMENSION_CHANGED", "The expected dimension no longer matches the current client.");
         if (world != null && (!bool(snapshot, "worldLoaded", true) || current == null
-                || (!string(current, "worldName", world) && !string(current, "worldFolder", world))))
+                || (!string(current, "worldName", world) && !string(current, "worldFolder", world) && (lifecycle == null || !string(lifecycle, "expectedWorld", world)))))
             throw new BridgeException("WORLD_CHANGED", "The expected loaded world does not match the current client.");
+        if (requireIdleInput && !actionStarted) {
+            JsonObject task = object(snapshot, "inputTask");
+            if (task == null || !string(task, "status", "idle"))
+                throw new BridgeException("INPUT_TASK_ACTIVE", "Another native input task owns the player controls.");
+        }
         JsonObject background = object(snapshot, "background");
         if (protection && (background == null || !bool(background, "enabled", true) || !bool(background, "helperInstalled", true)
                 || !bool(background, "pauseOnLostFocus", false)))
@@ -154,6 +176,15 @@ public final class GuardedContext {
             throw new BridgeException("invalid_request", "Navigation requires its developer action guard, expectedWorld and background protection.");
     }
     void navigationMutationStarting(JsonObject before) { requireNavigation(); check(before); actionStarted = true; }
+    void questStarting(JsonObject before) {
+        if (!action || !("quest.step".equals(operation) || com.Goderium.BridgeNH.common.survival.SurvivalStorage.write(operation)) || world==null || !protection)
+            throw new BridgeException("invalid_request","Quest steps require a protected world BEFORE guard.");
+        check(before); actionStarted=true;
+    }
+    void foodStarting(JsonObject before) {
+        if (!action || !"survival.food".equals(operation)) throw new BridgeException("invalid_request", "Expected a food action guard.");
+        check(before); actionStarted = true;
+    }
     private static JsonObject object(JsonObject value, String key) { JsonElement found = value.get(key); return found != null && found.isJsonObject() ? found.getAsJsonObject() : null; }
     private static boolean string(JsonObject value, String key, String expected) { JsonElement found = value.get(key); return found != null && found.isJsonPrimitive() && found.getAsJsonPrimitive().isString() && expected.equals(found.getAsString()); }
     private static boolean bool(JsonObject value, String key, boolean expected) { JsonElement found = value.get(key); return found != null && found.isJsonPrimitive() && found.getAsJsonPrimitive().isBoolean() && found.getAsBoolean() == expected; }

@@ -46,7 +46,9 @@ public final class NeiNativeRenderProvider {
     static JsonObject read(Object screen, JsonObject args, int offset, int limit, long started) {
         NeiPreviewProvider.Scene scene = NeiPreviewProvider.scene(screen);
         if (scene == null || !scene.built) return NeiPreviewDetailProvider.absent("No existing built preview render model.");
-        return readModel(screen, NeiRenderCapture.marker(screen), scene, args, offset, limit, started);
+        String marker = NeiRenderCapture.marker(screen);
+        if (marker == null) return NeiPreviewDetailProvider.absent("The current NEI view could not be identified for render data.");
+        return readModel(screen, marker, scene, args, offset, limit, started);
     }
 
     public static JsonObject capture(Object screen, JsonObject args) {
@@ -57,7 +59,9 @@ public final class NeiNativeRenderProvider {
         if (scene == null || !scene.built) throw new BridgeException("not_present", "No existing built preview for finite render capture.");
         long packed = selected(scene, args);
         if (!scene.rendered.contains(packed) && !scene.translucent.contains(packed)) throw new BridgeException("not_present", "Requested position is not currently in the native visible render sets.");
-        return NeiNaturalRenderCapture.arm(screen, NeiRenderCapture.marker(screen), scene, packed);
+        String marker = NeiRenderCapture.marker(screen);
+        if (marker == null) throw new BridgeException("unsupported", "The current NEI view could not be identified for a render capture.");
+        return NeiNaturalRenderCapture.arm(screen, marker, scene, packed);
     }
 
     static JsonObject readModel(Object screen, String marker, NeiPreviewProvider.Scene scene, JsonObject args, int offset, int limit, long started) {

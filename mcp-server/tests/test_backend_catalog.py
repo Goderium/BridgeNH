@@ -57,7 +57,7 @@ async def test_added_removed_and_changed_tools_rediscovered_on_same_connection(t
             second = await session.call_tool("mcb_backend_restart", {"requestId": "remove-and-edit", "expectedGeneration": 2})
             change = second.structuredContent["data"]["catalogUpdate"]["tools"]
             assert change["removed"] == ["mcb_window_action"]
-            assert set(change["updated"]) == {"mcb_window", "mcb_sequence"}
+            assert set(change["updated"]) == {"mcb_window", "mcb_sequence", "mcb_action_chain"}
             # No intervening tools/list: stale SDK cache must not retain the old schema.
             assert (await server._get_cached_tool_definition("mcb_window")).inputSchema["required"] == ["probe"]
             assert await server._get_cached_tool_definition("mcb_window_action") is None

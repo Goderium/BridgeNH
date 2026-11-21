@@ -2,6 +2,7 @@ package com.Goderium.BridgeNH.client.nei;
 
 import com.Goderium.BridgeNH.client.gui.ExpandedGuiApi;
 import com.Goderium.BridgeNH.client.gui.GuiControlAdapter;
+import com.Goderium.BridgeNH.client.gui.VirtualGuiMouse;
 import com.Goderium.BridgeNH.common.inventory.InventoryCapacity;
 import com.Goderium.BridgeNH.util.BridgeException;
 import com.Goderium.BridgeNH.util.JsonData;
@@ -17,9 +18,11 @@ import net.minecraft.item.ItemStack;
 /** NEI search, phantom-cursor release and explicit creative acquisition. */
 public final class NeiItemControlAdapter {
     public static JsonObject perform(Minecraft client, GuiScreen screen, JsonObject args, boolean developer) {
-        return perform(screen, args, developer, client.thePlayer.capabilities.isCreativeMode,
+        JsonObject result = perform(screen, args, developer, client.thePlayer.capabilities.isCreativeMode,
                 screen instanceof GuiInventory || screen instanceof GuiContainerCreative,
                 client.thePlayer.inventory.getItemStack(), client.thePlayer.inventory.mainInventory);
+        if ("search".equals(result.get("action").getAsString())) VirtualGuiMouse.INSTANCE.textInput(screen, true);
+        return result;
     }
 
     static JsonObject perform(Object screen, JsonObject args, boolean developer, boolean creative, boolean inventoryScreen, ItemStack cursor, ItemStack[] inventory) {

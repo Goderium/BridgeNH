@@ -11,7 +11,7 @@ public final class WindowFocusPlugin implements RfbPlugin {
     @Override public void onConstruction(PluginContext context) {
         Launch.classLoader.addClassLoaderExclusion("com.Goderium.BridgeNH.loader.rfb.");
     }
-    @Override public RfbClassTransformer[] makeTransformers() { return new RfbClassTransformer[] {new Transformer()}; }
+    @Override public RfbClassTransformer[] makeTransformers() { return new RfbClassTransformer[] {new Transformer(), new MouseReleaseTransformer(), new GuiMouseTransformer()}; }
     public static final class Transformer implements RfbClassTransformer {
         @Override public String id() { return "window-focus"; }
         @Override public boolean shouldTransformClass(ExtensibleClassLoader loader, Context context, Manifest manifest, String name, ClassNodeHandle node) {

@@ -1,8 +1,13 @@
 # BridgeNH native client operation guide
 
-Agent reference: English; [Chinese companion](overview_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
+This guide is available offline for Minecraft 1.7.10 / GT New Horizons. Use the installer, CLI and logs for setup and diagnosis. Use the dedicated interface for each supported operation. Reserve the virtual mouse for [uncovered GUI gestures or pointer tests](operations.md#gui-mouse-gestures). If a required step depends on desktop Computer Use, [report the error immediately](workspace.md#native-control-gap-and-feedback-template). Desktop assistance within scope may then complete the step. Record its outcome even when it succeeds.
 
-For Minecraft 1.7.10 / GT New Horizons. This guide ships with BridgeNH and can be read without a game session or token. The primary objective is complete native client control without Computer Use, external input or human steps. Coverage is still bounded: record missing native observations/actions as capability gaps, never silently mask them with an external workaround.
+| Need | First lookup |
+| --- | --- |
+| Quest requirements, recipes or a machine manual | Check the revision and search the instance’s [execution database](packdata.md). |
+| Collect and deliver items, or replenish a store | Use a [survival order](survival.md#quantitative-collection-and-replenishment) and verify the delivered quantity. |
+| A reusable operating method | Search `mcb_knowledge` or the workspace experience index. |
+| Current ingredients, machine state or the result of an action | Read the relevant live tool and its receipt for the bound client. |
 
 Use [workspace.md](workspace.md) to establish reusable task state, experience, knowledge and feedback. Use [testing.md](testing.md) for relevant regressions, optional QA and native client/server acceptance. Read [nei.md](nei.md) before NEI work and [ae.md](ae.md) before terminal, pattern or crafting work. Read only relevant sections after initial orientation; do not add repetitive preflight to each action.
 
@@ -78,7 +83,11 @@ After use, snapshot target is the current crosshair, not necessarily the action'
 
 ## Manual control and background operation
 
+When the user needs the physical keyboard and mouse, keep control inside the bound client. If a step in NEI, AE or another screen requires desktop access, report the blocker immediately and leave the desktop with the user.
+
 Startup preserves normal mouse behavior and the prior pause-on-focus-loss setting. Before player/GUI input, chat, machine mutation, teleport or lifecycle actions, MCP establishes physical-mouse protection plus unfocused execution. Read-only queries/screenshots/guides, launch and explicit mode controls do not themselves take over. Failed protection prevents the original action. Returning manual mouse control does not prevent the next authorized control action from taking over; stop ongoing tasks before handing control back.
+
+Press **Ctrl+Shift+L** in the focused Minecraft window to release agent control in menus, GUIs or the world. The shortcut releases input and cancels pending control steps from the interrupted operation. `background.emergencyReleaseCount` counts emergency releases in this client session. On a `playerHandoff` notice or `manual_override` receipt, the agent should normally stop the current sequence and assess the player’s intent and client state. Subsequent tool calls use ordinary takeover. The client setting `input.emergencyReleaseHotkey` in `config/codexbridge.cfg` accepts a key with optional Ctrl, Shift or Alt, for example `ALT+F8`. Restart the client after editing.
 
 These client-local commands need no cheats/OP and are not sent to the server. `/codexbridge` aliases `/mcb`:
 
@@ -95,6 +104,8 @@ These client-local commands need no cheats/OP and are not sent to the server. `/
 | `/mcb scan status` | Read scan defaults. |
 
 `/agent on|off` is available unless another mod owns `/agent`; then use `/mcb agent`. `/mcb background on|off` is the combined mode. MCP equivalents are `mcb_mouse`, `mcb_unfocused`, `mcb_background` with a boolean `enabled`. Mouse enabled=true means manual mouse is available; background enabled=true means protection is enabled. Outstanding lifecycle work prevents protection from being disabled. Direct HTTP lifecycle callers must explicitly establish protection first. These controls do not grant an execution profile.
+
+If automatic takeover returns `mouse_grabbed`, explicit permission to release a stale grab permits `mcb_background(enabled=true, releaseStaleGrab=true)` or mouse-only `mcb_mouse(enabled=false, releaseStaleGrab=true)`. On Windows with lwjgl3ify 3.0.42, the native handoff checks that the bound window is inactive and releases its capture without centering the cursor. A foreground or input-receiving window returns `mouse_manual_control`. Missing focus evidence or backend support returns `mouse_handoff_unavailable`. After `mouse_handoff_unconfirmed`, inspect the bound client before continuing. Verify the switch receipt's `releasedExistingGrab` and the current `background.mouseGrabbed` and `helperInstalled`.
 
 ## Observation boundaries
 

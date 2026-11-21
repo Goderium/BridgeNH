@@ -1,10 +1,6 @@
 # GTNH NEI 操作指南
 
-[English](nei.md) | [简体中文](nei_zh.md)
-
-供人工阅读和审核；Agent 使用英文入口，完整规则见[启动模板](workspace_zh.md#可复制的启动提示词)。
-
-适用 Minecraft 1.7.10 的 GTNH NotEnoughItems。原生书签 API 参考 **2.8.171-GTNH** 源码；快捷键参考 **2.8.155-GTNH**，其他基础行为参考 **2.8.145-GTNH**。这些源码基线不代表所有快捷键均已实机验证。升级或重绑后读取当前 Controls、绑定与 tooltip。
+适用 Minecraft 1.7.10 的 GTNH NotEnoughItems。原生书签 API 参考 **2.8.171-GTNH** 源码；快捷键参考 **2.8.155-GTNH**，其他基础行为参考 **2.8.145-GTNH**。升级或重绑后读取当前 Controls、绑定与 tooltip。
 
 ## 原生结构预览
 
@@ -18,20 +14,20 @@
 - 分开判断配方单轮产量、书签记录数量和本次领取数量。一轮产出 N 件但只需 1 件时，用物品书签的原生数量调整或已有 `mcb_nei_item_action(action="take",neiItemId=...,count=1)`。不从配方倍率推断领取量。完整 metadata/NBT 保留，批次末核对实际库存增量和光标。
 - Agent 优先复用已观察的精确面板条目和 `take(count=...)`。需要新增物品书签时，用 `mcb_nei_bookmark_action(action="add_item")` 与实际 `neiItemId`；整方 `mcb_nei_navigate(action="bookmark")` 用于保存配方。有 NBT/动态参数的产物不能重建成无 NBT 注册模板。
 
-取物原则读到这里即可；具体组合按需查下方 [书签快捷键详表](#书签快捷键详表)。表是人工原生操作参考，不要求每次逐行阅读或模拟快捷键。
+人工操作的按键组合见[书签快捷键详表](#书签快捷键详表)。
 
 ## 临时假物品与书签清理
 
-仅为标记、写样板或其他一次性步骤创建的 NEI 假物品与收藏，默认按临时项处理。核对操作结果后，或任务放弃且这些临时项已不再需要时，Agent 应主动清理，作为完成操作的一部分，无需等待另一次清理指令。
+标记、写样板等一次性步骤使用的 NEI 假物品和书签，在核对结果后主动清理。任务中止时也应清理已无用途的临时项。
 
 - 先确认目标标记、配置或已编码样板正确，再清理临时来源假物品和已无用途的任务书签。保留已保存的目标标记、已编码样板及真实光标/背包物品；已经配置好的虚拟槽位不属于待清理的 NEI 来源假物品。
 - 受支持的语义假物品标记已自动释放 NEI 假光标，应检查返回的 `ghostRelease`。原生或手动拖动留下的假物品，可使用当前界面身份调用 `mcb_nei_item_action(action="release",screenId=...)`，确认 `ghostRelease.available=true` 且 `ghostPresentAfter=false`。此操作保留目标配置和收藏，因此不等于完成书签清理。清理失败时先核对已提交的结果，再单独恢复清理，不能为清除假物品而重复标记或编码。
-- 记录本次新建了哪些书签、所在页及需要保留的原因。复用既有书签不表示它可以被删除。永久书签及明确后续要用的书签，保留到明确不再需要时，并在任务记录或交接中保留用途说明。
-- 大量书签可以新建书签页，按任务、配方批次或用途分页整理，将临时条目与保留条目分开。书签过多时可以手动清理过期或已无用途的条目；永久及明确后续仍要用的条目继续保留。删除关联配方或整组前确认实际范围，清理后核对保留条目仍在。
+- 记录新书签及所在页。保留复用的既有书签。永久或后续仍需使用的书签，在交接中注明用途，直至明确弃用。
+- 书签较多时可按任务、配方批次或用途新建页，分开临时项和保留项。可手动清理过期项。删除配方或整组前确认关联范围，完成后核对保留项。
 
 所参考 NEI 版本的独立书签集合称为 namespace（命名空间）：通过命名空间的 `<` / `>` 控件可到达末尾空白集合，用作新页；最后一页有条目后，NEI 会再提供一个空白集合。它与同一集合内的可见内容翻页、配方分组是不同概念。读取当前控件并核对切换结果，记录页面用途；空白集合被移除后，页号可能改变。`mcb_nei_navigate(action="page")` 翻的是配方页，不能代替书签集合切换。
 
-Agent 通过下述原生书签操作完成清理。释放假光标是另一项操作，会保留收藏。对保留项、关联配方及失败或不支持的操作，如实记录跳过原因和剩余临时项；不静默改用 Computer Use、系统键鼠、编辑文件或人工补做。
+用下述原生操作清理书签。记录跳过原因、涉及的关联配方和剩余临时项。缺少原生接口时，按[工作目录指南](workspace_zh.md#原生控制缺口与必要反馈)记录缺口。
 
 ## 原生书签管理
 
@@ -220,23 +216,6 @@ GTNH 安装的 BogoSorter 还可用 T 悬停搜索 AE 终端，其焦点/界面�
 
 Ctrl+C 复制转义的搜索名称；Ctrl+D 复制矿辞列表；Ctrl+X 复制 registry identifier，可能含 `/metadata`。Ctrl+L / Ctrl+Shift+L 会发送物品/配方/组聊天链接，涉及发送，不作为默认调试步骤。F7/F9 是世界刷怪/区块 overlay，与配方 S 不同。Z 的 item zoom/next tooltip 默认存在重复绑定，冲突处理需按当前环境验证。
 
-## 来源与验证边界
+## 版本参考
 
-书签增补来源：[NotEnoughItems 2.8.155-GTNH sources.jar](https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/NotEnoughItems/2.8.155-GTNH/NotEnoughItems-2.8.155-GTNH-sources.jar)，SHA256 `fd7efd4ad77a7d250b2d2e9854cba7d643222a941cc28a4c808937505c0b2973`。源码默认键不能证明当前内存绑定；应读取当前客户端。
-
-- 2.8.155 默认绑定/修饰键：`NEIClientConfig.setDefaultKeyBindings:850-899`，`KeyManager.isKeyDown/isHashDown`。
-- 物品/配方 toggle、数量保留、V 与组删除：`api/ShortcutInputHandler.java:81-178,355-475`；favorite 树：`recipe/GuiFavoriteButton.java:125-205`；优选替代原料：`recipe/widget/RecipeWidget.java:463-470`。
-- 删除范围、拖排、工具区、滚轮、取物准备：`BookmarkPanel.java:318-373,555-606,652-903,988-1127`；组作用域：`bookmark/BookmarkGrid.java:318-343,1153-1269`，`bookmark/SortableItem`。
-- 数量控件、0 回退和有限/单件领取：`ItemQuantityField.prepareStackWithQuantity/onMouseWheel`，`PanelWidget.mouseUp/onMouseWheel/handleKeyPress`，`NEIClientUtils.cheatItem:212-235/getScrollMultiplier:567-575`。
-- MCB 能力核对：`NeiControlAdapter`，`NeiOverlayAdapter.bookmark`，`NeiItemControlAdapter`，MCP `catalog/nei.py` 和 `catalog/gui.py`。这些为源码与指南范围说明，不声称每行快捷键完成实机复测；count=0 兼容修复的既有用途不变。
-
-精确版本源码：[NotEnoughItems 2.8.145-GTNH sources.jar](https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/NotEnoughItems/2.8.145-GTNH/NotEnoughItems-2.8.145-GTNH-sources.jar)。源码归档 SHA256：`d4ede32d2bd510e4d5312f79a2012da79ea7fec7f5eab23c52064e4377af3c5e`。
-
-- 默认/实际按键加载：`NEIClientConfig.java:849`，`KeyManager.java:40,69,153`。
-- 悬停与查询/书签：`RecipeItemInputHandler.java:35`，`api/ShortcutInputHandler.java:154,166,307,355`，`recipe/GuiUsageRecipe.java:112`，`BookmarkPanel.java:318`。
-- 焦点/导航/滚轮：`recipe/GuiRecipe.java:621,738`，`PanelWidget.java:281,308`，`recipe/NEIRecipeWidget.java:175,486`。
-- 搜索：`SearchField.java:210,230,249`，`TextField.java:60`，`SearchTokenParser.java:31,127,339,477`，`search/ModNameFilter.java:35`。
-- 数量与配方填料：`ItemQuantityField.java:108`，`BookmarkPanel.java:1026,1130`，`bookmark/BookmarkGrid.java:1214`，`recipe/GuiOverlayButton.java:124,204,331,344`，`recipe/DefaultOverlayHandler.java:72`。
-- 收藏树：`recipe/GuiFavoriteButton.java:80,125,184,203`，`recipe/NEIRecipeWidget.java:303`。
-
-以上为对应版本源码行为及配置条件说明。内存中临时重绑，世界 NEI 模式覆写，第三方 GUI 适配，化学式 provider 和 Z 冲突未全部实测。不要因为指南存在就声称桥接已原生支持 NEI 快捷键或所有机器补料。
+快捷键以当前界面和绑定为准。各版本的默认设置见 `mcb_help({"topic":"testing"})` 的 [NEI 版本参考](testing_zh.md#nei-版本参考)。

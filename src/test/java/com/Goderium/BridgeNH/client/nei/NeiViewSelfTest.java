@@ -71,8 +71,12 @@ public final class NeiViewSelfTest {
         request = detail("nbt"); request.addProperty("recipeIndex", 17); data = read(screen, request); check(data.getAsJsonObject("data").get("text").getAsString().contains("real NEI NBT"), "full exact NBT characters are reachable");
         final JsonObject noToken = args("handlers"); noToken.addProperty("offset", 1); expect("invalid_args", () -> read(screen, noToken));
         final JsonObject wrongSelector = args("summary"); wrongSelector.addProperty("recipeIndex", 1); expect("invalid_args", () -> read(screen, wrongSelector));
-        final JsonObject stale = args("summary"); stale.addProperty("contextToken", token); screen.page++;
-        expect("stale_context", () -> read(screen, stale)); screen.page--;
+        final JsonObject stale = args("summary"); stale.addProperty("contextToken", token);
+        screen.page = 73;
+        check(read(screen, stale).getAsJsonObject("data").get("page").getAsInt() == 0, "legacy page does not alter the modern page or context");
+        screen.fixtureChangePage(1);
+        check(read(screen, args("summary")).getAsJsonObject("data").get("page").getAsInt() == 1, "summary follows the native page manager");
+        expect("stale_context", () -> read(screen, stale)); screen.fixtureChangePage(-1);
         expect("stale_context", () -> NeiViewAdapter.read(screen, null, stale, "different-session", generous()));
         expect("stale_context", () -> read(new GuiRecipe(handler, Arrays.asList(17, 93)), stale));
         summary = read(screen, args("summary")); token = summary.get("contextToken").getAsString();

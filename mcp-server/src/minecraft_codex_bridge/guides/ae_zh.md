@@ -1,14 +1,10 @@
 # GTNH AE2 终端，样板与自动合成指南
 
-[English](ae.md) | [简体中文](ae_zh.md)
-
-供人工阅读和审核；Agent 使用英文入口，完整规则见[启动模板](workspace_zh.md#可复制的启动提示词)。
-
-适用 Minecraft 1.7.10 的 GTNH AE2。基础来源版本：AE2 rv3-beta-1073-GTNH、AE2FC 1.5.110-gtnh、NEE 1.7.45、NEI 2.8.145-GTNH、InventoryBogoSorter 1.3.54-GTNH。较新接口/便携能力另列 AE2 1080 等版本。这些源码基线不代表完整实机验收，仍须核对当前绑定、设置、能力和同步状态。
+适用 Minecraft 1.7.10 的 GTNH AE2。基础来源版本：AE2 rv3-beta-1073-GTNH、AE2FC 1.5.110-gtnh、NEE 1.7.45、NEI 2.8.145-GTNH、InventoryBogoSorter 1.3.54-GTNH。较新接口/便携能力另列 AE2 1080 等版本。
 
 ## 批量配置、安装和可续查订单
 
-当前本机 developer bridge 若报告 `aeGoalWorkflowVersion=1`，优先使用以下组合入口，复用已有接近、原生交互和状态确认，减少逐步调用。下面是新增能力契约；实机是否完成仍以当前回执为准。
+本地 developer 桥接报告 `aeGoalWorkflowVersion=1` 时，可通过以下入口组合接近、原生交互和状态确认。
 
 - `mcb_ae_configure`：1..32 个精确宿主/部件，配置 priority 或 BLOCK / STORAGE_FILTER / ADVANCED_BLOCKING_MODE。先发送原生配置操作，再读取服务端宿主状态以确认；文本框显示值不能证明保存成功。
 - `mcb_ae_install`：提供 attachment 的精确面、hotbarSlot、expectedPart。`placement=host` 安装到交互目标宿主，`adjacent` 安装到相邻方块位置。mounted side 分别等于点击面、其反面，线缆为 6。原生路径先尝试宿主位置，再尝试相邻位置，桥接会预检目标路径；不得将短时 sneak/use 两个异步动作组合为连续操作。结果需精确部件和完整玩家库存守恒证明。
@@ -190,21 +186,12 @@ AE2 1080 无线连接器只支持同维度，用无线工具绑定后检查同�
 
 `mcb_ae(scope=requests)`（无线请求页 auto 也可）分页读取 AE2FC 同步的请求/维持器位置、槽位、资源及十进制大数量；分别检查 online、slotsPending、slotsTruncated。非空列表需网络内支持的提供者；ME 库存本身不生成请求。等级发射器是支持的提供者，其 quantity 是阈值，batchSize=-1，不是库存量或加工批量。分页和有限状态切换不能作为大网络压力测试的证明。当前版本原生条目的直接合成点击尚未实现，读列表不等于发订单。CPU 定位按实际运行时宿主是否实现 IGridHost 启用；`openContext` 只在服务端设置，客户端为空不能判为不可用。仍需收到原生坐标回复，不能由类名或按钮启用推出成功。
 
-## 精确来源和验证边界
+## 适用版本与运行设置
 
-AE2 证据为 [rv3-beta-1073-GTNH sources.jar](https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/Applied-Energistics-2-Unofficial/rv3-beta-1073-GTNH/Applied-Energistics-2-Unofficial-rv3-beta-1073-GTNH-sources.jar)，及相关配置条件。类名行号均对应该版:
+各版本及对应类见 `mcb_help({"topic":"testing"})` 的[AE2 源码依据](testing_zh.md#ae2-源码依据)。
 
-- 虚拟槽/点击/键状态：`AEBaseGui.java:410,768,1101,1111,1125`，`GuiMEMonitorable.java:681,701`，`GuiPatternTerm.java:237`，`ServerHelper.java:45`。
-- 存取/滚轮：`GuiMEMonitorable.java:705,715,737,741,771,778,813`，`ContainerMEMonitorable.java:669,691,717,739,764,782,815,970,1207,1218`。
-- 搜索：`MEGuiTextField.java:123`，`GuiMEMonitorable.java:903,966,1142`，`ItemRepo.java:253,280,410`，`NEISearchField.java:85`。
-- 样板数量/倍率/编码：`VirtualMEPatternSlot.java:24`，`VirtualMEPhantomSlot.java:96`，`GuiPatternValueAmount.java:61`，`GuiPatternTerm.java:97,118,130`，`ContainerPatternTerm.java:71,269,579,586,638`，`GuiAmount.java:181,237`。
-- 32/8 增广：`PartPatternTerminalEx.java:17,79`，`GuiPatternTermEx.java:163,190,237`。
-- 合成/接口：`GuiCraftAmount.java:134,188`，`PacketCraftRequest.java:131`，`GuiCraftConfirm.java:346,427,978,1100`，`GuiCraftingCPU.java:169`，`GuiInterfaceTerminal.java:187,1091,1112,1140,1277,1314,1640`。
-
-扩展源码：[NEE 1.7.45](https://github.com/GTNewHorizons/NotEnoughEnergistics/tree/1.7.45/src/main/java/com/github/vfyjxf/nee)，`NEEPatternTerminalHandler.java:55,213`，`NEECraftingTerminalHandler.java:53`，`GuiEventHandler.java:247,251,333`，`GregTech5RecipeProcessor.java:77,105`，`PacketNEIPatternRecipe.java:79,94`，`NEECraftingPreviewHandler.java:62`。[BogoSorter T 悬停搜索](https://github.com/GTNewHorizons/InventoryBogoSorter/blob/1.3.54-GTNH/src/main/java/com/cleanroommc/bogosorter/compat/ae2/Ae2TerminalSearchAdapter.java#L37)。NEI Shift 门控：`IOverlayHandler.java:33`，`GuiOverlayButton.java:133,331`，`NEIClientConfig.java:1168` (2.8.145-GTNH)。
-
-上面的基础版本手势表依据对应源码和配置条件，未实测全部按键/回调。运行中重绑可与磁盘不同。noShift 最终覆盖，概率输出过滤，虚拟格拖拽和第三方冲突保留未确认。较新版本 远端接口、无线与便携能力见独立小节；最大无线范围、全部升级、pins/物品流诊断以及 substitution 完整执行链仍未完整核对，不将模组安装版本视为全功能可用的保证。
+修饰键、虚拟槽拖拽及快捷键冲突以客户端当前绑定为准。使用概率输出过滤、无线范围与升级、pins、物品流诊断或原料替代时，核对当前网络的配置和能力。
 
 AE 当前可见 `VirtualMEPhantomSlot` 通过 `mcb_gui_widgets` 的 `ae_phantom_slot` 使用已有 `ghost_drag(source)` / `phantom_click(button)`。复用原生类型过滤、点击及同步；真实槽号不能用于虚拟槽。模板不授予物品，回执只证明提交，关闭重开或服务端原生序列化确认配置。
 
-空 AE 盘悬停可使客户端产生空标签；1k/64k 已验证 `mcb_gui(waitFor={})` 的原生槽位重同步可恢复完整 NBT 一致。不要把 null 和空复合标签全局等同。最后一件物品 count=0 残影同样先同步并重读；不重放已成功的放置。
+悬停在空的 1k 或 64k AE 存储盘上时，客户端可能生成空标签。调用 `mcb_gui(waitFor={})` 重新同步槽位，再读取完整 NBT。比较时区分 null 与空复合标签。最后一件物品出现 count=0 残影时，也先同步并重读，以免重复放置。

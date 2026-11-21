@@ -1,7 +1,5 @@
 # BridgeNH tool capability index
 
-Agent reference: English; [Chinese companion](capabilities_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
-
 Read offline with `mcb_help({"topic":"capabilities"})`. This index covers all public tools shipped with this revision, including the four frontend management tools. It explains what to choose and what still needs verification. A listed tool is not a promise that every client, server, mod version or permission level supports it.
 
 ## Find a feature before reading source
@@ -46,8 +44,8 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 
 | Tool | Use and verification boundary |
 | --- | --- |
-| `mcb_background` | Combined agent takeover/release: protect physical mouse and run unfocused, or restore manual control and the previous pause setting. Verify `background` readback. |
-| `mcb_mouse` | Change only physical mouse handling: true allows manual mouse, false protects it. Does not change unfocused execution. |
+| `mcb_background` | Enable mouse protection and unfocused running or restore manual control. With `enabled=true`, explicit `releaseStaleGrab=true` permits releasing capture on the verified inactive window. Verify `background` readback. |
+| `mcb_mouse` | Change physical mouse handling. True restores manual mouse. False enables protection and accepts `releaseStaleGrab` for the same checked handoff. |
 | `mcb_unfocused` | Change only unfocused execution, restoring the previous pause setting when disabled. Does not change physical mouse handling. |
 | `mcb_bindings` | Read actual registered key bindings, categories, key codes and modifier/held state. Does not press keys or consume a key event. |
 | `mcb_task_status` | Read the current native input/navigation task ID, phase and owned keys. Use the returned identity for a later cancel. |
@@ -60,6 +58,8 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_snapshot` | Read current player/world/screen, pause, focus, crosshair and available server-control evidence. Keep stable screen kinds separate from raw class names. |
 | `mcb_observe` | Combine 1..8 supported read views with field projection and explicit coverage. Non-atomic; does not take over, write, include screenshots or automatically exhaust pages. |
 | `mcb_wait_for` | Bounded wait on a repeatable read's structured condition. Repeats observations, never the original action; timeout leaves completion unresolved. |
+| `mcb_action_chain` | Insert, advance or cancel independently verified groups of native sequence steps at a boundary. See [survival actions](survival.md). |
+| `mcb_survival_order` | Gather and deliver a quantity, or replenish a destination from ordered sources. Reconcile an interrupted transfer by order ID. See [survival actions](survival.md). |
 | `mcb_sequence` | Combine guarded actions and reads/waits in one call, with optional inline `after` observations and guarded unloaded-menu mode; see [batching](operations.md#combine-repeated-operations-and-readbacks). Also carries one guarded compatibility call to a current worker tool; no recursion or automatic rollback/replay. |
 | `mcb_state_diff` | Freeze selected player/inventory/GUI/message baselines and page comparisons with current state. Continuations cannot change sections; inspect omissions and consumed cursor rules. |
 | `mcb_capture` | Collect bounded diagnostics and selected observations. Non-atomic; screenshots are off by default and require an actual visual need. |
@@ -76,11 +76,13 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_gui_widget_action` | Activate or edit an advertised native widget. MUI2 lists support wheel scrolling, thumb dragging and row activation. Command blocks accept bounded long text. Create-world choices support target selection and `set_selected_many` with same-call final readback; see [menu choices](operations.md#set-create-world-options-by-target-value). Supported phantom/ghost actions retain native synchronization and cleanup. |
 | `mcb_gui_tooltip` | Read a real slot or current scaled-position tooltip without moving the physical mouse. Prefer actual stack/NBT/fluid data to registry templates. |
 | `mcb_gui_pointer` | Set/clear a short-lived logical, screen-bound hover without OS mouse movement. Observe a completed native frame before claiming hover-dependent text. |
+| `mcb_compaction_cursor` | Shows the bound chat’s compaction state during GUI or world takeover. Completion or interruption clears it. |
+| `mcb_virtual_mouse` | Move, click, hold, release, drag or scroll the client-rendered GUI pointer. Use the current screen and session. A held button owns the pointer. See [GUI mouse gestures](operations.md#gui-mouse-gestures). |
 | `mcb_gui_click` | One low-level scaled GUI click under the exact screen ID. Prefer semantic actions; AE virtual grids and MUI2 controls can refuse generic coordinates. |
 | `mcb_gui_key` | Fixed navigation keys or one printable BMP character under current screen identity. Does not simulate physical R/U/A or modifier-held shortcuts. |
 | `mcb_open_inventory` | Open normal player inventory from world view. Supported creative clients select the player-inventory tab for normal synchronization; inspect actual GUI/slots. |
 | `mcb_open_pause_menu` | Open the native in-game menu from world view with an empty cursor. Discover its current widgets; pause can stop integrated-server progress. |
-| `mcb_close_gui` | Submit one normal close. For later low-level movement/feeding, verify a newer matching server/client container state instead of assuming a close acknowledgment. |
+| `mcb_close_gui` | Close the current screen. Supply `screenId` to close that container only when the cursor is empty. Confirm both container states before moving or feeding. |
 
 ## Items, inventory and accessories
 
@@ -91,6 +93,8 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_item` | Inspect one registry/metadata count-one template and tooltip/fluid-container information. This does not reconstruct a live stack's NBT. |
 | `mcb_item_variants` | Page an item's public creative variants without spawning them. Variants are templates, not inventory observations. |
 | `mcb_hotbar` | Select an actual hotbar slot 0..8. Verify the held stack before an interaction or placement. |
+| `mcb_food` | [Eat one serving or select the Healing Axe](food.md) as a survival actor. Reports the selected slot, hunger and server acknowledgements. |
+| `mcb_chest_transfer` | Move one observed stack into or out of an open vanilla chest. Check the synchronized inventories after the native click. |
 | `mcb_slot_click` | Perform a native click on an actual container slot with current window ID. Modes have distinct semantics; AE virtual resource IDs are not slot numbers. |
 | `mcb_transfer_whole_stack` | Transfer one declared untagged whole stack into an empty supported MUI2 destination. Requires fresh slot/owner bindings and full conservation verification. |
 | `mcb_inventory_moves` | Batch 1..16 disjoint untagged whole-stack moves between player slots through normal inventory actions. Stops on uncertainty; does not grant or recreate items. |
@@ -106,6 +110,8 @@ For a first launch after reconnect, an offline client cannot yet satisfy live bi
 | `mcb_look` | Set native player yaw/pitch. Preserve accumulated yaw when restoring and verify the current crosshair/target before use. |
 | `mcb_input` | Hold supported in-game keys for bounded ticks and release automatically. Uses game input, not OS injection; inspect effects after timeout rather than replaying. |
 | `mcb_world_mouse` | Scroll one notch in the world with an optional sneak modifier, or use `pick_block` on the live crosshair target. Read the selected slot and item. |
+| `mcb_entity_interact` | Use or attack one exact visible crosshair entity with its observed UUID and dimension. |
+| `mcb_mine` | Hold native attack on one observed block with the selected survival tool. Read its termination and confirm block and inventory changes. |
 | `mcb_interact` | Normal player use/attack on a current or explicit reachable target/face. Optional sneak/hit-point semantics need advertised support; controller use may differ from the full Forge input chain. |
 | `mcb_interact_sample` | A declared bounded series of real right-clicks on one already-reachable target. Not a machine-state setter or an excuse to repeat an uncertain batch. |
 | `mcb_navigate` | Execute one guarded navigation goal using saved movement policy and actual walking/flying state. Arrival needs current client/server evidence; no automatic terrain clearing. |
@@ -163,6 +169,8 @@ Read [NEI](nei.md) for scope, temporary cleanup and the remaining unsupported ge
 | `mcb_nei_bookmarks` | Read namespaces, groups, exact entry IDs and retention. Unknown existing entries are not adopted as temporary; refresh tokens after state/layout changes. |
 | `mcb_nei_bookmark_action` | Add/remove items or whole recipes, group/reorder/move pages, adjust demand, retain and clean task-owned entries. Recipe deletion includes linked items; preserve unrelated/retained entries. |
 | `mcb_nei_preview_control` | Operate advertised structure-preview controls through native callbacks. First read current preview/control identities; the preview is not a built structure. |
+| `mcb_quest_progress` | Read the current player's BetterQuesting state and task completion by packdata ID or canonical UUID. The authoritative response identifies the current world and party. |
+| `mcb_quest_step` | Use the matching progress receipt for one native detect/submit, checkbox, or ordinary reward claim. Detect can consume real inventory. Confirm the observed party fingerprint only when shared progress or reward effects are authorized. |
 | `mcb_research` | Read exact NEI-linked or unambiguous visible Thaumonomicon research and player-visible pages/dependencies. Does not grant research or prove every machine prerequisite. |
 
 ## AE2 network and crafting
@@ -204,10 +212,11 @@ These tools require the advertised QA integration and appropriate policy/authori
 | `mcb_dialogue` | Start/read/stop an authorized player-to-chat relay or reply to one exact message reference. Player text remains attributed input, not system authority; never replay uncertain delivery. |
 | `mcb_recording` | Review passive player history using summary/list/events or current live recording state. Disk history works offline; gaps and missing stop markers remain unknown, with no replay. |
 | `mcb_run_log` | Read/configure the selected instance's agent journal; report, resolve, defer or export bounded findings. History and agent summaries do not prove game effects. |
+| `mcb_packdata` | Search the bound instance’s offline quest book, GuideNH pages, item and recipe exports. Read [packdata](packdata.md) for preparation and coverage. |
 | `mcb_knowledge` | Query/review/record local operating lessons with real evidence and compatibility context. Separate hypotheses from verified findings. |
 
 ## Completion and missing coverage
 
 Use the smallest existing workflow that owns the requested effect and its acceptance. Preserve complete identities, decimal quantities, current session/world/dimension and ownership. Automatically clean verified task-only NEI ghosts/bookmarks while preserving retained entries, real items and saved target configurations. Stop owned input tasks before returning manual control.
 
-When a required feature is unavailable, record the exact missing native observation/action and current evidence using [workspace](workspace.md). Update this index and the relevant detailed guide when adding or changing a tool, including its counterpart for human review. Do not replace missing coverage with screenshots, OS input or direct save edits and call that native success.
+When a required feature is unavailable, record the exact missing native observation/action and current evidence using [workspace](workspace.md). Update both editions of this index and the relevant detailed guide when adding or changing a tool. Do not replace missing coverage with screenshots, OS input or direct save edits and call that native success.

@@ -104,7 +104,7 @@ async def test_existing_sdk_session_not_new_process_updates_catalog_and_validato
     (lambda data: data + b'\nprint("unexpected stdout")\n', "schema_builder_code_changed"),
     (lambda data: data + b'\ninteger = dataclass\n', "schema_builder_code_changed"),
     (lambda data: data + b'\ninvalid syntax =', "schema_source_unavailable_or_invalid"),
-    (lambda data: b'x' * 262145, "source_size"),
+    (lambda data: b'x' * (catalog_module.MAX_SOURCE_BYTES + 1), "source_size"),
 ])
 async def test_dispatch_permissions_code_and_invalid_updates_leave_catalog_untouched(catalog_files, change, reason):
     source, backend, complete = catalog_files

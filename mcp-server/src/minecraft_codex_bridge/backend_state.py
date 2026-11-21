@@ -24,7 +24,7 @@ def replay_key(name, arguments):
 
 
 def validate_state(state, validate_order):
-    if (not isinstance(state, dict) or set(state) != STATE_KEYS
+    if (not isinstance(state, dict) or set(state) not in (STATE_KEYS, STATE_KEYS | {"actionChain"})
             or type(state["version"]) is not int or state["version"] != STATE_VERSION
             or type(state["mutationSeen"]) is not bool or type(state["uncertain"]) is not bool
             or type(state["reconciledMovements"]) is not int or state["reconciledMovements"] < 0

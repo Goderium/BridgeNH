@@ -1,37 +1,15 @@
-# Native client control: open capability gaps
+# Native client control gaps
 
 [English](NATIVE_CONTROL_GAPS.md) | [简体中文](NATIVE_CONTROL_GAPS_zh.md)
 
-The acceptance target is a complete agent-operated client workflow through native BridgeNH tools, without Computer Use, OS input or a human completing missing steps. This register separates source/documentation findings from explicitly scoped live acceptance. Check current advertised capabilities before using an entry.
-
-## Reporting and completion
-
-Use the packaged [gap template](../mcp-server/src/minecraft_codex_bridge/guides/workspace.md#native-control-gap-and-feedback-template) for evidence and recovery.
-
-A fix is complete only after the intended native path verifies actual effects in its stated environment. Mocked tests and manual/Computer Use success alone leave native acceptance open. Preserve failed/unknown action identities; do not retry under a new ID to bypass the recorded result.
-
-## Verified native paths
-
-NEI bookmark management was verified through the installed stdio MCP on **GT New Horizons 2.9.0 (Minecraft 1.7.10, NotEnoughItems 2.8.171-GTNH)**: item/recipe creation and deletion, complete same-group recipe deletion, group creation/removal, ordering, cross-namespace group moves, view/crafting modes, collapse, quantities, retention and task cleanup. Full client restart verified native saved namespaces, groups, item NBT and demand. Cleanup preserved pre-existing bookmarks and actual inventory; transient ownership became untracked after restart. This acceptance covers these tested operations, not every NEI gesture or version.
-
-Tool-catalog hot reload was verified on **Codex desktop 26.1103.7773.0**, with `mcp_tool_list_changed` enabled. After `mcb_backend_restart`, a newly added read-only probe appeared in the current chat's native tool catalog and was called successfully. A second worker reload removed it from that same catalog. The frontend process and conversation binding remained unchanged; neither Codex nor Minecraft restarted, and the probe made no game calls. Temporary runtime changes were fully restored. This closes rediscovery acceptance for the tested host; other hosts still need to support MCP list-change notifications. Stable frontend, initialization-instruction or dependency changes still require MCP reconnection.
-
-BlockRenderer6343 **1.4.25** preview reads and controls were verified on GT New Horizons 2.9.0. The adapter now reads the protected element map and instance-owned selection. Native block/control reads, rotation, zoom, tier changes, selection/clearing and the full 0..height layer range returned matching model observations. No Computer Use or OS input was used. Preview geometry does not prove world construction or machine formation; older 1.4.23 compatibility has regression coverage, not a new live acceptance claim.
-
-Returned creative placement recovery was verified through `mcb_action_recovery`: place once, observe the server block, remove it normally, restart the selected client and preserve the original unresolved record through worker reload. The identical placement remained blocked until explicit fresh-evidence reconciliation. Recovery itself left the target empty; a separately requested identical placement then succeeded. An occupied target was refused. Final cleanup preserved all 41 inventory slots with full NBT, the support block and an empty target. The new tool appeared and ran in the same chat without restarting Codex. See the [supported recovery scope](../mcp-server/src/minecraft_codex_bridge/guides/maintenance.md#reconcile-a-returned-creative-placement).
-
-The following operations were verified through the installed bridge on **GT New Horizons 2.9.0**.
-
-- In the MUI2 structure terminal, eight wheel steps moved the material list from offset 0 to 144. Dragging the scrollbar also reached the last material and returned to the top. In the recipe browser, activating the Assembler row through its text and layout children opened the Assembler details.
-- A regular world wheel step changed the selected hotbar slot. With the sneak binding held, the structure preview switched materials and the hotbar stayed on the same slot. The reverse step restored the original selection in both cases.
-- The command-block editor accepted 4,521 characters. After saving and powering the block, the resulting command block contained the exact command supplied at the end of the long input.
-- In creative mode, crosshair pick selected an existing machine stack without an inventory write. Picking a new chest affected only the selected slot, as verified against the server inventory. Coordinate copy placed a chest in the requested empty slot and preserved the source. A copied GregTech prototype retained its portable subtype after placement, with the marker read from both machines in the same server tick. A machine ID mismatch and an occupied destination were both refused.
-
 ## Open gaps
 
-| Area | Current boundary | Required native acceptance |
-| --- | --- | --- |
-| NEI favorite trees and remaining gestures | Favorite recipe-tree creation and some modified gestures remain outside the bookmark-management actions. Ordinary `mcb_gui_key` characters cannot emulate physical shortcuts. | Expose the required native action with current identities, bounded scope and readback when a task needs it. |
-| Third-party GUI coverage | Supported widget adapters do not cover every mod screen/control. Missing coverage is unknown, not an empty screen. | Reproduce the missing control, add native observation/action where feasible, verify persistence/effects through the agent-facing path without external input. |
-| Recovery of other unknown actions | The verified recovery path covers returned standalone creative ItemBlock placements under its explicit evidence requirements. Transport-unknown calls, survival consumption and other mutation types remain guarded. | Add operation-specific evidence and reconciliation when needed; a session change, altered arguments or edited internal records cannot establish prior effects. |
-| Prism prelaunch dialogs | Windows acceptance with Prism 11.0.3 recorded foreground and keyboard-focus events from launcher dialogs before Java starts, even when before/after foreground handles were unchanged. Game `windowMode` controls the client SDL window. Prism has no quiet-dialog launch option in its [CLI declaration](https://github.com/PrismLauncher/PrismLauncher/blob/11.0.3/launcher/Application.cpp). | A supported launcher-side path must preserve focus without changing a shared Prism process or suppressing another client's dialogs. Game-window acceptance does not close this gap. |
+| Area | Current limit |
+| --- | --- |
+| Mouse capture in an inactive window | A minimized Windows client can retain a mouse grab. For an explicit handoff, read `releasedExistingGrab` and check that keyboard focus stays with the foreground application. |
+| NEI bookmarks | The bookmark actions do not create favorite recipe trees or expose every modified gesture. `mcb_gui_key` sends characters and cannot invoke a physical shortcut. |
+| Third-party GUI controls | Some mod screens expose only part of their widget tree. If coverage is incomplete, the state of an omitted control is unknown. |
+| Action recovery | `mcb_action_recovery` covers returned standalone creative ItemBlock placements. A survival material order reconciles its own pickups and transfers by order ID. Missing pickup history or missing server transfer evidence leaves the step pending. Other survival consumption needs operation-specific evidence. |
+| Prism prelaunch dialogs | On Windows, Prism 11.0.3 dialogs can take keyboard focus before Java starts. `windowMode` applies to the game window. The [Prism CLI](https://github.com/PrismLauncher/PrismLauncher/blob/11.0.3/launcher/Application.cpp) has no option to suppress those dialogs. |
+
+Record the missing native operation, affected environment and recovery steps in the [workspace gap template](../mcp-server/src/minecraft_codex_bridge/guides/workspace.md#native-control-gap-and-feedback-template). Preserve the original action ID if its outcome is unknown. Close the entry when the native operation produces the intended game state in the affected environment.

@@ -18,6 +18,11 @@ async def handle_action_recovery(adapter, name, arguments, started_at):
     return _result({"ok": True, "data": await recovery(arguments)})
 
 
+async def handle_compaction_cursor(adapter, name, arguments, started_at):
+    await adapter.compaction_cursor.notify(adapter.client, arguments)
+    return _result({})
+
+
 async def handle_dialogue(adapter, name, arguments, started_at):
     from ...dialogue import manage
     return _result({"ok": True, "data": await manage(adapter.client, arguments)})
@@ -58,6 +63,16 @@ async def handle_knowledge(adapter, name, arguments, started_at):
             data = await anyio.to_thread.run_sync(lambda: adapter.knowledge.command(arguments, token=note_token), abandon_on_cancel=True)
     except (TimeoutError, OSError, ValueError, sqlite3.Error):
         raise BridgeError("KNOWLEDGE_UNAVAILABLE", "The bounded local knowledge operation is unavailable; game state was not changed.") from None
+    return _result({"ok": True, "data": data})
+
+
+async def handle_packdata(adapter, name, arguments, started_at):
+    from ...packdata import bound_database, query
+    path = bound_database(getattr(adapter.client, "configuration", None))
+    try:
+        data = await anyio.to_thread.run_sync(query, path, arguments)
+    except (OSError, ValueError, sqlite3.Error) as error:
+        raise BridgeError("PACKDATA_UNAVAILABLE", "The local pack index could not be read. See mcb_help(topic=packdata).") from error
     return _result({"ok": True, "data": data})
 
 

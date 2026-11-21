@@ -29,7 +29,7 @@ public final class RemoteReadProtocol {
     public static final String OPERATION="server.observe";
     public static final Set<String> READS=new HashSet<String>(Arrays.asList("hello","self","blocks","machine","gui.container","logs","diagnostics","mods"));
     public static final Set<String> QA=new HashSet<String>(Arrays.asList("qa.catalog","qa.run","qa.status","qa.results","qa.command","qa.cancel"));
-    public static final Set<String> OBSERVATIONS=new HashSet<String>(Arrays.asList("world.scan","world.tiles","world.entities","recipes.query","machine.inspect","world.inspect","world.inspect_many"));
+    public static final Set<String> OBSERVATIONS=new HashSet<String>(Arrays.asList("world.scan","world.spatial","world.walk_plan","world.walk_probe","world.walk_arrival","world.tiles","world.entities","recipes.query","machine.inspect","world.inspect","world.inspect_many"));
     static boolean large(String operation) { return QA.contains(operation) || OBSERVATIONS.contains(operation); }
     public static void keys(JsonObject value,String... allowed) {
         Set<String> names=new HashSet<String>(Arrays.asList(allowed));
@@ -54,7 +54,7 @@ public final class RemoteReadProtocol {
         if(JsonData.integer(request,"version",1,1)!=VERSION) throw new BridgeException("unsupported","Remote protocol version differs.");
         uuid(request,"requestId"); uuid(request,"nonce");
         String operation=JsonData.string(request,"operation");
-        if(!READS.contains(operation) && !large(operation) && !AgentDialogueMailbox.OPERATION.equals(operation)) throw new BridgeException("unsupported","Only fixed observations and public QA operations are supported.");
+        if(!READS.contains(operation) && !com.Goderium.BridgeNH.common.inventory.SurvivalPickupLedger.OPERATION.equals(operation) && !com.Goderium.BridgeNH.common.survival.SurvivalStorage.handles(operation) && !com.Goderium.BridgeNH.common.quest.QuestPlayerActions.handles(operation) && !large(operation) && !AgentDialogueMailbox.OPERATION.equals(operation)) throw new BridgeException("unsupported","Only fixed observations and public QA operations are supported.");
         if(!request.has("args") || !request.get("args").isJsonObject()) throw new BridgeException("invalid_args","Remote args must be an object.");
         JsonData.integer(request,"dimension",Integer.MIN_VALUE,Integer.MAX_VALUE);
         if(!"hello".equals(operation)) uuid(request,"connectionId");
@@ -137,6 +137,6 @@ public final class RemoteReadProtocol {
         if(("blocks".equals(operation) || "machine".equals(operation) || "gui.container".equals(operation)
                 || "logs".equals(operation) || "diagnostics".equals(operation) || "mods".equals(operation)
                 || large(operation) || AgentDialogueMailbox.OPERATION.equals(operation)) && !operator)
-            throw new BridgeException("permission_denied","Authoritative server observations require server operator level 2.");
+            throw new BridgeException("permission_denied",operation + " requires server_operator_level_2 on the connected player account.");
     }
 }

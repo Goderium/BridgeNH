@@ -96,7 +96,7 @@ public class RequestRegistry {
     public static boolean readOnly(String operation) {
         if (operation == null) return false;
         switch (operation) {
-            case "bridge.health": case "client.snapshot": case "client.window": case "client.screenshot": case "client.diagnostics":
+            case "survival.gather_observe": case "survival.storage_count": case "survival.storage_receipt": case "quest.progress": case "bridge.health": case "client.snapshot": case "client.window": case "client.screenshot": case "client.diagnostics":
             case "client.mods": case "client.messages": case "client.worlds": case "input.bindings":
             case "gui.inspect": case "gui.tooltip": case "gui.widgets": case "inventory.inspect":
             case "registry.items": case "registry.item": case "registry.variants":

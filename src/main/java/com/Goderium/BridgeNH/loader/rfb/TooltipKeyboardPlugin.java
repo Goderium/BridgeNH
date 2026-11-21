@@ -23,7 +23,7 @@ public final class TooltipKeyboardPlugin implements RfbPlugin {
         // The plugin and its pure-JDK helper must share one parent-loader state with transformed LWJGL.
         Launch.classLoader.addClassLoaderExclusion("com.Goderium.BridgeNH.loader.rfb.");
     }
-    @Override public RfbClassTransformer[] makeTransformers() { return new RfbClassTransformer[] {new KeyboardTransformer()}; }
+    @Override public RfbClassTransformer[] makeTransformers() { return new RfbClassTransformer[] {new KeyboardTransformer(), new EmergencyKeyboardTransformer()}; }
 
     public static final class KeyboardTransformer implements RfbClassTransformer {
         private static final String OWNER = "com/Goderium/BridgeNH/loader/rfb/TooltipKeyScope";

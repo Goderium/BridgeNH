@@ -1,10 +1,13 @@
 # GTNH 客户端操作指南入口
 
-[English](overview.md) | [简体中文](overview_zh.md)
+| 需要了解的内容 | 优先查询 |
+| --- | --- |
+| 任务要求、配方或机器手册 | 核对版本后检索该实例的[执行数据库](packdata_zh.md)。 |
+| 定量采集交付或跨仓补料 | 使用[生存工单](survival_zh.md#定量采集与跨仓补料)，核对实际交付数量。 |
+| 可复用的操作方法 | 检索 `mcb_knowledge` 或工作区经验索引。 |
+| 当前物料、机器状况或操作结果 | 通过绑定客户端的实时工具读取状态并核实回执。 |
 
-供人工阅读和审核；Agent 使用英文入口，完整规则见[启动模板](workspace_zh.md#可复制的启动提示词)。
-
-适用 Minecraft 1.7.10 / GT New Horizons，可随 BridgeNH 离线读取，无需游戏会话或令牌。目标是完全原生控制客户端；未覆盖步骤按[缺口模板](workspace_zh.md#原生控制缺口与必要反馈)记录，不能用 Computer Use、外部输入或人工补做代替原生验收。
+本指南适用于 Minecraft 1.7.10 / GT New Horizons，可离线读取。准备环境和排错时优先使用安装器、命令行与日志。已有专用接口的操作须调用该接口。虚拟鼠标仅用于[接口未覆盖的界面手势或指针测试](operations_zh.md#界面鼠标手势)。必要步骤只能通过桌面 Computer Use 完成时，须立即[按错误主动反馈](workspace_zh.md#原生控制缺口与必要反馈)。可在任务范围内借助桌面继续操作，变通成功也须补记实际结果。
 
 检索工具时，使用[能力索引](capabilities_zh.md)，`mcb_help({"topic":"capabilities"})`。用 `mcb_help({"topic":"tools","query":"bookmark"})` 查询 worker 工具名，再指定准确 `tool` 获取完整 schema；前端管理工具使用直接 schema。热重载与重连见[维护指南](maintenance_zh.md)，`mcb_help({"topic":"maintenance"})`。先查阅指南和当前观察结果，再查阅实现源码。
 
@@ -50,7 +53,7 @@ NEI 临时工作验收后自动清理临时假物品和仅供本次使用的收�
 4. `mcb_gui_key` 只提供固定导航键和有限文本，不等同于实体 R/U/A 或 Shift/Ctrl/Alt。专用语义接口通过游戏 API / 正常容器同步运行，不抢占系统键鼠。未覆盖的控件明确报告限制，不自动转为 OS input。
 5. 操作后重新读 GUI/tooltip；涉及库存或机器时同时读取库存/服务端机器状态。只有结构化数据无法验证渲染/布局或用户许可时再截图。NEI 的配方填充与 AE2 的取物，存物，编码和合成都会改变状态；在用户授权的世界及测试范围内执行，保存原状并尽可能恢复。
 
-用户要求在其使用键鼠时后台测试的场景，只使用直接游戏 API/专用适配。不支持的 NEI/AE 控件应明确返回限制，不自动切换到会占用人类输入的 Computer Use。生命周期控制与后台鼠标保护可以独立完成进入/退出世界和关闭客户端，并不代表全部第三方 GUI 已有后台适配。
+用户需要同时使用实体键鼠时，操作须保持在绑定客户端内。NEI、AE 等界面遇到只能借助桌面完成的步骤时，立即报告受阻原因，保留用户对桌面的控制。
 
 安装 AE 部件或执行依赖 Forge 原生交互事件的放置时，操作前优先选择游戏内部输入路径：关闭 GUI，核对选中实际堆叠，用 `mcb_look` 的 yaw/pitch 对准准确方块面并读取当前目标，再调用一次 `mcb_input({"keys":["use"],"ticks":1})`。keys/ticks 是必需参数，ticks 范围 1..200，到期自动释放；此路径经过 Minecraft 完整右键事件链，不使用系统键鼠。`mcb_interact` 的 use 直接调用 Controller，可能跳过客户端 Forge 事件拦截而先打开箱子。动作后读取库存，GUI 和加载方块状态确认结果；超时或意外打开 GUI 时先检查实际状态，不自动重复 use。
 
@@ -69,6 +72,8 @@ coverageSummary.falseFlagsSummarized 表示重复的嵌套 false partial/truncat
 蓝图交互后先读客户端 snapshot 的 target/screen/paused；target 是当前视角的准星信息，不能将这一值误认为刚才的 blockTarget。暂停界面会停住服务端 tick；新模组以 world_paused 立即拒绝相应服务端操作，不入队等待 8 秒。仅在需要恢复本次错误动作打开的界面时关闭它，确认 paused=false 后再补读服务端状态。最后分别验证地板完整、真实方块位置、仓室身份、structureFormed、维护状态和实际产物，不仅检查交互回执。
 
 模组启动时保留正常鼠标和原有失焦暂停设置。MCP 执行玩家/GUI 输入，聊天，机器修改，传送和生命周期动作前，自动检查并开启 "屏蔽物理鼠标 + 失焦继续运行"。只读查询，截图，指南，profile 切换，启动客户端及显式模式开关不会接管。开启保护失败时不执行原动作，不强制释放已有原生鼠标抓取。人工恢复鼠标后，下一次 MCP 控制动作仍会再次接管；交还人工操作时先停止正在执行的 Agent 控制任务。
+
+在当前 Minecraft 窗口按 **Ctrl+Shift+L** 可强制交还控制权，适用于主菜单、游戏界面和世界内。热键会释放输入并中止当前操作中尚未执行的控制步骤。`background.emergencyReleaseCount` 记录本次客户端会话的热键触发次数。收到 `playerHandoff` 提示或 `manual_override` 回执时，Agent 通常应停止当前操作，结合玩家意图和客户端状态判断是否继续。后续工具调用按正常流程接管。客户端配置 `config/codexbridge.cfg` 的 `input.emergencyReleaseHotkey` 支持 Ctrl、Shift、Alt 与一个按键的组合，例如 `ALT+F8`。修改后重启客户端。
 
 玩家可在聊天框输入以下纯客户端指令，不要求作弊或 OP，不发送给服务器。`/codexbridge` 是 `/mcb` 的别名。
 
@@ -91,6 +96,8 @@ coverageSummary.falseFlagsSummarized 表示重复的嵌套 false partial/truncat
 也可使用更短的 `/agent on` 和 `/agent off`。如果其他模组已占用客户端 `/agent` 根命令，桥接保留它，改用 `/mcb agent on|off`。这些场景切换不改变 player/developer 权限 profile。
 
 `/mcb background on|off` 是组合模式开关。MCP 对应 `mcb_mouse({"enabled":true|false})`，`mcb_unfocused({"enabled":true|false})`，`mcb_background({"enabled":true|false})`；这里的 `true|false` 是参数选项说明，调用时须传一个实际布尔值。`mouse.enabled=true` 表示人工鼠标可用，与 `background.enabled=true` 的保护含义相反。未完成的生命周期操作期间，禁止关闭任一保护。直接调用 HTTP 生命周期 API 前须先显式开启完整保护；MCP 自动完成这一步。
+
+自动接管返回 `mouse_grabbed` 时，已获释放残留抓取的明确授权，可调用 `mcb_background(enabled=true, releaseStaleGrab=true)` 或仅控制鼠标的 `mcb_mouse(enabled=false, releaseStaleGrab=true)`。在 Windows 的 lwjgl3ify 3.0.42 上，原生交接先核对绑定窗口已经失焦，再释放抓取，期间不将指针移到窗口中心。窗口位于前台或正接收输入时返回 `mouse_manual_control`。无法核实焦点或缺少后端支持时返回 `mouse_handoff_unavailable`。若返回 `mouse_handoff_unconfirmed`，先检查绑定客户端再继续。核对切换回执中的 `releasedExistingGrab`，以及当前 `background.mouseGrabbed` 和 `helperInstalled`。
 
 ## 信息来源与适用边界
 
@@ -116,7 +123,7 @@ GUI/tooltip 判断的优先级是当前客户端数据 -> 数据不足时的本�
 
 不默认采集或持久化截图。必要或得到用户明确许可时才临时读取画面，尽可能将判断转为结构化字段或文字结论，不默认写入 PNG 或历史截图。`mcb_capture` 的 `include_screenshot` 默认 false，截图工具通过 MCP 返回短期处理所需的图像内容；桥接本身不写截图文件，也不能保证清除 Codex 应用内部的会话/媒体历史。
 
-静态快捷键是对应模组版本的参考，不是当前客户端的实时配置或完整实机验收。当前绑定、提示和能力优先；数据不足时再核对精确版本源码，不得使用未经确认的历史快捷键。
+快捷键表列出相应模组版本的默认值。操作时以当前客户端的绑定、提示和能力为准，必要时查阅对应版本的源码。
 
 窗口控制 v2 的默认启动方式为 `mcb_launch(windowMode="minimized")`，最小化到任务栏并保留图标；也可指定 `background`（显示但不激活）或 `normal`；该偏好同样适用于手动启动。通过 `mcb_window` 读取启动策略、实际窗口状态及尺寸，使用受保护的 `mcb_window_action` 调整尺寸、最大化、还原或最小化。Windows 后台窗口操作保留焦点和层级；最小化活动窗口时正常释放焦点。这与鼠标保护、失焦继续运行是独立功能。Prism 对话框仍由启动器控制。
 

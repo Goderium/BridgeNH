@@ -2,6 +2,7 @@ package com.Goderium.BridgeNH.common.bridge;
 
 import com.Goderium.BridgeNH.client.control.ClientWindowControls;
 import com.Goderium.BridgeNH.client.gui.GuiCallbacks;
+import com.Goderium.BridgeNH.client.gui.VirtualGuiMouse;
 import com.Goderium.BridgeNH.client.gui.GuiDataAdapter;
 import com.Goderium.BridgeNH.client.gui.ScreenSemantics;
 import com.Goderium.BridgeNH.client.gui.SodiumSettingsControls;
@@ -42,12 +43,12 @@ import com.google.gson.JsonPrimitive;
 @com.google.common.annotations.VisibleForTesting
 public final class BridgeCapabilities {
     private static final String[] OPERATIONS = {"bridge.health", "bridge.policy", "client.snapshot", "gui.inspect", "inventory.inspect", "baubles.inspect", "gui.open_baubles", "gui.open_pause_menu",
-            "world.inspect", "world.scan", "client.screenshot", "player.look", "player.hotbar", "player.input", "player.world_mouse", "player.task", "player.follow",
-            "server.observe", "agent.dialogue", "structure.goal", "player.interact", "player.place_block", "player.plan_approach", "player.navigate", "player.replace_owned_block", "player.flight", "player.flight_check", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.close", "gui.open_inventory", "gui.click", "gui.key", "gui.pointer", "chat.send",
-            "client.diagnostics", "client.window", "client.window_action", "client.mods", "client.messages", "client.recording", "registry.items", "registry.item", "registry.variants",
+            "world.inspect", "world.scan", "client.screenshot", "player.look", "player.hotbar", "player.input", "player.mine", "gui.chest_transfer", "player.entity_interact", "player.world_mouse", "player.remote_walk", "player.task", "player.follow",
+            "server.observe", "agent.dialogue", "structure.goal", "player.interact", "player.place_block", "player.plan_approach", "player.navigate", "player.replace_owned_block", "player.flight", "player.flight_check", "gui.slot_click", WholeStackTransfer.OPERATION, "gui.close", "gui.open_inventory", "gui.virtual_mouse", "gui.click", "gui.key", "gui.pointer", "chat.send",
+            "survival.food", "client.diagnostics", "client.window", "client.window_action", "client.compaction_cursor", "client.mods", "client.messages", "client.recording", "registry.items", "registry.item", "registry.variants",
             "world.inspect_many", "world.tiles", "machine.set_working", "dev.teleport", "client.worlds", "client.load_world",
             "client.connect", "client.leave_world", "client.exit", "client.background", "client.mouse", "client.unfocused", "world.scan_config",
-            "world.structure", "gui.tooltip", "nei.inspect", "nei.view", "nei.bookmarks", "nei.bookmark_action", "research.read", "nei.open", "nei.navigate", "nei.item_action", "nei.preview_control", "recipes.query", "machine.inspect", MachineObservationCapture.OPERATION, "waila.inspect",
+            "world.structure", "gui.tooltip", "nei.inspect", "nei.view", "nei.bookmarks", "nei.bookmark_action", "research.read", "survival.gather_observe", "quest.progress", "quest.step", "survival.storage_count", "survival.storage_receipt", "survival.storage_open", "survival.storage_move", "nei.open", "nei.navigate", "nei.item_action", "nei.preview_control", "recipes.query", "machine.inspect", MachineObservationCapture.OPERATION, "waila.inspect",
             "ae.inspect", "ae.material_source", "ae.action", AeOrderAdapter.OPERATION, "gui.widgets", "gui.widget_action", "world.entities", "world.spatial", "input.bindings", "state.diff",
             "qa.catalog", "qa.run", "qa.status", "qa.results", "qa.command", "qa.cancel", "inventory.supply", "structure.survival_build"};
 
@@ -65,12 +66,14 @@ public final class BridgeCapabilities {
     private static void operations(JsonObject result, JsonObject recording, boolean localBackend) {
         JsonArray capabilities = new JsonArray();
         for (String operation : OPERATIONS) {
+            if ((VirtualGuiMouse.OPERATION.equals(operation) || "client.compaction_cursor".equals(operation)) && !VirtualGuiMouse.INSTANCE.installed()) continue;
             if ("gui.click".equals(operation) && !GuiCallbacks.supportsClick()) continue;
             if ("gui.key".equals(operation) && !GuiCallbacks.supportsKey()) continue;
             capabilities.add(new JsonPrimitive(operation));
         }
         if (localBackend) capabilities.add(new JsonPrimitive("inventory.copy_block"));
         result.add("capabilities", capabilities);
+        result.addProperty("survivalFoodVersion", 1);
         result.addProperty("nativeWidgetGesturesVersion", 1);
         result.addProperty("playerActivityRecordingVersion", 1);
         result.add("playerActivityRecording", recording);
@@ -157,6 +160,7 @@ public final class BridgeCapabilities {
         result.addProperty("interactionBuildEnvelopeVersion", 1);
         result.addProperty("nativeGtWrenchFacingVersion", 1);
         result.addProperty("guiNativeWaitVersion", 1);
+        result.addProperty("boundContainerCloseVersion", 1);
         result.addProperty("approachMovementStrategyVersion", ApproachPlanner.MOVEMENT_STRATEGY_VERSION);
         result.addProperty("approachOperationPostureVersion", ApproachPlanner.OPERATION_POSTURE_VERSION);
         result.addProperty("approachClientPhaseClockVersion", ApproachPlanner.CLIENT_PHASE_CLOCK_VERSION);

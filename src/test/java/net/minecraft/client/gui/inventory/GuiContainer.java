@@ -3,6 +3,7 @@ package net.minecraft.client.gui.inventory;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 
 /** Test-only native shape, without client texture or renderer initialization. */
 public abstract class GuiContainer extends GuiScreen {
@@ -11,6 +12,25 @@ public abstract class GuiContainer extends GuiScreen {
     protected int guiLeft;
     protected int guiTop;
     public Container inventorySlots;
+    private long lastClickTime;
+    private Slot lastClickSlot;
+    private int lastClickButton;
+    private boolean doubleClick;
+    private ItemStack shiftClickedSlot;
+
+    /** The 1.7.10 container's double-click predicate and the history written at the end of its press. */
+    public boolean fixturePress(Slot slot, int button, long time, ItemStack shiftStack) {
+        doubleClick = lastClickSlot == slot && time - lastClickTime < 250L && lastClickButton == button;
+        lastClickSlot = slot;
+        lastClickButton = button;
+        lastClickTime = time;
+        if (shiftStack != null) shiftClickedSlot = shiftStack;
+        return doubleClick;
+    }
+
+    public boolean fixtureHasDoubleClickHistory() {
+        return lastClickSlot != null || lastClickButton != -1 || lastClickTime != 0 || doubleClick || shiftClickedSlot != null;
+    }
 
     public GuiContainer(Container container) { inventorySlots = container; }
 

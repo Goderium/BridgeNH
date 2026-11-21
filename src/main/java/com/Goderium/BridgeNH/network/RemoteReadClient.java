@@ -35,6 +35,17 @@ public final class RemoteReadClient implements RemoteReadNetwork.ClientSink {
                 && pose.get("operatorReads").isJsonPrimitive() && pose.get("operatorReads").getAsJsonPrimitive().isBoolean()
                 && pose.get("operatorReads").getAsBoolean();
     }
+    public boolean supportsGroundWalk() {
+        return operatorReady() && serverInfo != null && serverInfo.has("groundWalkVersion")
+                && serverInfo.get("groundWalkVersion").getAsInt() == 1;
+    }
+    public boolean supportsWalkArrival() {
+        return supportsGroundWalk() && serverInfo.has("walkArrivalVersion") && serverInfo.get("walkArrivalVersion").getAsInt()==1;
+    }
+    public boolean supportsSpatial() {
+        return "ready".equals(state) && serverInfo != null && serverInfo.has("spatialObservationVersion")
+                && serverInfo.get("spatialObservationVersion").getAsInt() == 1;
+    }
     public boolean qaInstalled() { return "ready".equals(state) && serverInfo != null && serverInfo.has("qaInstalled") && serverInfo.get("qaInstalled").getAsBoolean(); }
     public boolean qaReady() { return operatorReady() && qaInstalled(); }
     public JsonObject worldIdentity() { return serverInfo==null ? null : serverInfo.getAsJsonObject("world"); }
@@ -130,7 +141,7 @@ public final class RemoteReadClient implements RemoteReadNetwork.ClientSink {
         data.addProperty("channelAdvertised",advertised); data.addProperty("connectionId",connection); data.addProperty("dimension",dimension);
         data.addProperty("pendingReads",mailbox.size()); data.addProperty("computationSide","local_client");
         data.addProperty("maxPositionsPerPage",RemoteReadProtocol.MAX_POSITIONS); data.addProperty("packetBytes",RemoteReadProtocol.RESPONSE_BYTES);
-        data.addProperty("navigationExecutionSupported",false); data.addProperty("qaExecutionSupported",qaReady()); data.addProperty("fullBuildRecipeWorkflowSupported",false);
+        data.addProperty("navigationExecutionSupported",supportsGroundWalk()); data.addProperty("qaExecutionSupported",qaReady()); data.addProperty("fullBuildRecipeWorkflowSupported",false);
         if(handshakeError!=null) data.add("handshakeError",handshakeError.deepCopy());
         if(serverInfo!=null) {
             JsonObject current=serverInfo.deepCopy(); current.addProperty("operatorReads",operatorReady());
@@ -140,9 +151,13 @@ public final class RemoteReadClient implements RemoteReadNetwork.ClientSink {
     }
     public String connectionId() { requireReady(); return connection; }
     public void requireCurrent(String expected) {
-        requireReady(); Minecraft client=Minecraft.getMinecraft();
-        if(!connection.equals(expected) || handler!=client.getNetHandler() || world!=client.theWorld
-                || client.thePlayer==null || client.thePlayer.dimension!=dimension) throw new BridgeException("stale_world","Expected server connection changed.");
+        requireReady();
+        if (!current(expected)) throw new BridgeException("stale_world","Expected server connection changed.");
+    }
+    public boolean current(String expected) {
+        Minecraft client=Minecraft.getMinecraft();
+        return "ready".equals(state) && connection.equals(expected) && handler==client.getNetHandler()
+                && world==client.theWorld && client.thePlayer!=null && client.thePlayer.dimension==dimension;
     }
     public RemoteReadMailbox.Pending begin(String operation,JsonObject args,String expected) { requireCurrent(expected); return send(operation,args); }
     private RemoteReadMailbox.Pending send(String operation,JsonObject args) {

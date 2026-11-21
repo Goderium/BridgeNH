@@ -131,6 +131,22 @@ public final class MachineSlotPurposeSelfTest {
                 && entries.get(1).getAsJsonObject().getAsJsonArray("supportedActions").size() == 0, "gui.widgets reports actual item-slot display identity without adding a generic widget mutation");
         JsonObject inspected = GuiDataAdapter.inspect(null, screen, new JsonObject());
         check(inspected.getAsJsonArray("widgets").size() == 2 && inspected.getAsJsonArray("widgets").get(1).getAsJsonObject().getAsJsonObject("itemSlot").get("bindingVerified").getAsBoolean(), "gui.inspect widget data carries the same actual native slot association");
+        Widget hiddenPage = new Widget(); hiddenPage.enabled = false;
+        Widget hiddenSlot = new Widget(); hiddenSlot.name = "inactive page slot";
+        hiddenSlot.tooltip = new RichTooltip();
+        hiddenSlot.tooltip.builder = () -> { throw new AssertionError("Inactive page tooltip was evaluated"); };
+        hiddenPage.children.add(hiddenSlot); screen.root.children.add(hiddenPage);
+        JsonArray current = GuiDataAdapter.inspect(null, screen, new JsonObject()).getAsJsonArray("widgets");
+        check(current.size() == 3 && !current.get(2).getAsJsonObject().get("enabled").getAsBoolean(),
+                "The inactive parent remains identifiable and its children are excluded from the current GUI");
+        screen.width = 200; screen.height = 160;
+        JsonObject point = new JsonObject(); point.addProperty("screenId", "purpose-fixture"); point.addProperty("x", 28); point.addProperty("y", 38);
+        JsonObject hit = GuiDataAdapter.tooltip(null, screen, point);
+        check(hit.getAsJsonArray("tooltip").size() == 1 && hit.getAsJsonArray("tooltip").get(0).getAsString().startsWith("Tool or upgrade")
+                && hiddenSlot.tooltip.builds == 0, "Inactive overlapping children cannot replace the current page tooltip");
+        hiddenPage.enabled = true; hiddenPage.valid = false;
+        check(GuiDataAdapter.inspect(null, screen, new JsonObject()).getAsJsonArray("widgets").size() == 3,
+                "An invalid parent cannot expose children either");
         screen.inventorySlots = new ModularContainer(); entry = new JsonObject(); GuiPublicSemantics.describe(widget, entry, screen);
         check(!entry.getAsJsonObject("itemSlot").get("bindingVerified").getAsBoolean(), "Replacing the screen container invalidates a previously observed widget association");
         GuiControlAdapter.invalidate();

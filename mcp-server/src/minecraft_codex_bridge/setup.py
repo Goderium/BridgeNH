@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import sys
 
-from .installation import (InstallError, assert_instance_stopped, atomic_write, codex_registration,
+from .installation import (InstallError, assert_instance_stopped, atomic_write, built_mod_version, codex_registration,
                            deploy_mod, digest, mod_plan, toml_data, validate_instance)
 from .local_config import (LOCAL_NAME, PROFILE_NAME, LocalConfigError, config_path, read_config,
                            resolve_path, selected_profile, source_root, user_config_path)
@@ -232,9 +232,13 @@ def inspect(options) -> dict:
     jar = Path(options.jar).resolve() if options.jar else None
     if not options.configure_only:
         if not jar and payload:
-            directory = payload / ('build/libs' if (payload / 'build.gradle').is_file() else 'mod')
-            jar = _single(p for pattern in ('BridgeNH-*.jar', 'minecraft-codex-bridge-*.jar')
-                          for p in directory.glob(pattern) if not p.name.endswith(('-dev.jar', '-sources.jar')))
+            build = payload / 'build'
+            if (payload / 'build.gradle').is_file() and (build / 'resources/main/mcmod.info').is_file():
+                jar = _single([build / 'libs' / f'BridgeNH-{built_mod_version(build)}.jar'])
+            else:
+                directory = build / 'libs' if (payload / 'build.gradle').is_file() else payload / 'mod'
+                jar = _single(p for pattern in ('BridgeNH-*.jar', 'minecraft-codex-bridge-*.jar')
+                              for p in directory.glob(pattern) if not p.name.endswith(('-dev.jar', '-sources.jar')))
         if not jar:
             questions.append(_question('jar', 'Where is the built BridgeNH runtime JAR?'))
         if not payload or not (payload / 'mcp-server/pyproject.toml').is_file():
@@ -253,8 +257,8 @@ def inspect(options) -> dict:
             'codexConfig': str(codex_path), 'serverName': name, 'codexChanged': codex_old != codex_new,
             'agentGuide': {
                 'tool': 'mcb_help', 'arguments': {'topic': 'workspace'},
-                'packageResource': 'minecraft_codex_bridge/guides/workspace.md',
-                'sourceFile': str(Path(__file__).resolve().parent / 'guides/workspace.md'),
+                'packageResource': 'minecraft_codex_bridge/guides/workspace_zh.md',
+                'sourceFile': str(Path(__file__).resolve().parent / 'guides/workspace_zh.md'),
                 'recommendation': 'Use a dedicated agent project or reuse an existing one. The guide includes a starter prompt and proactive experience/local knowledge maintenance. Merge existing notes; ask only for missing context.',
                 'workspaceCreated': False,
             },

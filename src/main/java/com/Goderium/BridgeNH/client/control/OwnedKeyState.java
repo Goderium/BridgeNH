@@ -2,9 +2,11 @@ package com.Goderium.BridgeNH.client.control;
 
 import com.Goderium.BridgeNH.util.BridgeException;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
 import com.Goderium.BridgeNH.loader.rfb.TooltipKeyScope;
@@ -21,6 +23,7 @@ public final class OwnedKeyState {
         final long deadline;
         final BooleanSupplier context;
         final LongSupplier clock;
+        final Set<Object> pendingPresses = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
         final Map<Object, Integer> keys = new IdentityHashMap<Object, Integer>();
         final History history;
         final Map<Object, Trace> traces;
@@ -56,8 +59,28 @@ public final class OwnedKeyState {
         current.keys.put(binding, code);
         current.history.observedAt = current.clock.getAsLong();
     }
-    public static void release(String owner, Object binding) { Lease current = lease; if (sameOwner(current, owner)) current.keys.remove(binding); }
-    public static void releaseAll(String owner) { Lease current = lease; if (sameOwner(current, owner)) current.keys.clear(); }
+    /** Queue the initial attack/use edge separately from physical KeyBinding.pressTime. */
+    public static void queueInputPress(Object binding) {
+        Lease current = lease;
+        if (sameOwner(current, "player.input") && current.keys.containsKey(binding)) current.pendingPresses.add(binding);
+    }
+
+    public static boolean consumeInputPress(Object binding, int actualCode) {
+        Lease current = lease;
+        if (!sameOwner(current, "player.input") || !current.pendingPresses.contains(binding) || SUSPENDED.get() != null) return false;
+        current.pendingPresses.remove(binding);
+        Integer expected = current.keys.get(binding);
+        return expected != null && expected == actualCode && validContext(current);
+    }
+
+    public static void release(String owner, Object binding) {
+        Lease current = lease;
+        if (sameOwner(current, owner)) { current.keys.remove(binding); current.pendingPresses.remove(binding); }
+    }
+    public static void releaseAll(String owner) {
+        Lease current = lease;
+        if (sameOwner(current, owner)) { current.keys.clear(); current.pendingPresses.clear(); }
+    }
     public static void clear(String owner) { Lease current = lease; if (sameOwner(current, owner)) { current.history.observedAt = current.clock.getAsLong(); lease = null; } }
     private static boolean sameOwner(Lease current, String owner) { return current != null && current.thread == Thread.currentThread() && current.owner.equals(owner); }
     public static boolean active(String owner) { Lease current = lease; return sameOwner(current, owner) && validContext(current); }
@@ -80,7 +103,7 @@ public final class OwnedKeyState {
         Integer expected = current.keys.get(binding);
         if (expected == null) { if (trace != null) trace.getterDecision = "released"; return null; }
         if (!validContext(current)) { if (trace != null) trace.getterDecision = "context_or_deadline_rejected"; return null; }
-        if (expected != actualCode) { current.keys.remove(binding); if (trace != null) trace.getterDecision = "binding_code_changed"; return null; }
+        if (expected != actualCode) { current.keys.remove(binding); current.pendingPresses.remove(binding); if (trace != null) trace.getterDecision = "binding_code_changed"; return null; }
         if (trace != null) { trace.getterAccepted++; trace.getterDecision = "owned_hold"; }
         return Boolean.TRUE;
     }
@@ -112,7 +135,7 @@ public final class OwnedKeyState {
     public static long hookCalls() { return hookCalls; }
     /** Native manual input is unchanged. Only this exact live player.input binding may fill the background focus gate. */
     public static boolean attackInput(boolean nativeAttack, Object attackBinding, int actualCode) {
-        return nativeAttack || active("player.input") && Boolean.TRUE.equals(override(attackBinding, actualCode));
+        return nativeAttack || active("player.mine") || active("player.input") && Boolean.TRUE.equals(override(attackBinding, actualCode));
     }
     public static int heldCount() { Lease current = lease; return current != null && current.thread == Thread.currentThread() ? current.keys.size() : 0; }
     @com.google.common.annotations.VisibleForTesting

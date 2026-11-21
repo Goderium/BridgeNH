@@ -21,7 +21,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class GuardedRpcSelfTest {
     private static int checks;
     static int run() throws Exception {
-        checks = 0; guards(); menuGuards(); http(); slotHttp(); nativeControlHttp(); return checks;
+        checks = 0; questGuard(); guards(); inputGuard(); menuGuards(); http(); slotHttp(); nativeControlHttp(); return checks;
+    }
+    private static void questGuard() throws Exception {
+        JsonObject id = new JsonObject(); id.addProperty("questId","72a");
+        check(com.Goderium.BridgeNH.common.quest.QuestPlayerActions.questId(id).toString().equals("00000000-0000-0000-0000-00000000072a"), "PACKDATA legacy quest ID");
+        id.addProperty("questId","1-1-1-1-1");
+        try { com.Goderium.BridgeNH.common.quest.QuestPlayerActions.questId(id); throw new AssertionError("accepted noncanonical quest UUID"); }
+        catch (BridgeException expected) { check("invalid_args".equals(expected.code),"reject ambiguous quest IDs"); }
+        GuardedContext step=GuardedContext.parse("quest.step",request()); step.questStarting(snapshot());
+        check("before".equals(step.result(new JsonObject(),snapshot()).context.get("phase").getAsString()),"quest actions hold BEFORE context");
+        JsonObject stale=snapshot(); stale.addProperty("sessionId","old");
+        try {GuardedContext.parse("quest.step",request()).questStarting(stale); throw new AssertionError("accepted stale quest session");}
+        catch (BridgeException expected) {check(true,"stale membership action rejected before submission");}
+        GuardedContext read=GuardedContext.parse("quest.progress",request());
+        check("after".equals(read.execute(GuardedRpcSelfTest::snapshot,JsonObject::new).context.get("phase").getAsString()),"quest progress uses AFTER context");
+        check(RequestRegistry.readOnly("quest.progress") && !RequestRegistry.readOnly("quest.step"),"quest steps retain mutation-grade request handling");
     }
     private static JsonObject request() {
         JsonObject value = new JsonObject(); value.addProperty("version", 1); value.addProperty("expectedSessionId", "session");
@@ -33,6 +48,29 @@ final class GuardedRpcSelfTest {
         JsonObject background = new JsonObject(); background.addProperty("enabled", true); background.addProperty("helperInstalled", true); background.addProperty("pauseOnLostFocus", false); value.add("background", background);
         JsonObject player = new JsonObject(); player.addProperty("x", 1.5); player.addProperty("feetY", 2); player.addProperty("z", 3.5); player.addProperty("flying", true); value.add("player", player); return value;
     }
+    private static void inputGuard() throws Exception {
+        JsonObject request = request();
+        request.addProperty("expectedDimension", 0);
+        request.addProperty("requireIdleInput", true);
+        JsonObject frame = snapshot();
+        frame.getAsJsonObject("world").addProperty("dimension", 0);
+        JsonObject input = new JsonObject();
+        frame.add("inputTask", input);
+        AtomicInteger actions = new AtomicInteger();
+        for (String status : Arrays.asList("active", "unknown", "idle")) {
+            input.addProperty("status", status);
+            GuardedContext guard = GuardedContext.parse("player.hotbar", request);
+            try {
+                guard.execute(() -> frame, () -> { actions.incrementAndGet(); return new JsonObject(); });
+                check(status.equals("idle"), "Only an idle native input owner can dispatch a chain action");
+            } catch (BridgeException refused) {
+                check(!status.equals("idle") && !guard.outcomeUnknown() && actions.get() == 0,
+                        "Input ownership is checked before an action can run");
+            }
+        }
+        check(actions.get() == 1, "Exactly one idle action was dispatched");
+    }
+
     private static void guards() throws Exception {
         for (String field : Arrays.asList("sessionId", "profile", "world", "background")) {
             JsonObject wrong = snapshot();

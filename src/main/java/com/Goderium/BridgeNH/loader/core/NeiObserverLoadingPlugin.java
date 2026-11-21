@@ -24,6 +24,13 @@ public final class NeiObserverLoadingPlugin implements IFMLLoadingPlugin, IEarly
     @Override public List<String> getMixins(Set<String> loadedCoreMods) {
         if (!FMLLaunchHandler.side().isClient()) return Collections.<String>emptyList();
         List<String> mixins = new ArrayList<String>(Arrays.asList("NeiFontRendererMixin", "GuiPointerEntityRendererMixin", "GuiPointerGuiDrawMixin", "NeiBlockGeometryMixin", "NeiTessellatorGeometryMixin", "NeiTileGeometryMixin", "OwnedLogicalKeyBindingMixin", "OwnedAttackMinecraftMixin", "WorldWheelEventMixin", "LoadingScreenQueueMixin", "ActivityChatMixin", "ActivityGuiInputMixin", "ActivitySlotClickMixin"));
+        mixins.add("SurvivalFoodPacketMixin");
+        mixins.add("GuiMouseResetMixin");
+        mixins.add("GuiSlotWheelMixin");
+        mixins.add("GuiSoundSliderResetMixin");
+        mixins.add("ModularGuiDrawMixin");
+        mixins.add("GuiMouseTextFocusMixin");
+        mixins.add("GuiContainerMouseResetMixin");
         ClassLoader loader = getClass().getClassLoader();
         if (loader.getResource("com/prupe/mcpatcher/ctm/CTMUtils.class") != null) mixins.add("NeiCtmGeometryMixin");
         if (loader.getResource("com/gtnewhorizons/angelica/rendering/tesr/TesrBatchRenderer.class") != null) mixins.add("NeiTesrGeometryMixin");

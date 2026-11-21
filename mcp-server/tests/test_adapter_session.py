@@ -152,4 +152,6 @@ async def test_actual_mcp_initialize_and_fallback_ready_share_fixed_instructions
             initialized = await session.initialize()
             assert initialized.instructions == adapter_session.startup_metadata(runtime)["instructions"] == AGENT_INSTRUCTIONS
             assert "mcb_health once" in initialized.instructions and "built-in acceptance" in initialized.instructions
+            assert "Virtual mouse only for uncovered GUI gestures or pointer tests" in initialized.instructions
+            assert "immediately report the error to the user and mcb_run_log" in initialized.instructions
     finally: await client.aclose()

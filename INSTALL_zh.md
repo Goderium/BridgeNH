@@ -60,6 +60,10 @@ Python 对应 `--prism-root`、`--instance-name`。旧 `-Instance '<full instanc
 
 安装检查/完成 JSON 的 `agentGuide` 提供源文件和 `mcb_help({"topic":"workspace"})` 入口，固定资源为 `minecraft-codex-bridge://agent-guides/workspace`。删除解压目录后，指南仍可从已安装 Python 包离线读取，无需游戏会话或令牌。
 
+## Codex 上下文压缩指示
+
+将[钩子配置](docs/codex-compaction-hooks.json)中的条目合并到 `~/.codex/hooks.json` 的 `hooks` 对象，将 `server` 设为 Codex MCP 设置中的 BridgeNH 服务名。在**设置 → Hooks** 中审核并信任这三项。手动和自动压缩都会调用当前对话已连接的 MCP 服务。
+
 ## 配置位置与对话绑定
 
 | 安装方式 | 配置 | Python 环境 |
@@ -104,7 +108,7 @@ python -m build --outdir build/dist mcp-server
 python scripts/prepare_release.py
 ```
 
-运行 JAR 位于 `build/libs/BridgeNH-<version>.jar`，发布产物和校验和位于 `build/dist/`。构建后可用 `install.ps1 -Scope source` 配置开发安装。
+Gradle 生成 `build/libs/BridgeNH-<基础版本>-<分支>[.<提交数>]+<短哈希>[-dirty].jar`。提交数从最近的发布标签起算，为零时省略。Git 短哈希取 10 位。缺少 Git 元数据的源码快照使用 `<基础版本>-source`。当前提交带有 `v<基础版本>` 标签且工作树干净时，Gradle 生成 `BridgeNH-<基础版本>.jar`。发布 CI 使用 `-PreleaseTag=v<基础版本>` 校验该条件。安装 ZIP 沿用模组构建版本，产物和 SHA-256 校验和位于 `build/dist/`。构建后可用 `install.ps1 -Scope source` 配置开发安装。
 
 同步维护 gradle.properties 的 modVersion 和 Python `_version.py` 的版本。发布验证拒绝版本/tag 不匹配。Actions 构建检查 push/PR；匹配的 `v<version>` tag 还会创建包含 JAR、Windows ZIP、Python 分发和校验和的 GitHub Release；预发布版本标为 prerelease。
 

@@ -26,6 +26,11 @@ public final class OperationPolicySelfTest {
         try {
             OperationPolicies p = new OperationPolicies(); p.initialize(file); p.bind("sp:actual-folder", "renamable title");
             check("survival".equals(p.selected().get("mode").getAsString()));
+            OperationPolicyRules.check("survival.food", new JsonObject(), p, false, false, false); checks++;
+            denied(() -> OperationPolicyRules.check("survival.food", new JsonObject(), p, true, true, true), "policy_denied");
+            p.update(json("{readOnly:true}"));
+            denied(() -> OperationPolicyRules.check("survival.food", new JsonObject(), p, false, false, false), "policy_denied");
+            p.update(json("{readOnly:false}"));
             p.update(json("{mode:'survival_efficient',movement:'path'}"));
             OperationPolicyRules.check("machine.inspect", new JsonObject(), p, true, false, false); checks++;
             denied(() -> OperationPolicyRules.check("machine.inspect", new JsonObject(), p, false, false, false), "policy_denied");
@@ -38,6 +43,7 @@ public final class OperationPolicySelfTest {
             OperationPolicyRules.check("player.look", new JsonObject(), p, true, true, true); checks++;
             p.update(json("{readOnly:false}"));
             denied(() -> OperationPolicyRules.check("chat.send", json("{message:'/give @p stone'}"), p, false, true, false), "policy_denied");
+            OperationPolicyRules.check("survival.food", new JsonObject(), p, true, false, true); checks++;
             denied(() -> OperationPolicyRules.check("dev.teleport", new JsonObject(), p, true, true, false), "policy_denied");
             check("ability_flight".equals(OperationPolicyRules.execution("tp", true, false)));
             check("walking".equals(OperationPolicyRules.execution("tp", false, false)));
@@ -50,6 +56,10 @@ public final class OperationPolicySelfTest {
             java.lang.reflect.Field operations = BridgeCapabilities.class.getDeclaredField("OPERATIONS");
             operations.setAccessible(true);
             for (String operation : (String[]) operations.get(null)) {
+                if ("survival.food".equals(operation)) {
+                    denied(() -> OperationPolicyRules.check(operation, new JsonObject(), p, true, true, true), "policy_denied");
+                    continue;
+                }
                 if ("qa.cancel".equals(operation)) continue;
                 OperationPolicyRules.check(operation, new JsonObject(), p, true, true, true); checks++;
             }

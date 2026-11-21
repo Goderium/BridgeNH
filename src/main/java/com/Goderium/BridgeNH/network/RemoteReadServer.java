@@ -31,6 +31,8 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
+import com.Goderium.BridgeNH.client.navigation.RemoteGroundRoute;
+import com.Goderium.BridgeNH.client.navigation.WalkingPathPlanner;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
@@ -44,6 +46,8 @@ public final class RemoteReadServer {
     private final ArrayBlockingQueue<Work> queue=new ArrayBlockingQueue<Work>(64);
     private final Map<NetHandlerPlayServer,Integer> inflight=new IdentityHashMap<NetHandlerPlayServer,Integer>();
     private final Map<NetHandlerPlayServer,Session> sessions=new IdentityHashMap<NetHandlerPlayServer,Session>();
+    // Identifies this loaded server even when a LAN address is reused by another world.
+    private String serverRunId = UUID.randomUUID().toString();
     private long tick;
     private java.util.concurrent.ThreadPoolExecutor logExecutor;
     synchronized void enqueue(JsonObject request,NetHandlerPlayServer handler) {
@@ -52,6 +56,7 @@ public final class RemoteReadServer {
         if(queue.offer(new Work(request,handler))) inflight.put(handler,inflight.getOrDefault(handler,0)+1);
     }
     public synchronized void reset() {
+        serverRunId = UUID.randomUUID().toString();
         for (Work work : queue) if (work.logRead != null) work.logRead.cancel(true);
         queue.clear(); inflight.clear(); sessions.clear(); RemoteReadNetwork.requests.clear(); tick=0;
         if (logExecutor != null) { logExecutor.shutdownNow(); logExecutor = null; }
@@ -82,9 +87,10 @@ public final class RemoteReadServer {
                     RemoteReadProtocol.keys(work.request.getAsJsonObject("args"));
                     Session session=new Session(player,work.request.get("nonce").getAsString()); sessions.put(work.handler,session);
                     JsonObject data=new JsonObject(); data.addProperty("connectionId",session.id); data.addProperty("playerUuid",session.playerId);
+                    data.addProperty("serverRunId", serverRunId);
                     data.addProperty("dimension",player.dimension); data.addProperty("operatorReads",player.canCommandSenderUseCommand(2,"codexbridge"));
                     data.addProperty("computationSide","local_client"); data.addProperty("mutationsSupported",false);
-                    data.addProperty("guardedObservationVersion",1); data.addProperty("guiNativeWaitVersion",1);
+                    data.addProperty("walkArrivalVersion",1); data.addProperty("groundWalkVersion",1); data.addProperty("spatialObservationVersion",1); data.addProperty("guardedObservationVersion",1); data.addProperty("guiNativeWaitVersion",1);
                     data.addProperty("qaInstalled",cpw.mods.fml.common.Loader.isModLoaded("horizonqa"));
                     data.addProperty("qaMutationsSupported",player.canCommandSenderUseCommand(2,"codexbridge") && cpw.mods.fml.common.Loader.isModLoaded("horizonqa"));
                     net.minecraft.server.MinecraftServer server=net.minecraft.server.MinecraftServer.getServer();
@@ -99,6 +105,18 @@ public final class RemoteReadServer {
                 if(work.session==null) work.session=session;
                 if(work.session!=session) throw new BridgeException("stale_world","Remote read connection epoch changed.");
                 JsonObject args=work.request.getAsJsonObject("args");
+                if (com.Goderium.BridgeNH.common.inventory.SurvivalPickupLedger.OPERATION.equals(operation)) {
+                    complete(work,com.Goderium.BridgeNH.common.inventory.SurvivalPickupLedger.observe(player,args),null); continue;
+                }
+                if (com.Goderium.BridgeNH.common.survival.SurvivalStorage.handles(operation)) {
+                    complete(work,com.Goderium.BridgeNH.common.survival.SurvivalStorage.run(operation,args,player),null); continue;
+                }
+                if (com.Goderium.BridgeNH.common.quest.QuestPlayerActions.handles(operation)) {
+                    if ("quest.progress".equals(operation)) RemoteReadProtocol.keys(args,"questId");
+                    else RemoteReadProtocol.keys(args,"questId","action","taskId","partyConfirmation","worldFolder","dimension");
+                    complete(work,com.Goderium.BridgeNH.common.quest.QuestPlayerActions.run(operation,args,player),null);
+                    continue;
+                }
                 if ("logs".equals(operation)) {
                     if (work.logRead == null) {
                         ServerLogReader.validate(args);
@@ -156,10 +174,34 @@ public final class RemoteReadServer {
                 } else if(RemoteReadProtocol.OBSERVATIONS.contains(operation)) {
                     if(args.has("dimension") && args.get("dimension").getAsInt()!=player.dimension) throw new BridgeException("stale_world","Observation dimension differs from the current player.");
                     JsonObject data;
-                    if("world.scan".equals(operation)) {
+                    if ("world.walk_plan".equals(operation)) {
+                        if (work.walk == null) work.walk = new RemoteGroundRoute(player,args,player.theItemInWorldManager.getBlockReachDistance());
+                        data = work.walk.advance(player,deadline);
+                        if (data == null) {
+                            if (!queue.offer(work)) throw new BridgeException("busy","Server route search queue is full.");
+                            continue;
+                        }
+                    } else if ("world.walk_arrival".equals(operation)) {
+                        data=RemoteGroundRoute.arrival(player,args,player.theItemInWorldManager.getBlockReachDistance());
+                        long nativeTick=player.worldObj.getTotalWorldTime();
+                        WalkingPathPlanner.Point feet=RemoteGroundRoute.feet(player);
+                        boolean reached=data.get("reached").getAsBoolean();
+                        boolean stable=reached && work.arrivalFeet!=null && nativeTick>work.arrivalTick && feet.distance(work.arrivalFeet)<=.03;
+                        work.arrivalSamples++;
+                        if (!stable && work.arrivalSamples<8) {
+                            work.arrivalFeet=reached ? feet : null; work.arrivalTick=nativeTick;
+                            if (!queue.offer(work)) throw new BridgeException("busy","Arrival observation queue is full.");
+                            continue;
+                        }
+                        data.addProperty("settled",stable); data.addProperty("samples",work.arrivalSamples);
+                    } else if ("world.walk_probe".equals(operation)) {
+                        data = RemoteGroundRoute.probe(player,args,player.theItemInWorldManager.getBlockReachDistance(),deadline);
+                    } else if("world.scan".equals(operation)) {
                         work.scanControl=new GameQueue.Control();
                         data=session.scans.page(new WorldScan.MinecraftAccess(player.worldObj,player),args,session.scanSettings,0,
                                 new int[]{(int)Math.floor(player.posX),(int)Math.floor(player.boundingBox.minY),(int)Math.floor(player.posZ)},work.scanControl);
+                    } else if ("world.spatial".equals(operation)) {
+                        data = WorldObservationsAdapter.spatial(player.worldObj, player, args);
                     } else if("world.tiles".equals(operation)) data=DeveloperMachineTools.tiles(player.worldObj,args);
                     else if("world.entities".equals(operation)) data=WorldObservationsAdapter.entities(player.worldObj,player,args,session.scanSettings);
                     else if ("machine.inspect".equals(operation)) {
@@ -187,6 +229,8 @@ public final class RemoteReadServer {
                 } else if("self".equals(operation)) {
                     RemoteReadProtocol.keys(args,"includeInventory");
                     JsonObject data=pose(player);
+                    data.addProperty("food",player.getFoodStats().getFoodLevel());
+                    data.addProperty("foodSaturation",player.getFoodStats().getSaturationLevel());
                     data.addProperty("operatorReads",player.canCommandSenderUseCommand(2,"codexbridge"));
                     if(RemoteReadProtocol.booleanArg(args,"includeInventory")) data.add("inventory",JsonData.inventory(player.inventory));
                     complete(work,data,null);
@@ -292,6 +336,10 @@ public final class RemoteReadServer {
     private static final class Work {
         final JsonObject request; final NetHandlerPlayServer handler; final long created=System.nanoTime();
         final JsonArray blocks=new JsonArray(); JsonArray positions; Session session; int next; long firstTick;
+        RemoteGroundRoute walk;
+        long arrivalTick=-1;
+        int arrivalSamples;
+        WalkingPathPlanner.Point arrivalFeet;
         JsonObject qaArgs; GameQueue.Control scanControl; java.util.concurrent.CompletableFuture<?> completion; long waitStarted;
         java.util.concurrent.Future<JsonObject> logRead;
         Work(JsonObject request,NetHandlerPlayServer handler) { this.request=request; this.handler=handler; }

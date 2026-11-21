@@ -42,7 +42,7 @@ status/start/stop/私密回复的普通返回也省略完整绑定编号，lastD
 
 在目标 Codex 聊天中调用 `mcb_dialogue {"action":"start"}`。工具绑定当前 `CODEX_THREAD_ID` 和选定的客户端实例；服务器同一时间只允许一个绑定。开启期间，具有发送权限的已登录玩家可发送明确的 `/mcb say` 或 `/mcb steer` 指令。
 
-`mcb_dialogue {"action":"status"}` 检查中继状态、启动时探测的 `hostCapabilities`，以及最近一次精简 `lastDelivery`。原生通道可用时报告 `steer: true`，`steerTransport: desktop-ipc`；不可用时报告 `steer: false`，`steerReason: DIALOGUE_STEER_UNAVAILABLE`，普通消息仍可使用。每次原生提交都重新确认当前聊天的拥有者。`{"action":"stop"}` 撤销绑定。收到玩家消息后，Agent 调用:
+`mcb_dialogue {"action":"status"}` 检查中继状态、`hostCapabilities` 以及最近一次精简 `lastDelivery`。原生通道可用时报告 `steer: true`，`steerTransport: desktop-ipc`；不可用时报告 `steer: false`，`steerReason: DIALOGUE_STEER_UNAVAILABLE`，普通消息仍可使用。每次原生提交都重新确认当前聊天的拥有者。`{"action":"stop"}` 请求在本机停止中继，原连接可用时同时释放服务器租约。收到玩家消息后，Agent 调用:
 
 ```json
 {"action":"reply","replyTo":"0123456789","text":"收到，已检查输出总线。"}
@@ -82,7 +82,21 @@ python -m minecraft_codex_bridge.dialogue stop
 
 MCP 侧只增加一个 `mcb_dialogue` 工具。中继是 MCB 的辅助进程，每次轮询完成后等待 1 秒；空队列不查询 Codex。模组复用已有 Forge 网络通道、身份校验、OP 校验和服务器 tick 队列。新服务器指令不需要 Mixin。
 
-辅助进程由实例级 OS 锁防止重复启动，运行状态存放在本机 `LOCALAPPDATA/MinecraftCodexBridge/dialogue/`，不含游戏访问令牌或玩家文本。兼容后端热重载不会重新提交消息。完整 MCP 连接关闭可能由宿主清理整个进程组；这时服务器租约最多 60 秒后过期。客户端/服务器或 Codex 重启后，需要重新开启绑定；不会自动连接其他聊天/存档，也不会自动恢复未完成玩家任务。修改中继自身代码后用 stop/start 应用，无须重启 Codex。
+辅助进程由实例级 OS 锁防止重复启动，运行状态存放在本机 `LOCALAPPDATA/MinecraftCodexBridge/dialogue/`，不含游戏访问令牌或玩家文本。兼容后端热重载保留绑定。修改中继代码后使用 stop/start 应用。
+
+### 重连与辅助进程诊断
+
+世界切换或短暂断线后，`mcb_dialogue {"action":"status"}` 可能显示 `reconnecting`。请使用原游戏账号回到原服务器。辅助进程最多等待 60 秒，并核对已绑定的客户端会话、服务器确认的账号和服务器运行标识。新版服务器在换维度或重新登录后仍通过握手返回同一 `serverRunId`。旧版服务器只允许沿用原连接编号。辅助进程确认原本机聊天仍可用，并向服务器邮箱核对原租约后恢复轮询，只提交仍在该租约中排队的消息。待状态恢复为 `ready` 后可以回复。
+
+在原聊天调用 `mcb_dialogue {"action":"stop"}` 即可在本机取消，游戏离线时同样有效。再次查询状态可确认是否已停止。正在提交的消息可能结果不确定。无法主动关闭的租约从最后一次续租起最多保留 60 秒。新前端绑定不能通过已有辅助进程回复，但原聊天明确选回原实例后可以停止自己的辅助进程。
+
+| 状态或诊断 | 处理方式 |
+| --- | --- |
+| `DIALOGUE_TARGET_CHANGED`、`DIALOGUE_LEASE_LOST` 或 `DIALOGUE_RECONNECT_TIMEOUT` | 用 `mcb_connection` 和 `mcb_health` 核对目标实例、账号和服务器，然后对该目标显式调用 `mcb_dialogue {"action":"start"}`。服务器重启、局域网改开另一个存档或租约过期后都需要重新开启。 |
+| `DIALOGUE_HELPER_EXITED` | 实例锁已释放。打开原聊天，核对绑定并在该聊天中调用 start。完整关闭前端可能导致辅助进程退出。原服务器返回 `busy` 时，等待租约到期或由当前拥有者停止中继。 |
+| `unresponsive` | 辅助进程仍持有实例锁，但心跳已过期。请求 stop 并检查状态，再启动辅助进程。 |
+| `app_tools_pipe_missing`、`app_tools_request_failed` 或 `callerHost.appToolsPipeConfigured=false` | 从原桌面聊天执行 start。重新连接该聊天的 BridgeNH MCP 前端，使其取得本聊天的 App Tools 管道，再用 `mcb_connection` 检查绑定，按需显式绑定目标实例。调用端缺少管道时，已运行的辅助进程仍可能正常。 |
+| `bound_chat_not_visible` 或 `app_tools_catalog_incomplete` | 打开或置顶原聊天。确认前端同时提供 `list_threads` 和 `send_message_to_thread` 后再启动。 |
 
 ## 边界
 
@@ -92,7 +106,7 @@ MCP 侧只增加一个 `mcb_dialogue` 工具。中继是 MCB 的辅助进程，�
 - 当前 App Tools 不提供 "仅在预期空闲状态提交" 的原子参数。普通消息按最近一次宿主状态选择提交；如果桌面用户恰好同时启动新任务，宿主处理方式取决于自身的消息规则。同一批次的普通消息启动新任务，不会使原本空闲时收到的引导自动转向该新任务。
 - 原生 IPC 的目标是桌面拥有者处理请求时的活动回合。`expectedTurnId` 由拥有者提供，不是 MCB 在较早轮询时固定的编号；不承诺锁定玩家发送瞬间的回合。原生请求不会在空闲时自动创建新回合。超时、断线、陌生错误或回执身份不符按不确定处理，不重试、不回退到普通发送入口。
 - 宿主需在当前本机聊天列表（最近 50 条或置顶）中识别目标；接口不支持、聊天不可见或权限变化时明确停止，不挑选替代聊天。该本机通道属于已安装桌面版的集成协议，升级后需要重新验证。
-- 原生 IPC 是桌面内部的版本化集成协议，不是公开稳定 API。分别记录实际桌面版与内置 app-server 版本，不能用 PATH 中另装的 CLI 版本代替。 当前只支持已验证的 Windows 通道，升级后应重新验证协议。
+- 引导活动回合使用 Windows 桌面的内部 IPC 协议。排查兼容性时记录实际桌面版及其内置 app-server 版本，升级后核对协议。PATH 中另装的 CLI 有独立的版本号。
 - 验收原生引导时，要证明消息在原活动回合结束前进入，并有匹配的原生 turnId 回执；仅“消息送达”不足以证明引导。集成服务器与独立服务器、不同玩家场景分别记录，不互相替代。
 
 官方参考：[App Server 输入与引导](https://learn.chatgpt.com/docs/app-server)。本机引导经桌面 IPC 的拥有者调用该原生接口，未建立额外 app-server WebSocket。

@@ -45,14 +45,16 @@ public final class AgentDialogueCommand extends CommandBase {
             MAILBOX.expire(System.currentTimeMillis(), RECEIPTS);
             String mode = args.length == 0 ? "help" : args[0].toLowerCase(Locale.ROOT);
             if ("whoami".equals(mode) && args.length == 1) {
-                tell(sender, console ? "[MCB] 服务器后台: 全部权限" : "[MCB] " + PERMISSIONS.label(PERMISSIONS.effective(uuid, MAILBOX.owns(uuid)))
-                        + ("agent".equals(PERMISSIONS.assigned(uuid)) && !MAILBOX.owns(uuid) ? " (AGENT 账号尚未连接)" : "")
-                        + "; debug=" + (PERMISSIONS.debugEnabled(uuid, MAILBOX.owns(uuid)) ? "on" : "off"));
+                boolean bound = MAILBOX.owns(uuid);
+                tell(sender, console ? "[MCB] Server console, full permissions / 服务器后台，全部权限" : "[MCB] " + PERMISSIONS.label(PERMISSIONS.effective(uuid, bound))
+                        + " " + PERMISSIONS.identity(uuid, bound)
+                        + ("agent".equals(PERMISSIONS.assigned(uuid)) && !bound ? " (dialogue unbound / 对话未绑定)" : "")
+                        + " debug=" + (PERMISSIONS.debugEnabled(uuid, bound) ? "on" : "off"));
             } else if ("group".equals(mode)) {
                 PERMISSIONS.require(uuid, MAILBOX.owns(uuid), console, "manage");
                 if (args.length == 3 && "get".equalsIgnoreCase(args[1])) {
                     String target = target(args[2]);
-                    tell(sender, "[MCB] " + args[2] + ": " + PERMISSIONS.assigned(target) + "; 当前=" + PERMISSIONS.effective(target, MAILBOX.owns(target)));
+                    tell(sender, "[MCB] " + args[2] + " " + PERMISSIONS.identity(target, MAILBOX.owns(target)));
                 } else if (args.length == 4 && "set".equalsIgnoreCase(args[1])) {
                     String target = target(args[2]), group = AgentPermissions.groupId(args[3]);
                     PERMISSIONS.setGroup(target, group);

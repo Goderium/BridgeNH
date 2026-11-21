@@ -130,7 +130,10 @@ public class GameQueue {
     public static class Control {
         private volatile Runnable executionGuard;
         @com.google.common.annotations.VisibleForTesting
-        public void guardExecution(Runnable guard) { executionGuard = guard; }
+        public synchronized void guardExecution(Runnable guard) {
+            Runnable previous = executionGuard;
+            executionGuard = previous == null ? guard : () -> { previous.run(); guard.run(); };
+        }
         void checkExecution() { Runnable guard = executionGuard; if (guard != null) guard.run(); }
         private boolean started;
         private boolean cancelled;

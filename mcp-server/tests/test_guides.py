@@ -33,7 +33,7 @@ async def test_help_returns_markdown_and_applicability_without_game(local_guides
     assert not result.isError
     data = result.structuredContent["data"]
     assert data["topic"] == topic
-    assert data["source"] == f"mcp-server/src/minecraft_codex_bridge/guides/{topic}.md"
+    assert data["source"] == f"mcp-server/src/minecraft_codex_bridge/guides/{topic}_zh.md"
     assert data["markdown"].startswith(f"# {topic}\n")
     assert "中文指南" in data["markdown"]
     assert data["applicability"]["minecraft"] == "1.7.10"
@@ -53,17 +53,18 @@ async def test_help_rejects_arbitrary_paths_and_unknown_topics(local_guides, arg
 
 
 async def test_help_missing_and_invalid_utf8_are_clear_errors(local_guides):
-    (local_guides / "overview.md").unlink()
+    (local_guides / "overview.md").write_text("English reference", encoding="utf-8")
+    (local_guides / guides.GUIDE_FILES["overview"]).unlink()
     missing = await Adapter(NoGameClient()).call_tool("mcb_help", {})
     assert missing.isError and missing.structuredContent["error"]["code"] == "GUIDE_UNAVAILABLE"
-    (local_guides / "overview.md").write_bytes(b"\xff\xfeinvalid")
+    (local_guides / guides.GUIDE_FILES["overview"]).write_bytes(b"\xff\xfeinvalid")
     invalid = await Adapter(NoGameClient()).call_tool("mcb_help", {})
     assert invalid.isError and invalid.structuredContent["error"]["code"] == "GUIDE_ENCODING_ERROR"
 
 
 @pytest.mark.parametrize("content", [b"x" * (guides.MAX_GUIDE_BYTES + 1), b"\t" * 17_000], ids=["raw_limit", "encoded_limit"])
 async def test_help_bounds_raw_read_and_serialized_response(local_guides, content):
-    (local_guides / "overview.md").write_bytes(content)
+    (local_guides / guides.GUIDE_FILES["overview"]).write_bytes(content)
     result = await Adapter(NoGameClient()).call_tool("mcb_help", {})
     assert result.isError and result.structuredContent["error"]["code"] == "GUIDE_TOO_LARGE"
 
@@ -72,7 +73,7 @@ def test_help_refuses_redirected_fixed_path(local_guides, monkeypatch):
     original_resolve = Path.resolve
 
     def redirected(path, **kwargs):
-        if path == local_guides / "overview.md":
+        if path == local_guides / guides.GUIDE_FILES["overview"]:
             return local_guides / "different.md"
         return original_resolve(path, **kwargs)
 
@@ -86,7 +87,7 @@ def test_help_normalizes_virtualized_package_root(tmp_path, monkeypatch):
     alias = tmp_path / "virtual-install" / "minecraft_codex_bridge"
     installed = tmp_path / "actual-install" / "minecraft_codex_bridge"
     (installed / "guides").mkdir(parents=True)
-    (installed / "guides/overview.md").write_text("Packaged guide", encoding="utf-8")
+    (installed / "guides" / guides.GUIDE_FILES["overview"]).write_text("Packaged guide", encoding="utf-8")
     original_resolve = Path.resolve
 
     def virtualized(path, **kwargs):
@@ -124,3 +125,33 @@ def test_bundled_capability_index_covers_every_public_tool_once():
         content = guides._packaged_guides().joinpath(filename).read_text(encoding="utf-8")
         indexed = Counter(re.findall(r"^\| `(mcb_[a-z0-9_]+)` \|", content, re.MULTILINE))
         assert indexed == expected, filename
+
+
+def _json_examples(markdown):
+    examples = []
+    decoder = json.JSONDecoder()
+    for block in re.findall(r"^```json\s*\n(.*?)^```", markdown, re.M | re.S):
+        remaining = block.strip()
+        while remaining:
+            value, end = decoder.raw_decode(remaining)
+            examples.append(value)
+            remaining = remaining[end:].lstrip()
+    return examples
+
+
+@pytest.mark.parametrize("topic", list(guides.GUIDE_FILES))
+def test_bundled_chinese_help_and_english_reference_share_executable_examples(topic):
+    directory = guides._packaged_guides()
+    result = guides.read_help({"topic": topic})
+    primary = directory.joinpath(f"{topic}_zh.md").read_bytes().decode("utf-8-sig")
+    companion = directory.joinpath(f"{topic}.md").read_text(encoding="utf-8")
+    assert result["markdown"] == primary
+    assert re.search(r"[\u4e00-\u9fff]", primary)
+    assert primary != companion
+    # A Windows checkout can use CRLF even when the packaged source uses LF.
+    windows_markdown = primary.replace("\r\n", "\n").replace("\n", "\r\n")
+    assert guides.json_size({**result, "markdown": windows_markdown}) <= guides.MAX_GUIDE_BYTES
+    primary = primary.replace("\r\n", "\n")
+    assert _json_examples(companion) == _json_examples(primary)
+    if topic == "packdata":
+        assert re.findall(r"^python .+$", companion, re.M) == re.findall(r"^python .+$", primary, re.M)

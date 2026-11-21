@@ -6,11 +6,17 @@ import com.Goderium.BridgeNH.util.BridgeException;
 import com.Goderium.BridgeNH.util.JsonData;
 import com.Goderium.BridgeNH.loader.rfb.WindowNativeHooks;
 import com.Goderium.BridgeNH.loader.rfb.WindowFocusScope;
+import com.Goderium.BridgeNH.loader.rfb.InactiveMouseHandoff;
+import com.Goderium.BridgeNH.loader.rfb.MouseReleaseTransformer;
 
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.concurrent.atomic.AtomicReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import net.minecraft.client.Minecraft;
 
 /** Runtime-only window control via lwjgl3ify's owning thread and public SDL API. No OS key injection. */
@@ -67,6 +73,32 @@ public final class ClientWindowControls {
                 result.addProperty("source", "SDL_GetWindowFlags_on_lwjgl3ify_MainThreadExec_and_actual_Display_mode");
             });
             return result;
+        }
+    }
+
+    static void releaseInactiveGrab() {
+        ModContainer backend = Loader.instance().getIndexedModList().get("lwjgl3ify");
+        if (backend == null || !"3.0.42".equals(backend.getVersion()))
+            throw new BridgeException("mouse_handoff_unavailable", "The no-warp mouse handoff requires the verified lwjgl3ify 3.0.42 backend.");
+        try {
+            Api api = new Api();
+            Class<?> mouse = Class.forName("org.lwjglx.input.Mouse", false, ClientWindowControls.class.getClassLoader());
+            Method release = mouse.getMethod(MouseReleaseTransformer.RELEASE);
+            api.main(() -> {
+                try { release.invoke(null); }
+                catch (InvocationTargetException error) {
+                    Throwable cause = error.getCause();
+                    if (cause instanceof InactiveMouseHandoff.Refusal) {
+                        InactiveMouseHandoff.Refusal refusal = (InactiveMouseHandoff.Refusal) cause;
+                        throw new BridgeException(refusal.code, refusal.getMessage());
+                    }
+                    throw new BridgeException("mouse_handoff_unconfirmed", "The native release did not complete: " + cause.getClass().getSimpleName());
+                } catch (IllegalAccessException error) {
+                    throw new BridgeException("mouse_handoff_unavailable", "The no-warp mouse release entry point is inaccessible.");
+                }
+            });
+        } catch (ReflectiveOperationException | LinkageError error) {
+            throw new BridgeException("mouse_handoff_unavailable", "The verified native mouse release entry point is unavailable.");
         }
     }
 

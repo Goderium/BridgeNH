@@ -78,6 +78,19 @@ def operations(state):
     return [call["operation"] for call in state["calls"]]
 
 
+async def test_incomplete_food_receipt_stops_sequence_before_another_use(bridge):
+    adapter, state = bridge
+    state["health_flags"]["operationPolicy"] = {"available": True, "selected": {"readOnly": False, "mode": "full"}}
+    state["data"]["survival.food"] = {"complete": False, "status": "observation_timeout", "useSubmitted": True}
+    args = {"action": "eat", "slot": 1, "registryName": "minecraft:apple", "metadata": 0}
+    result = await adapter.call_tool("mcb_sequence", plan(action("meal", tool="mcb_food", args=args),
+        action("next", tool="mcb_food", args=args)))
+    data = result.structuredContent["data"]
+    assert result.isError and data["error"]["code"] == "ACTION_NOT_CONFIRMED"
+    assert [step["status"] for step in data["steps"]] == ["failed", "not_executed"]
+    assert operations(state).count("survival.food") == 1
+
+
 async def test_dynamic_gui_binding_uses_raw_result_and_takes_over_only_once(bridge):
     adapter, state = bridge
     state["data"]["gui.inspect"] = {"screenId": "actual-screen", "windowId": 7, "slots": [{"slot": 0, "item": None}, {"slot": 91, "item": {"registryName": "mod:item", "nbt": "exact-NBT"}}], "coverage": {"unsupported": False}}

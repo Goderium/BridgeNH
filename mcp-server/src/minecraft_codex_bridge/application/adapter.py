@@ -24,15 +24,31 @@ from .results import _result, screenshot_result, waila_result
 class Adapter:
     def __init__(self, client: BridgeClient):
         self.client = client
+        from ..compaction_cursor import CompactionCursor
+        self.compaction_cursor = CompactionCursor()
         self.workflow_lock = anyio.Lock()
+        from ..action_chain import ActionChain
+        self.action_chain = ActionChain()
         self.ae_order_records = {}
+        self.last_player_handoff = None
         self.knowledge = KnowledgeStore(getattr(getattr(client, "configuration", None), "environ", None))
         self.run_log = RunLog(getattr(client, "configuration", None))
 
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> types.CallToolResult:
+        if name == "mcb_compaction_cursor":
+            # Codex expects only hook output fields; do not attach a game journal or timing envelope.
+            return await self._call_tool(name, arguments)
         knowledge = None
-        with timing_scope() as timing, capability_scope(), capture_scope(name, arguments) as captured:
+        with timing_scope() as timing, capability_scope() as scope, capture_scope(name, arguments) as captured:
             result = await self._call_tool(name, arguments)
+            handoff = scope.get("playerHandoff")
+            previous = self.last_player_handoff
+            if handoff and (previous is None or handoff[0] != previous[0] or handoff[1] > previous[1]):
+                self.last_player_handoff = handoff
+                result.structuredContent = {**result.structuredContent, "playerHandoff": {
+                    "sessionId": handoff[0], "emergencyReleaseCount": handoff[1],
+                    "message": "The player used the emergency release. Normally stop the current input sequence and reassess the task before issuing further controls.",
+                }}
             spec = TOOL_BY_NAME.get(name)
             feedback = explain_feedback(name, result.structuredContent, read_only=spec is None or spec.read_only)
             if feedback is not None:
@@ -110,6 +126,9 @@ class Adapter:
             data = {**data, "movementSafety": flight_guidance(data)}
         if name == "mcb_screenshot":
             return screenshot_result(data)
+        if name == "mcb_food" and data.get("complete") is not True:
+            return _result({"ok": False, "data": data, "error": {"code": "FOOD_UNCONFIRMED",
+                "message": "Inspect the hunger and selected-slot receipt before any further use."}}, error=True)
         if name == "mcb_waila":
             return waila_result(data)
         return _result({"ok": True, "data": data})

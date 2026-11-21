@@ -160,8 +160,9 @@ public final class NeiViewAdapter {
         boolean rendered = NeiRenderedAdapter.requested(args), hover = NeiHoverAdapter.requested(args);
         if ((rendered || hover) && !args.has("contextToken")) {
             context = new Context(screen, sessionId, screenId, signature);
-            context.rendered = NeiTextCapture.latest(screen, NeiRenderCapture.marker(screen));
-            context.hover = NeiHoverCapture.latest(screen, NeiRenderCapture.marker(screen));
+            String marker = NeiRenderCapture.marker(screen);
+            context.rendered = NeiTextCapture.latest(screen, marker);
+            context.hover = NeiHoverCapture.latest(screen, marker);
         } else if (rendered && context.rendered == null)
             context.rendered = NeiTextCapture.latest(screen, NeiRenderCapture.marker(screen));
         else if (hover && context.hover == null) context.hover = NeiHoverCapture.latest(screen, NeiRenderCapture.marker(screen));
@@ -564,7 +565,7 @@ public final class NeiViewAdapter {
             handlers = recipeScreen ? list(field(loader, GUI, screen, "currenthandlers")) : Collections.emptyList();
             refs = recipeScreen ? list(call(loader, GUI, screen, "getRecipeIndices")) : Collections.emptyList();
             handlerIndex = recipeScreen ? ((Number) field(loader, GUI, screen, "recipetype")).intValue() : -1;
-            Object page = recipeScreen ? optionalField(loader, GUI, screen, "page") : null; recipePage = page instanceof Number ? ((Number) page).intValue() : -1;
+            recipePage = recipeScreen ? NeiUiAccess.recipePage(loader, screen) : -1;
             focused = optionalCall(loader, P + "LayoutManager", null, "getInputFocused");
             Object searchField = optionalField(loader, P + "LayoutManager", null, "searchField");
             search.add("widget", widget(searchField, loader));
@@ -581,7 +582,7 @@ public final class NeiViewAdapter {
             if (screen instanceof GuiScreen) result.append(((GuiScreen) screen).width).append('x').append(((GuiScreen) screen).height).append(':');
             if (recipeScreen) {
                 Object selected = call(loader, GUI, screen, "getHandler");
-                result.append(System.identityHashCode(selected)).append(':').append(field(loader, GUI, screen, "recipetype")).append(':').append(optionalField(loader, GUI, screen, "page"));
+                result.append(System.identityHashCode(selected)).append(':').append(field(loader, GUI, screen, "recipetype")).append(':').append(NeiUiAccess.recipePage(loader, screen));
                 List<?> current = list(field(loader, GUI, screen, "currenthandlers")); result.append(':').append(current.size());
                 for (int i = 0; i < Math.min(current.size(), CONTEXT_REFS); i++) result.append(':').append(System.identityHashCode(current.get(i))).append('/').append(call(loader, HANDLER, current.get(i), "numRecipes"));
                 List<?> indices = list(call(loader, GUI, screen, "getRecipeIndices")); result.append(':').append(indices.size());

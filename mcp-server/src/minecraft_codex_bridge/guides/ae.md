@@ -1,8 +1,6 @@
 # GTNH AE2 terminals, patterns and crafting
 
-Agent reference: English; [Chinese companion](ae_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
-
-For Minecraft 1.7.10 / GTNH AE2. Source baselines: AE2 rv3-beta-1073-GTNH, AE2FC 1.5.110-gtnh, NotEnoughEnergistics 1.7.45, NEI 2.8.145-GTNH and InventoryBogoSorter 1.3.54-GTNH. Later sections identify AE2 1080/AE2FC 1.5.113 separately. These source baselines do not establish complete live-test coverage.
+For Minecraft 1.7.10 / GTNH AE2. Source baselines: AE2 rv3-beta-1073-GTNH, AE2FC 1.5.110-gtnh, NotEnoughEnergistics 1.7.45, NEI 2.8.145-GTNH and InventoryBogoSorter 1.3.54-GTNH. Later sections identify AE2 1080/AE2FC 1.5.113 separately.
 
 ## Batch configuration, installation and resumable orders
 
@@ -122,7 +120,7 @@ Crafting patterns represent real table layouts; processing patterns declare mach
 - The referenced extended terminal has32 slots (4x4x2) on its large side and8 (4x2) on its small side, invertible. Old16/4 names do not define capacity. Inversion clears entries beyond the smaller side: choose layout first and verify both pages.
 - Typed IAEStack patterns require compatible interfaces/machines. Encodability is not execution proof; substitution and beSubstitution are distinct and incomplete execution knowledge stays explicit.
 
-AE VirtualMEPhantomSlot widgets expose ae_phantom_slot ghost_drag(source)/phantom_click(button), native filtering and synchronization. Templates grant no items. Reopen or inspect native serialization to confirm configuration. Hovering empty cells can create empty client tags; native GUI resynchronization can restore NBT consistency. Do not globally equate null with empty compounds, or repeat successful placement because a final-item zero-count remnant remains.
+AE VirtualMEPhantomSlot widgets expose ae_phantom_slot ghost_drag(source)/phantom_click(button), native filtering and synchronization. Templates grant no items. Reopen or inspect native serialization to confirm configuration. Hovering over an empty 1k or 64k cell can create an empty client tag. Use `mcb_gui(waitFor={})` to resynchronize the slot, then read its full NBT. Do not globally equate null with empty compounds, or repeat successful placement because a final-item zero-count remnant remains.
 
 Open the correct recipe from the intended terminal, transfer using its supported overlay, then inspect mode, quantities, IO, alternatives and pages. Table recipes belong in crafting terminals, machine processing recipes in compatible patterns. With shiftOverlayRecipe=true, referenced NEE1.7.45 handlers do not override NEI's Shift gate despite a noShift config entry; plain click may show ghosts. Current hints take precedence. Quantity/material modifier-wheel behavior depends on actual settings and cached alternatives.
 
@@ -157,10 +155,8 @@ Verify each ordinary/WCT/AE2FC wireless mode separately. Security-terminal bindi
 
 Scope=requests pages synchronized AE2FC requests/maintainers with positions, slots, typed resources and decimal counts; check online/slotsPending/slotsTruncated. Providers are necessary; stock alone creates no requests. A level emitter quantity is a threshold and batchSize=-1, not stock/batch size. Paging/state transitions do not prove large-network behavior. Referenced direct entry craft-click is unimplemented: reads do not place orders.
 
-## Sources and verification limits
+## Versions and runtime settings
 
-[AE2 rv3-beta-1073-GTNH sources](https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/Applied-Energistics-2-Unofficial/rv3-beta-1073-GTNH/Applied-Energistics-2-Unofficial-rv3-beta-1073-GTNH-sources.jar): AEBaseGui, GuiMEMonitorable/ContainerMEMonitorable, VirtualMEPatternSlot/VirtualMEPhantomSlot, MEGuiTextField/ItemRepo/NEISearchField, GuiPatternTerm/ContainerPatternTerm/GuiPatternTermEx, GuiCraftAmount/PacketCraftRequest/GuiCraftConfirm/GuiCraftingCPU, GuiInterfaceTerminal.
+Versioned source references are listed under [AE2 source references](testing.md#ae2-source-references) in `mcb_help({"topic":"testing"})`.
 
-[NEE1.7.45 sources](https://github.com/GTNewHorizons/NotEnoughEnergistics/tree/1.7.45/src/main/java/com/github/vfyjxf/nee): NEEPatternTerminalHandler, NEECraftingTerminalHandler, GuiEventHandler, GregTech5RecipeProcessor, PacketNEIPatternRecipe, NEECraftingPreviewHandler. [BogoSorter hover search](https://github.com/GTNewHorizons/InventoryBogoSorter/blob/1.3.54-GTNH/src/main/java/com/cleanroommc/bogosorter/compat/ae2/Ae2TerminalSearchAdapter.java#L37). NEI Shift gating: IOverlayHandler, GuiOverlayButton, NEIClientConfig in2.8.145-GTNH.
-
-Source conclusions are not new live verification. Runtime rebinding, probability filtering, all drag paths, conflicts, maximum wireless range/upgrades, pins/item-stream diagnostics and complete substitution execution need environment-specific acceptance. Installed versions alone do not prove availability.
+Use the active client's bindings for modifier keys, virtual-slot dragging and conflicting shortcuts. Check probability filters, wireless range and upgrades, pins, item-stream diagnostics and substitution against the configuration and capabilities of the current network.

@@ -24,6 +24,7 @@ public class BridgeNH {
         try { AgentDialogueCommand.initializePermissions(new java.io.File(event.getModConfigurationDirectory(), "codexbridge/permissions.json").toPath()); }
         catch (BridgeException failure) { org.apache.logging.log4j.LogManager.getLogger("MCB").error(failure.getMessage()); }
         RemoteReadNetwork.initialize();
+        com.Goderium.BridgeNH.common.inventory.SurvivalPickupLedger.install();
         HorizonQaAdapter.preInit(event.getAsmData());
         if (event.getSide().isClient()) ClientBootstrap.start(event);
     }

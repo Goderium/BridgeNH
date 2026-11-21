@@ -858,7 +858,8 @@ def _guard(snapshot: dict[str, Any], session: str, profile: Any, world: str | No
         raise BridgeError("PROFILE_CHANGED", "Access profile changed during the workflow.")
     if world is not None:
         current = snapshot.get("world", {})
-        if not snapshot.get("worldLoaded") or not isinstance(current, dict) or world not in (current.get("worldName"), current.get("worldFolder")):
+        if not snapshot.get("worldLoaded") or not isinstance(current, dict) or world not in (current.get("worldName"), current.get("worldFolder"),
+                (snapshot.get("lifecycleTarget") or {}).get("expectedWorld")):
             raise BridgeError("WORLD_CHANGED", "The expected loaded world does not match the current client.")
     if protection and not _background(snapshot.get("background")):
         raise BridgeError("TAKEOVER_LOST", "Background protection was released during the workflow; the next action was blocked.")
@@ -928,7 +929,7 @@ def _bounded_report(report: dict[str, Any], maximum: int) -> dict[str, Any]:
 
 async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: anyio.Lock, *, observe: bool = False,
                        _discovery: _WorkflowDiscovery | None = None, _require_background: bool = False,
-                       _snapshot_checks: _WorkflowSnapshotChecks | None = None) -> dict[str, Any]:
+                       _snapshot_checks: _WorkflowSnapshotChecks | None = None, _expected_dimension: int | None = None) -> dict[str, Any]:
     start = time.monotonic()
     steps = validate_plan(arguments, observe)
     menu = "menuScreenId" in arguments
@@ -965,6 +966,8 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
 
     def guard_snapshot(snapshot: dict[str, Any], required: bool = protection) -> None:
         _guard(snapshot, session, profile, arguments.get("expectedWorld"), required)
+        if _expected_dimension is not None and (snapshot.get("world") or {}).get("dimension") != _expected_dimension:
+            raise BridgeError("DIMENSION_CHANGED", "Action chain left the original dimension.")
         if menu and (snapshot.get("worldLoaded") is not False or snapshot.get("unloadedMenu") is not True):
             raise BridgeError("MENU_CONTEXT_CHANGED", "The client left its idle unloaded menu; subsequent steps were blocked.")
         if _snapshot_checks is not None and active is not None:
@@ -983,6 +986,13 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
         context = {"version": 1, "expectedSessionId": session, "expectedProfile": profile, "requireBackground": protection} if guarded else None
         if context is not None and arguments.get("expectedWorld") is not None:
             context["expectedWorld"] = arguments["expectedWorld"]
+        if _expected_dimension is not None:
+            if action and context is None:
+                raise BridgeError("CHAIN_NATIVE_GUARD_REQUIRED", "This action lacks a native world/dimension guard.")
+            if context is not None:
+                context["expectedDimension"] = _expected_dimension
+                if action:
+                    context["requireIdleInput"] = True
         if context is not None and menu:
             context["menuOnly"] = True
         if "nativeWait" in args and active is not None:
@@ -997,6 +1007,10 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                     or not isinstance(evidence.get("snapshot"), dict):
                 raise BridgeError("MALFORMED_RESPONSE", "Advertised context RPC omitted its fresh guard; no action is replayed.", outcome_unknown=action)
             guard_snapshot(evidence["snapshot"])
+            if action and _expected_dimension is not None:
+                native_input = evidence["snapshot"].get("inputTask")
+                if not isinstance(native_input, dict) or native_input.get("status") != "idle":
+                    raise BridgeError("MALFORMED_RESPONSE", "The native action omitted its idle input receipt.", outcome_unknown=True)
         if operation == "world.inspect_many" and args.get("includePlayerInventory") is True:
             if not guarded or not protection or not arguments.get("expectedWorld") or profile != "developer":
                 raise BridgeError("INVALID_ARGUMENTS", "Combined inventory reads require a guarded developer world and background protection.")
@@ -1051,7 +1065,7 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
             # They keep fresh context checks and are explicitly non-atomic.
             async with lock if has_actions else nullcontext():
                 if _discovery is None:
-                    if _require_background:
+                    if _require_background and _expected_dimension is None:
                         raise BridgeError("INVALID_ARGUMENTS", "Persistent task protection requires private task discovery.")
                     health = await client.call("bridge.health", {}, expected_credentials=credentials)
                 elif type(_discovery) is _WorkflowDiscovery and type(_require_background) is bool:
@@ -1069,6 +1083,12 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                     raise BridgeError("SESSION_CHANGED", "The expected session does not match current capability discovery.")
                 session, profile = actual_session, health.get("profile")
                 context_reads, context_actions = _context_capabilities(health)
+                if _expected_dimension is not None and has_actions:
+                    rpc = health.get("contextRpc")
+                    versions = [rpc.get(key) for key in ("dimensionGuardVersion", "idleInputGuardVersion")] if isinstance(rpc, dict) else []
+                    guards_supported = len(versions) == 2 and all(type(version) is int and version == 1 for version in versions)
+                    if not guards_supported or any(step["kind"] == "action" and TOOL_BY_NAME[step["tool"]].operation not in context_actions for step in steps):
+                        raise BridgeError("CHAIN_NATIVE_GUARD_REQUIRED", "Every action in the segment requires native world, dimension and input ownership checks.")
                 if menu:
                     menu_version = health.get("contextRpc", {}).get("unloadedMenuVersion")
                     if type(menu_version) is not int or menu_version < 1 or profile not in ("player", "developer"):
@@ -1189,7 +1209,7 @@ async def run_workflow(client: BridgeClient, arguments: dict[str, Any], lock: an
                                 active.update(dispatched=True, requestId=trace.get("request_id"), completion="acknowledged; use a read/wait/assert for server confirmation")
                                 # Stop these native action chains on explicit incomplete receipts. Other
                                 # domain workflows retain their own acceptance contracts.
-                                if (operation.startswith(("gui.", "nei.", "ae.")) or operation in {"player.world_mouse", "inventory.copy_block"}) and (value.get("outcomeUnknown") is True or value.get("partial") is True \
+                                if (operation == "survival.food" and value.get("complete") is not True) or (operation.startswith(("gui.", "nei.", "ae.")) or operation in {"player.world_mouse", "inventory.copy_block"}) and (value.get("outcomeUnknown") is True or value.get("partial") is True \
                                         or isinstance(value.get("status"), str) and value["status"] in {"partial", "failed", "not_confirmed"} \
                                         or value.get("accepted") is False or value.get("localSelectionMatched") is False or value.get("localTextMatchesRequested") is False \
                                         or isinstance(value.get("phantomAction"), dict) and value["phantomAction"].get("accepted") is False):

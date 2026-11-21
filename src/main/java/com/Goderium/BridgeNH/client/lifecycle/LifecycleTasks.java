@@ -72,6 +72,11 @@ public class LifecycleTasks {
         }
     }
 
+    public synchronized void cancelBeforeStart() {
+        if (current != null && ("awaiting_response".equals(current.status) || "scheduled".equals(current.status)))
+            current.fail("manual_override", "The player stopped agent control before the lifecycle action began.", "cancelled");
+    }
+
     public synchronized JsonObject inspect() {
         if (current != null) return current.inspect();
         JsonObject result = new JsonObject();

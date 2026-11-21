@@ -19,6 +19,8 @@ from .dialogue_log import REF
 MAX_FRAME = 8 * 1024 * 1024
 ALLOWED = {"list_threads", "send_message_to_thread"}
 STEER_UNAVAILABLE = "当前 Codex 宿主未提供原生引导入口; 消息未发送, 也未转为普通排队."
+HOST_RECOVERY = ("Open the original chat in the desktop app and reconnect its BridgeNH MCP frontend with its own App Tools pipe. "
+                 "Check mcb_connection and explicitly bind the intended instance if needed, then call mcb_dialogue status before start.")
 
 
 class AppToolsHost:
@@ -34,9 +36,11 @@ class AppToolsHost:
         try:
             self.thread_id = str(uuid.UUID(thread_id))
         except (ValueError, TypeError, AttributeError):
-            raise BridgeError("DIALOGUE_HOST_UNAVAILABLE", "Start dialogue from the intended Codex chat; its thread ID is missing.") from None
+            raise BridgeError("DIALOGUE_HOST_UNAVAILABLE", "Start dialogue from the intended Codex chat with its actual thread ID.",
+                              hostReason="chat_identity_missing", nextStep=HOST_RECOVERY) from None
         if not pipe or os.name == "nt" and not pipe.startswith("\\\\.\\pipe\\codex-app-tools-"):
-            raise BridgeError("DIALOGUE_HOST_UNAVAILABLE", "Codex App Tools pipe is unavailable in this process.")
+            raise BridgeError("DIALOGUE_HOST_UNAVAILABLE", "This process has no usable Codex App Tools pipe.",
+                              hostReason="app_tools_pipe_missing", nextStep=HOST_RECOVERY)
         self.native = DesktopSteering(self.thread_id)
         self.native_ready = False
 
@@ -67,8 +71,10 @@ class AppToolsHost:
                     raise ValueError("Host rejected request")
                 return result["result"]
         except (OSError, TimeoutError, ValueError, KeyError, asyncio.IncompleteReadError):
-            raise BridgeError("DIALOGUE_HOST_UNCERTAIN" if sent and method == "tools/call" else "DIALOGUE_HOST_UNAVAILABLE",
-                              "Codex App Tools request failed; no automatic resend.", sent=sent) from None
+            uncertain = sent and params.get("tool") == "send_message_to_thread"
+            raise BridgeError("DIALOGUE_HOST_UNCERTAIN" if uncertain else "DIALOGUE_HOST_UNAVAILABLE",
+                              "Codex App Tools request failed. Inspect dialogue status before starting again.",
+                              hostReason="app_tools_request_failed", sent=sent, nextStep=HOST_RECOVERY) from None
         finally:
             if writer is not None:
                 writer.close()
@@ -77,7 +83,8 @@ class AppToolsHost:
         catalog = await self._request("tools/list", {"threadStartKind": "all"})
         available = {t["name"] for t in catalog.get("tools", []) if t.get("namespace") == "codex_app"}
         if not ALLOWED <= available:
-            raise BridgeError("DIALOGUE_HOST_UNAVAILABLE", "The host does not expose the required App Tools.")
+            raise BridgeError("DIALOGUE_HOST_UNAVAILABLE", "This frontend lacks the chat listing or messaging tool.",
+                              hostReason="app_tools_catalog_incomplete", nextStep=HOST_RECOVERY)
         await self.status()
         self.native_ready = False
         try:
@@ -112,7 +119,8 @@ class AppToolsHost:
                 if state in {"active", "idle", "notLoaded"}:
                     return state
                 break
-        raise BridgeError("DIALOGUE_THREAD_UNAVAILABLE", "Bound local Codex chat is not available; no other chat was selected.")
+        raise BridgeError("DIALOGUE_THREAD_UNAVAILABLE", "Open or pin the original local chat so the frontend can list it.",
+                          hostReason="bound_chat_not_visible", nextStep=HOST_RECOVERY)
 
     async def send(self, message):
         if message["mode"] == "steer" and not self.native_ready:

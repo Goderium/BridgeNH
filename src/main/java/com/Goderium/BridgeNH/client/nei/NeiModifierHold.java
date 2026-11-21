@@ -29,7 +29,7 @@ public final class NeiModifierHold {
         try { if (clock.getAsLong() >= deadline || !context.getAsBoolean()) clear("expired_or_context_changed"); }
         catch (RuntimeException | LinkageError error) { clear("context_unavailable"); }
     }
-    static void clear(String why) { context = null; thread = null; reason = why; }
+    public static void clear(String why) { context = null; thread = null; reason = why; }
     static JsonObject inspect() {
         tick(); JsonObject out = new JsonObject(); out.addProperty("shiftHeld", context != null);
         out.addProperty("clearReason", reason); out.addProperty("nativeInputEvents", false);

@@ -1,10 +1,6 @@
 # BridgeNH 维护与工具发现指南
 
-[English](maintenance.md) | [简体中文](maintenance_zh.md)
-
-供人工阅读和审核；Agent 使用英文入口，完整规则见[启动模板](workspace_zh.md#可复制的启动提示词)。
-
-`mcb_help({"topic":"maintenance"})` 可离线读取英文指南。先用[能力索引](capabilities_zh.md)选择工具，再查询实时 schema。
+`mcb_help({"topic":"maintenance"})` 可离线读取本指南。先用[能力索引](capabilities_zh.md)选择工具，再查询实时 schema。
 
 ## 哪些修改可以热重载
 
@@ -29,8 +25,6 @@
 6. 分别记录激活、宿主刷新、真实调用和剩余限制。若用了临时验收探针，删除后核对运行文件和目录已恢复；探针不是日常重载的必需前置。
 
 热重启回执丢失或结果不确定时，先读状态。以相同请求 ID 和完全相同参数读取已记录的重启结果，不会再次重启；同 ID 改参数会拒绝。明确拒绝且原因已修正后，新尝试使用新 ID 和最新代数。这项重启结果查询规则不授权重放游戏动作。
-
-**已验证范围：**在启用 `mcp_tool_list_changed` 的 Codex 桌面版 26.1103.7773.0 上，新加入只读工具经热重启出现在当前对话的原生目录并成功调用，后续 worker 热重启又同步移除该工具。前端和绑定保持不变，没有重启 Codex/Minecraft，也没有游戏调用。其他宿主版本仍需观察自身支持情况。
 
 ## 发现与调用当前工具
 
@@ -108,6 +102,24 @@
 
 ## 维护工具时同步帮助
 
-新增或修改工具时，更新[能力索引](capabilities_zh.md)对应行、详细指南及 `_zh.md` 译文。文风、说明范围、共性规则与示例遵循项目的[文档准则](../../../../AGENTS.md#documentation-standards)。保留工具特有前提和验收边界，固定指南主题返回英文。
+新增或修改工具时，更新[能力索引](capabilities_zh.md)对应行、详细指南及两者对应的英文版。文风、说明范围、共性规则与示例遵循项目的[文档准则](../../../../AGENTS.md#documentation-standards)。保留工具特有前提和验收边界。
 
-核对公开索引覆盖当前目录及前端工具，检查本地链接、UTF-8、去敏、离线读取，以及英文指南的 32 KiB 原始/序列化限制，复用相关已有回归。获准更新已安装指南后，热重载当前连接并读取实际新版主题。源码修改、运行目录部署、分发打包和发布是独立阶段，按实际完成范围汇报。
+核对公开索引覆盖当前目录及前端工具，检查本地链接、UTF-8、去敏、离线读取，以及中文指南原文及序列化响应的 32 KiB 上限，复用相关已有回归。获准更新已安装指南后，热重载当前连接并读取实际新版主题。源码修改、运行目录部署、分发打包和发布是独立阶段，按实际完成范围汇报。
+
+## 服务端日志与运行信息
+
+使用 `mcb_server_observe(kind="status",expectedSessionId=...)` 取得已认证的服务端连接及读取能力声明。调用 `logs`、`diagnostics` 和 `mods` 时，提供当前 `expectedSessionId`、`expectedConnectionId` 和 `dimension`。两端均需使用兼容的 BridgeNH 版本；握手声明 `serverLogsVersion=1`、`serverDiagnosticsVersion=1` 和 `serverModsVersion=1`。这些读取要求增强观察策略及实际服务端 OP 2 级权限。玩家权限组不会授予 OP。
+
+| Kind | 参数与结果 |
+| --- | --- |
+| `logs` | `log="latest"`（默认）或 `"fml-server-latest"`；`level="WARN"`（默认）、`"ERROR"` 或 `"ANY"`；可选 `query` 为最多 256 字符、不区分大小写的字面文本；`limit` 为 1..128，默认 128。仅读取服务端进程 `logs/` 目录下的指定文件。未标注级别的堆栈行需使用 `ANY`。 |
+| `diagnostics` | 服务端版本及品牌、玩家及模组数量、JVM 内存及运行时长、已有原生 tick 耗时、有限的已加载世界信息，以及日志读取队列数量。`estimatedTpsIfSustained` 根据执行耗时估算持续负载下的能力，不是实测 TPS。 |
+| `mods` | 已加载 FML 模组的 ID、名称及版本；`offset` 为 0..10000，`limit` 为 1..64，默认 16。`hasMore` 为真时按 `nextOffset` 继续，检查 `byteLimited` 和每行的 `fieldsTruncated`。 |
+
+```json
+{"kind":"logs","expectedSessionId":"<current-session>","expectedConnectionId":"<current-connection>","dimension":0,"log":"latest","level":"WARN","limit":32}
+```
+
+日志读取使用一个后台线程，最多排队 16 项。每次最多读取 64 KiB，返回的 JSON 数据最多 24,000 字节，每行最多 2,048 字符。敏感行在查询匹配前脱敏。文件路径固定，拒绝路径重定向；返回结果前再次核对权限和连接身份。检查 `bytesRead`、`truncated`、`byteLimited`、时间戳及覆盖说明：没有匹配结果不能证明相关内容不存在，日志轮转和并发写入也可能影响读取。
+
+内置服务端与客户端共享日志、JVM 和已加载模组清单；`sharedClientServerLog` 和 `jvm.sharedWithClient` 标识这一范围。独立服务端通过现有 Forge 连接提供自身进程的数据。指定日志文件不存在时返回 `log_unavailable`。`mcb_logs` 仍读取所选客户端的日志。服务端诊断最多检查世界数组的 256 项、返回 64 行，不加载区块、不遍历实体。`samplingMillis` 和 `backgroundReadMillis` 是单次请求的耗时。按需读取，不安装持续监控。

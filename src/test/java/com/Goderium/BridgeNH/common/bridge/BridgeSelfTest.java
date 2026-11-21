@@ -4,6 +4,7 @@ import com.Goderium.BridgeNH.client.control.BackgroundControl;
 import com.Goderium.BridgeNH.client.control.ClientControlCommand;
 import com.Goderium.BridgeNH.client.control.InputDiagnosticsSelfTest;
 import com.Goderium.BridgeNH.client.control.OwnedKeyStateSelfTest;
+import com.Goderium.BridgeNH.config.OperationPolicyRules;
 import com.Goderium.BridgeNH.client.gui.GuiCallbacks;
 import com.Goderium.BridgeNH.client.gui.GuiConfirmationSelfTest;
 import com.Goderium.BridgeNH.client.gui.GuiControlsSelfTest;
@@ -142,6 +143,10 @@ public class BridgeSelfTest {
         checks += StartupScreenRecoverySelfTest.run();
         checks += AeNativeControlsSelfTest.run();
         controlStateTests();
+        emergencyHandoffTests();
+        checks += com.Goderium.BridgeNH.common.inventory.SurvivalPickupSelfTest.run();
+        checks += com.Goderium.BridgeNH.loader.rfb.GuiMouseHandoffSelfTest.run();
+        checks += com.Goderium.BridgeNH.client.gui.ContainerClickHistorySelfTest.run();
         localCommandTests();
         checks += AgentDialogueSelfTest.run();
         checks += PlayerActivityLogSelfTest.run();
@@ -171,6 +176,7 @@ public class BridgeSelfTest {
         checks += NeiGeneratedDiagramSelfTest.run();
         checks += NeiRenderedSelfTest.run();
         checks += TooltipModifiersSelfTest.run();
+        checks += com.Goderium.BridgeNH.client.control.EmergencyKeySelfTest.run();
         checks += com.Goderium.BridgeNH.loader.rfb.WindowFocusSelfTest.run();
         checks += NeiHoverSelfTest.run();
         checks += LogicalGuiPointerSelfTest.run();
@@ -204,6 +210,9 @@ public class BridgeSelfTest {
         checks += CrosshairArrivalSelfTest.run();
         checks += MultipartInteractionSelfTest.run();
         checks += RemoteReadSelfTest.run();
+        checks += com.Goderium.BridgeNH.client.navigation.RemoteGroundRouteSelfTest.run();
+        checks += com.Goderium.BridgeNH.client.survival.FoodEvidenceSelfTest.run();
+        checks += com.Goderium.BridgeNH.common.survival.SurvivalStorageSelfTest.run();
         checks += com.Goderium.BridgeNH.common.diagnostics.ServerDiagnosticsSelfTest.run();
         checks += RemoteQaSelfTest.run();
         checks += GroundedStepSelfTest.run();
@@ -263,6 +272,15 @@ public class BridgeSelfTest {
         tasks.tick();
         check(actions.get() == 1 && "completed".equals(tasks.inspect().get("status").getAsString()) && !tasks.active(), "lifecycle records completion and stays terminal");
 
+        for (boolean acknowledged : new boolean[]{false, true}) {
+            GameQueue.Control stopped = new GameQueue.Control();
+            tasks.schedule("load", "session", stopped, () -> true, actions::incrementAndGet, () -> true);
+            if (acknowledged) tasks.responseFinished(stopped, true);
+            tasks.cancelBeforeStart();
+            tasks.responseFinished(stopped, true);
+            tasks.tick();
+            check(actions.get() == 1 && "cancelled".equals(tasks.inspect().get("status").getAsString()), "manual release cancels a pending lifecycle action");
+        }
         GameQueue.Control lost = new GameQueue.Control();
         tasks.schedule("lost", "session", lost, () -> true, actions::incrementAndGet, () -> true);
         tasks.responseFinished(lost, false);
@@ -445,7 +463,51 @@ public class BridgeSelfTest {
         check(!controls.active(client), "foreign mouse helper disables render pump immediately");
     }
 
+    private static void emergencyHandoffTests() throws Exception {
+        BackgroundControl interlock = new BackgroundControl();
+        ControlAccess handoff = new ControlAccess();
+        net.minecraft.util.MouseHelper manualMouse = handoff.helper;
+        long oldGeneration = interlock.releaseGeneration();
+        GameQueue.Control queued = new GameQueue.Control();
+        queued.guardExecution(() -> interlock.requireGeneration(oldGeneration));
+        queued.guardExecution(() -> {});
+        interlock.change(handoff, "background", true, false, () -> {});
+        AtomicInteger releases = new AtomicInteger();
+        interlock.forceRelease(handoff, releases::incrementAndGet);
+        check(releases.get() == 1 && handoff.helper == manualMouse && handoff.pause && !interlock.active(handoff), "forced handoff restores manual settings");
+        check(handoff.mouseDiscards == 1, "emergency release fences the physical input queue");
+        check(interlock.inspect(handoff).get("emergencyReleaseCount").getAsLong() == oldGeneration + 1, "a release stays visible in the session");
+        expectCode("manual_override", queued::checkExecution);
+        interlock.requireGeneration(oldGeneration + 1);
+        interlock.change(handoff, "background", true, false, () -> {});
+        check(interlock.active(handoff) && interlock.releaseGeneration() == oldGeneration + 1, "a fresh normal takeover succeeds and preserves the release count");
+        expectCode("manual_override", queued::checkExecution);
+        net.minecraft.util.MouseHelper replacement = new net.minecraft.util.MouseHelper();
+        handoff.helper = replacement;
+        interlock.forceRelease(handoff, releases::incrementAndGet);
+        check(handoff.helper == replacement && handoff.pause && !interlock.active(handoff), "forced handoff preserves another mod's replacement mouse helper");
+        JsonObject params = new JsonObject();
+        check(OperationPolicyRules.observesOrReleases("bridge.health", params)
+                && !OperationPolicyRules.observesOrReleases("gui.key", params), "reads can finish across a handoff while queued input is cancelled");
+        params.addProperty("enabled", true);
+        check(!OperationPolicyRules.observesOrReleases("client.background", params), "a takeover requested before the player stop cannot reacquire input");
+        params.addProperty("action", "probe");
+        check(!OperationPolicyRules.observesOrReleases("player.flight_check", params), "an active flight probe is interrupted by player handoff");
+    }
+
     private static void controlStateTests() throws Exception {
+        for (String mode : new String[] {"background", "mouse", "unfocused"}) {
+            BackgroundControl controls = new BackgroundControl();
+            ControlAccess device = new ControlAccess();
+            boolean enabled = "mouse".equals(mode);
+            controls.change(device, "background", true, false, () -> {});
+            controls.change(device, "background", true, false, () -> {});
+            check(device.mouseDiscards == 0, "keeping takeover active leaves queued input alone");
+            controls.change(device, mode, enabled, false, () ->
+                check(device.mouseDiscards == 1 && controls.active(device), "fence runs once before input and control are released"));
+            controls.change(device, mode, enabled, false, () -> {});
+            check(device.mouseDiscards == 1, "repeating the handoff keeps the player's new input");
+        }
         BackgroundControl controls = new BackgroundControl();
         ControlAccess client = new ControlAccess();
         net.minecraft.util.MouseHelper original = client.helper;
@@ -488,6 +550,8 @@ public class BridgeSelfTest {
         check(controls.inspect(client).get("enabled").getAsBoolean(), "pending lifecycle accepts keeping mouse protection on");
         client.grabbed = true;
         expectCode("mouse_grabbed", () -> controls.requireLifecycle(client));
+        check(!controls.inspect(client).get("enabled").getAsBoolean() && controls.inspect(client).get("mouseGrabbed").getAsBoolean(),
+            "a renewed native grab invalidates the protection advertised to automatic actions");
         client.grabbed = false;
         client.pause = true;
         check(!controls.inspect(client).get("enabled").getAsBoolean(), "full mode status detects a pause override broken by external code");
@@ -513,6 +577,28 @@ public class BridgeSelfTest {
         check(grabbed.helper == grabbedMouse && !grabbed.pause, "unfocused-only control does not require native mouse release");
         expectCode("mouse_grabbed", () -> guarded.change(grabbed, "mouse", false, false, () -> { }));
         guarded.change(grabbed, "unfocused", false, false, () -> { });
+        check(grabbed.handoffAttempts == 0, "automatic takeover and manual mode switches never request a native release");
+        expectCode("invalid_args", () -> guarded.change(grabbed, "mouse", true, false, () -> {}, true));
+        expectCode("invalid_args", () -> guarded.change(grabbed, "unfocused", true, false, () -> {}, true));
+        expectCode("invalid_args", () -> guarded.change(grabbed, "background", false, false, () -> {}, true));
+        for (String refusal : new String[] {"mouse_manual_control", "mouse_handoff_unavailable", "mouse_handoff_unconfirmed"}) {
+            grabbed.handoffRefusal = refusal;
+            expectCode(refusal, () -> guarded.change(grabbed, "background", true, false,
+                () -> { throw new AssertionError("must establish handoff before releasing agent input"); }, true));
+            check(grabbed.helper == grabbedMouse && grabbed.pause && grabbed.grabbed, "failed handoff preserves manual settings");
+        }
+        grabbed.handoffRefusal = null;
+        JsonObject handoff = guarded.change(grabbed, "background", true, false, () -> {}, true);
+        check(handoff.get("releasedExistingGrab").getAsBoolean() && !handoff.get("mouseGrabbed").getAsBoolean()
+            && handoff.get("enabled").getAsBoolean(), "an explicitly authorized inactive grab can enter full control");
+        int handoffs = grabbed.handoffAttempts;
+        check(!guarded.change(grabbed, "background", true, false, () -> {}, true).get("releasedExistingGrab").getAsBoolean()
+            && grabbed.handoffAttempts == handoffs, "an already released grab requires no second native handoff");
+        guarded.change(grabbed, "background", false, false, () -> {});
+        grabbed.grabbed = true;
+        JsonObject mouseOnly = guarded.change(grabbed, "mouse", false, false, () -> {}, true);
+        check(mouseOnly.get("helperInstalled").getAsBoolean() && !mouseOnly.get("enabled").getAsBoolean()
+            && grabbed.pause, "mouse-only native handoff preserves the independent pause setting");
 
         ControlAccess failed = new ControlAccess();
         BackgroundControl atomic = new BackgroundControl();
@@ -1213,8 +1299,11 @@ public class BridgeSelfTest {
         net.minecraft.util.MouseHelper helper = new net.minecraft.util.MouseHelper();
         boolean pause = true;
         boolean grabbed;
+        int handoffAttempts;
+        String handoffRefusal;
         boolean failPauseOnce;
         int focusClears;
+        int mouseDiscards;
         public net.minecraft.util.MouseHelper mouse() { return helper; }
         public void mouse(net.minecraft.util.MouseHelper helper) { this.helper = helper; }
         public boolean pause() { return pause; }
@@ -1223,7 +1312,14 @@ public class BridgeSelfTest {
             if (failPauseOnce) { failPauseOnce = false; throw new IllegalStateException("fixture failure after pause write"); }
         }
         public boolean grabbed() { return grabbed; }
+        public void releaseInactiveGrab() {
+            handoffAttempts++;
+            if ("mouse_handoff_unconfirmed".equals(handoffRefusal)) return; // Backend completion without grab readback.
+            if (handoffRefusal != null) throw new BridgeException(handoffRefusal, "fixture refusal");
+            grabbed = false;
+        }
         public void clearFocus() { focusClears++; }
+        public void discardProtectedGuiMouse() { mouseDiscards++; }
     }
 
     private static class CommandSender implements net.minecraft.command.ICommandSender {

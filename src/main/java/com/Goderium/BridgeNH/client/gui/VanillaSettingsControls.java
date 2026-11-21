@@ -19,6 +19,12 @@ public final class VanillaSettingsControls {
     public static final int VERSION = 1;
     private static final String SOUND_SLIDER = "net.minecraft.client.gui.GuiScreenOptionsSounds$Button";
 
+    public static void cancelSliderDrag(GuiButton button) {
+        if (button instanceof GuiOptionSlider) ((GuiOptionSlider) button).dragging = false;
+        else if (button instanceof cpw.mods.fml.client.config.GuiSlider) ((cpw.mods.fml.client.config.GuiSlider) button).dragging = false;
+        else if (button instanceof GuiMouseReset.Slider) ((GuiMouseReset.Slider) button).mcb$cancelSliderDrag();
+    }
+
     static boolean supports(Object widget) {
         return widget instanceof GuiOptionSlider || ExpandedGuiApi.is(widget, SOUND_SLIDER);
     }

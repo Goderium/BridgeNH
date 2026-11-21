@@ -3,6 +3,9 @@ package com.Goderium.BridgeNH.common.bridge;
 import com.Goderium.BridgeNH.util.AdapterAccess;
 
 import com.Goderium.BridgeNH.client.control.BackgroundControl;
+import com.Goderium.BridgeNH.client.control.EmergencyReleaseKey;
+import com.Goderium.BridgeNH.loader.rfb.PhysicalKeyboardEvents;
+import com.Goderium.BridgeNH.client.survival.SurvivalFood;
 import com.Goderium.BridgeNH.client.control.ClientControlCommand;
 import com.Goderium.BridgeNH.client.control.ClientDisplayState;
 import com.Goderium.BridgeNH.client.control.ClientWindowControls;
@@ -18,12 +21,14 @@ import com.Goderium.BridgeNH.client.gui.GuiControlAdapter;
 import com.Goderium.BridgeNH.client.gui.GuiDataAdapter;
 import com.Goderium.BridgeNH.client.gui.GuiObservationWait;
 import com.Goderium.BridgeNH.client.gui.LogicalGuiPointer;
+import com.Goderium.BridgeNH.client.gui.VirtualGuiMouse;
 import com.Goderium.BridgeNH.client.gui.ScreenSemantics;
 import com.Goderium.BridgeNH.client.gui.VanillaSettingsControls;
 import com.Goderium.BridgeNH.client.gui.WailaDataAdapter;
 import com.Goderium.BridgeNH.client.lifecycle.LifecycleTasks;
 import com.Goderium.BridgeNH.client.lifecycle.StartupScreenRecovery;
 import com.Goderium.BridgeNH.client.lifecycle.WorldLifecycle;
+import com.Goderium.BridgeNH.client.survival.SurvivalMining;
 import com.Goderium.BridgeNH.client.navigation.ApproachPlanner;
 import com.Goderium.BridgeNH.client.navigation.CrosshairArrival;
 import com.Goderium.BridgeNH.client.navigation.DeveloperDimensionTravel;
@@ -36,6 +41,9 @@ import com.Goderium.BridgeNH.client.navigation.InteractionNavigationGoal;
 import com.Goderium.BridgeNH.client.navigation.NavigationStartSettle;
 import com.Goderium.BridgeNH.client.navigation.NearbyNavigationGoal;
 import com.Goderium.BridgeNH.client.navigation.PlayerNavigation;
+import com.Goderium.BridgeNH.client.navigation.ClientGroundWalk;
+import com.Goderium.BridgeNH.client.navigation.RemoteGroundRoute;
+import com.Goderium.BridgeNH.client.navigation.RemoteWalkInput;
 import com.Goderium.BridgeNH.client.navigation.SchematicGoal;
 import com.Goderium.BridgeNH.client.navigation.SurvivalFlightPosture;
 import com.Goderium.BridgeNH.client.navigation.TeleportSafety;
@@ -103,6 +111,9 @@ import com.Goderium.BridgeNH.config.ScanSettings;
 import com.Goderium.BridgeNH.config.TeleportPolicy;
 import com.Goderium.BridgeNH.loader.ClientBootstrap;
 import com.Goderium.BridgeNH.network.RemoteGuiWait;
+import com.Goderium.BridgeNH.common.quest.QuestPlayerActions;
+import com.Goderium.BridgeNH.common.survival.SurvivalStorage;
+import com.Goderium.BridgeNH.common.inventory.SurvivalPickupLedger;
 import com.Goderium.BridgeNH.network.RemoteReadClient;
 import com.Goderium.BridgeNH.network.RemoteReadMailbox;
 import com.Goderium.BridgeNH.network.RemoteReadProtocol;
@@ -132,6 +143,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -210,6 +222,44 @@ public class GameBridge {
     private final StartupScreenRecovery startupRecovery = new StartupScreenRecovery();
     private boolean loadingFrameActive;
     private final BackgroundControl background = new BackgroundControl();
+    private EmergencyReleaseKey emergencyKey;
+    private boolean keyboardBound;
+
+    public void bindEmergencyKey(EmergencyReleaseKey key) {
+        emergencyKey = key;
+        boolean installed;
+        try {
+            Keyboard.class.getMethod(com.Goderium.BridgeNH.loader.rfb.EmergencyKeyboardTransformer.MARKER);
+            installed = true;
+        } catch (ReflectiveOperationException | LinkageError absent) {
+            installed = false;
+        }
+        background.configureHotkey(key.name(), installed);
+    }
+
+    private boolean consumeEmergencyKey() {
+        if (!org.lwjgl.opengl.Display.isActive()) {
+            emergencyKey.reset();
+            return false;
+        }
+        return emergencyKey.event(Keyboard.getEventKey(), Keyboard.getEventKeyState(), Keyboard.isRepeatEvent(), this::emergencyRelease);
+    }
+
+    private void emergencyRelease() {
+        Minecraft client = Minecraft.getMinecraft();
+        background.forceRelease(client, () -> {
+            lifecycle.cancelBeforeStart();
+            NeiModifierHold.clear("manual_override");
+            releaseInput();
+            String food = SurvivalFood.activeId();
+            if (food != null) SurvivalFood.cancel(food);
+            nativeWaits.invalidateAll("The player stopped agent control.");
+            aeOrders.invalidateWaits();
+        });
+        VirtualGuiMouse.INSTANCE.bind(client, () -> background.active(client), this::agentBusy);
+        LogicalGuiPointer.clear("manual_override");
+    }
+
     private final ScanSettings scanSettings;
     private final WorldScan clientScans = new WorldScan();
     private final WorldScan serverScans = new WorldScan();
@@ -228,8 +278,13 @@ public class GameBridge {
     private long serverControlSequence;
     private volatile PlayerNavigation.State navigation;
     private String inputTaskId;
+    private SurvivalMining mining;
+    private JsonObject lastMine;
+    private volatile RemoteWalkInput remoteWalk;
     private final FlightCapabilityEvidence flightCapability = new FlightCapabilityEvidence();
     private final GuiObservationWait guiWaits = new GuiObservationWait();
+    private final AtomicInteger visibleNativeWaits = new AtomicInteger();
+
     private final GuiObservationWait navigationStartWaits = new GuiObservationWait();
     private volatile GuiObservationWait.ContainerEvidence guiServerContainer;
     private volatile RuntimeException guiServerContainerFailure;
@@ -254,6 +309,36 @@ public class GameBridge {
     public GameBridge(ScanSettings scanSettings) {
         this.scanSettings = scanSettings == null ? new ScanSettings() : scanSettings;
         WorldObservationsAdapter.configureCache(this.scanSettings);
+    }
+
+    /** Read on the client thread by the virtual cursor. Completed and cancelled jobs release their own state. */
+    private boolean agentBusy() {
+        PlayerNavigation.State route = navigation;
+        RemoteWalkInput walk = remoteWalk;
+        FollowTarget follow = following;
+        return visibleNativeWaits.get() != 0 || guiWaits.observing() || navigationStartWaits.observing() || lifecycle.active()
+                || (route != null && !route.abort) || (walk != null && !walk.aborted) || (follow != null && follow.active)
+                || mining != null || SurvivalFood.activeId() != null || inputTaskId != null;
+    }
+
+    /** Measures the same native wait interval that the client can display. Background mailbox reads stay invisible. */
+    private final class NativeAwait implements AutoCloseable {
+        private final GameQueue.Control control;
+        private final boolean visible;
+        private final long started;
+
+        NativeAwait(GameQueue.Control control, boolean visible) {
+            this.control = control;
+            this.visible = visible;
+            if (visible) visibleNativeWaits.incrementAndGet();
+            started = System.nanoTime();
+        }
+
+        @Override public void close() {
+            long elapsed = System.nanoTime() - started;
+            if (visible) visibleNativeWaits.decrementAndGet();
+            control.recordNativeAwait(elapsed);
+        }
     }
 
     public String runtimeSessionId() { return sessionId; }
@@ -294,7 +379,10 @@ public class GameBridge {
         effective.addProperty("machineRead", policies.permits("machineRead") && authority);
         effective.addProperty("supply", policies.permits("supply") && (creative || tp));
         effective.addProperty("direct", policies.permits("direct") && (serverContext != null && (creative || tp) || RemoteReadClient.INSTANCE.operatorReady()));
-        effective.addProperty("navigationExecutionSupported", serverContext != null);
+        boolean remoteGround = remoteConnection && RemoteReadClient.INSTANCE.supportsGroundWalk() && policies.permits("machineRead");
+        effective.addProperty("remoteGroundWalkVersion",remoteGround ? 1 : 0);
+        effective.addProperty("clientGroundPlanVersion",remoteGround ? 1 : 0);
+        effective.addProperty("navigationExecutionSupported", serverContext != null || remoteGround);
         effective.addProperty("teleportExecutionSupported", serverContext != null);
         effective.addProperty("canTeleport", tp); effective.addProperty("canFly", fly);
         effective.addProperty("movement", "tp".equals(chosen) && tp ? "tp" : "path");
@@ -346,12 +434,22 @@ public class GameBridge {
 
     /** Executed before dispatch for EVERY authenticated native call, including composed-tool primitives. */
     public JsonObject prepareOperation(String operation, JsonObject supplied, GameQueue.Control control) throws ExecutionException, InterruptedException {
+        return prepareOperation(operation, supplied, control, background.releaseGeneration());
+    }
+
+    public JsonObject prepareOperation(String operation, JsonObject supplied, GameQueue.Control control, long expectedReleaseCount)
+            throws ExecutionException, InterruptedException {
+        if (!OperationPolicyRules.observesOrReleases(operation, supplied))
+            control.guardExecution(() -> background.requireGeneration(expectedReleaseCount));
         return clientQueue.await(clientQueue.submit(() -> {
             Minecraft client = Minecraft.getMinecraft(); refreshServerContext(client);
             JsonObject args = supplied.deepCopy();
+            if (remoteWalk!=null && !remoteWalk.aborted && !RequestRegistry.readOnly(operation) && !OperationPolicyRules.control(operation))
+                throw new BridgeException("busy","Stop the active remote walk before issuing another control action.");
             boolean creative = client.thePlayer != null && client.thePlayer.capabilities.isCreativeMode;
             OperationPolicyRules.check(operation, args, policies, serverContext != null || RemoteReadClient.INSTANCE.operatorReady(), creative, canTeleport(client) || RemoteReadClient.INSTANCE.operatorReady());
-            if (("gui.key".equals(operation) || "gui.click".equals(operation) || "gui.widget_action".equals(operation)) && client.currentScreen != null
+            requireAvailableGuiInput(operation);
+            if ((VirtualGuiMouse.OPERATION.equals(operation) || "gui.key".equals(operation) || "gui.click".equals(operation) || "gui.widget_action".equals(operation)) && client.currentScreen != null
                     && (client.currentScreen instanceof net.minecraft.client.gui.GuiChat || client.currentScreen instanceof GuiCommandBlock))
                 OperationPolicyRules.require(policies.permits("direct") && !policies.selected().get("readOnly").getAsBoolean(), "Chat/command GUI input requires full mutable policy.");
             if (PlayerNavigation.OPERATION.equals(operation) || "player.plan_approach".equals(operation)) {
@@ -377,6 +475,9 @@ public class GameBridge {
 
     /** This method is called by HTTP workers and does not touch any Minecraft object. */
     public JsonObject dispatch(String operation, JsonObject args, GameQueue.Control control) throws ExecutionException, InterruptedException {
+        if (SurvivalFood.OPERATION.equals(operation)) return dispatchFood(args, control, null).data;
+        if ("player.remote_walk".equals(operation)) return dispatchRemoteWalk(args,control);
+        if (VirtualGuiMouse.OPERATION.equals(operation)) return dispatchVirtualMouse(args,control);
         if (QaPolicy.discovery(operation, args)) {
             JsonObject discovery = clientQueue.await(clientQueue.submit(() -> qaDiscoveryFallback(args), 8000, control), 8000);
             if (discovery != null) return discovery;
@@ -388,6 +489,9 @@ public class GameBridge {
         if (args.has("nativeWait")) throw new BridgeException("invalid_request", "Native owner waiting requires its developer combined AFTER guard.");
         if ("recipes.query".equals(operation) && clientRecipeQuery(args))
             return clientQueue.await(clientQueue.submit(() -> clientRecipeCatalog(args), 8000, control), 8000);
+        if (SurvivalPickupLedger.OPERATION.equals(operation)) return dispatchGatherObservation(args, control);
+        if (SurvivalStorage.handles(operation)) return dispatchStorage(operation,args,control,null).data;
+        if (QuestPlayerActions.handles(operation)) return dispatchQuest(operation,args,control,null).data;
         if (RemoteReadProtocol.OPERATION.equals(operation)) return dispatchRemoteRead(args,control);
         if (AgentDialogueMailbox.OPERATION.equals(operation)) return dispatchRemoteQa(operation,args,control);
         if (remoteConnection && (RemoteReadProtocol.QA.contains(operation)
@@ -430,15 +534,300 @@ public class GameBridge {
         return clientQueue.await(clientQueue.submit(() -> clientOperation(operation, args, control), 8000, control), 8000);
     }
 
+
+    private void requireRemoteWalk(Minecraft client, JsonObject args, boolean moving) {
+        requireRemoteWalk(client,args,moving,false);
+    }
+    private void requireRemoteWalk(Minecraft client,JsonObject args,boolean moving,boolean transit) {
+        requireWorldControls(client);
+        if (!remoteConnection || !RemoteReadClient.INSTANCE.supportsGroundWalk())
+            throw new BridgeException("unsupported","The current operator connection must advertise groundWalkVersion=1.");
+        RemoteReadClient.INSTANCE.requireCurrent(JsonData.string(args,"expectedConnectionId"));
+        JsonObject world=RemoteReadClient.INSTANCE.worldIdentity();
+        String wanted=JsonData.string(args,"expectedWorld");
+        if (!sessionId.equals(JsonData.string(args,"expectedSessionId")) || client.thePlayer.dimension!=JsonData.integer(args,"dimension",Integer.MIN_VALUE,Integer.MAX_VALUE)
+                || world==null || !(wanted.equals(JsonData.string(world,"worldName")) || wanted.equals(JsonData.string(world,"worldFolder"))))
+            throw new BridgeException("stale_world","Remote walk session, world or dimension changed.");
+        OperationPolicyRules.require(policies.permits("machineRead"),"Remote ground checks require enhanced observation on this agent client's current server scope.");
+        if (transit) RemoteGroundRoute.requireActor(client.thePlayer);
+        else RemoteGroundRoute.requireGround(client.thePlayer);
+        if (GuiDataAdapter.booleanArg(args,"requireSurvivalActor",false) && client.thePlayer.capabilities.isCreativeMode)
+            throw new BridgeException("invalid_state","This walk requires an actual survival actor.");
+        if (moving && !background.active(client)) throw new BridgeException("background_required","Remote walking requires an active native input handoff.");
+        if (moving && client.thePlayer.capabilities.isCreativeMode && policies.selected().get("mode").getAsString().startsWith("survival"))
+            throw new BridgeException("policy_denied","Use an actual survival actor for a survival-policy remote walk.");
+    }
+
+    private JsonObject dispatchRemoteWalk(JsonObject args, GameQueue.Control control) throws ExecutionException, InterruptedException {
+        ExpandedGuiApi.keys(args,"expectedSessionId","expectedConnectionId","expectedWorld","dimension","destination","block","timeout_ms","preview","interact","requireSurvivalActor","segmented","clientPreview");
+        final boolean preview=GuiDataAdapter.booleanArg(args,"preview",false);
+        final boolean use=GuiDataAdapter.booleanArg(args,"interact",false);
+        if (use && (preview || !args.has("block"))) throw new BridgeException("invalid_args","Block interaction requires an executing block goal.");
+        final long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(args.has("timeout_ms") ? JsonData.integer(args,"timeout_ms",250,60000) : 30000);
+        JsonObject goal=new JsonObject();
+        for (String field:new String[]{"destination","block"}) if (args.has(field)) goal.add(field,args.get(field));
+        if (goal.size()!=1) throw new BridgeException("invalid_args","Supply one destination or block.");
+        RemoteWalkInput handle=clientQueue.await(clientQueue.submit(()->{
+            Minecraft client=Minecraft.getMinecraft(); requireRemoteWalk(client,args,!preview);
+            if (!"developer".equals(profile)) throw new BridgeException("permission_denied","Remote grounded navigation requires the developer profile.");
+            if (use) OperationPolicyRules.check("player.interact",new JsonObject(),policies,true,client.thePlayer.capabilities.isCreativeMode,false);
+            if (remoteWalk!=null || navigation!=null || following!=null && following.active || !held.isEmpty()
+                    || !navigationMovementKeysIdle(client)) throw new BridgeException("busy","Release current movement before remote route planning.");
+            RemoteWalkInput owner=new RemoteWalkInput(client,deadline);
+            final long revision=policies.revision();
+            owner.job=new ClientGroundWalk(owner,goal,preview,()->{
+                if (remoteWalk!=owner || control.isCancelled() || revision!=policies.revision() || !owner.valid(client))
+                    throw new BridgeException("walk_interrupted","Client walk ownership, policy or deadline changed.");
+                if (navigation!=null || !held.isEmpty() || !owner.held() && !navigationMovementKeysIdle(client))
+                    throw new BridgeException("walk_interrupted","Player input ownership changed.");
+                requireRemoteWalk(client,args,!preview,owner.transitMotion);
+            }, click -> {
+                OperationPolicyRules.check("player.interact",new JsonObject(),policies,true,client.thePlayer.capabilities.isCreativeMode,false);
+                int original=client.thePlayer.inventory.currentItem;
+                try {
+                    if (client.thePlayer.getHeldItem()!=null) {
+                        int empty=0;
+                        while (empty<9 && client.thePlayer.inventory.getStackInSlot(empty)!=null) empty++;
+                        if (empty==9) throw new BridgeException("requires_empty_hand","Opening a door needs one empty hotbar slot.");
+                        client.thePlayer.inventory.currentItem=empty; client.playerController.updateController();
+                    }
+                    JsonObject result=interact(client,click);
+                    if (!result.get("accepted").getAsBoolean()) throw new BridgeException("transit_unconfirmed","Native door use was declined.");
+                } finally {
+                    if (client.thePlayer.inventory.currentItem!=original) {
+                        client.thePlayer.inventory.currentItem=original; client.playerController.updateController();
+                    }
+                }
+            });
+            remoteWalk=owner;
+            return owner;
+        },1000,control),1000);
+        try {
+            JsonObject plan;
+            try { plan=handle.job.finished.get(Math.max(1,deadline-System.nanoTime()),TimeUnit.NANOSECONDS); }
+            catch (java.util.concurrent.TimeoutException expired) { throw new BridgeException("timeout","Client route deadline expired."); }
+            plan.addProperty("segmented",GuiDataAdapter.booleanArg(args,"segmented",false));
+            plan.addProperty("sessionId",JsonData.string(args,"expectedSessionId"));
+            plan.addProperty("connectionId",JsonData.string(args,"expectedConnectionId"));
+            plan.add("dimension",args.get("dimension"));
+            plan.addProperty("movementDispatched",handle.pulses>0);
+            plan.addProperty("nativePulses",handle.pulses);
+            plan.addProperty("taskId",handle.id);
+            JsonObject check=new JsonObject();
+            for (String field:new String[]{"expectedSessionId","expectedConnectionId","dimension"}) check.add(field,args.get(field));
+            if (preview) {
+                plan.addProperty("status","planned");
+                plan.addProperty("source","client_world_tick");
+                plan.addProperty("serverProbes",0);
+                if (!GuiDataAdapter.booleanArg(args,"clientPreview",false)) {
+                    // Older adapters require an authenticated server observation even on a preview.
+                    check.add("waypoint",plan.get("start"));
+                    JsonObject pose=dispatchRemoteQa("world.walk_probe",check,control);
+                    if (!pose.get("reached").getAsBoolean()) throw new BridgeException("route_changed","Preview start moved.");
+                    plan.add("source",pose.get("source")); plan.add("serverStart",pose); plan.addProperty("serverProbes",1);
+                }
+                return plan;
+            }
+            JsonArray route=plan.getAsJsonArray("waypoints");
+            check.add("waypoint",route.get(route.size()-1));
+            if (args.has("block")) check.add("block",args.get("block"));
+            confirmWalkArrival(args,control,handle,plan,check,use);
+            return plan;
+        } catch (BridgeException failure) {
+            throw interruptedWalk(handle,failure);
+        } catch (ExecutionException failure) {
+            if (failure.getCause() instanceof BridgeException) throw interruptedWalk(handle,(BridgeException)failure.getCause());
+            throw failure;
+        } finally {
+            handle.aborted=true;
+            GameQueue.Control cleanup=new GameQueue.Control();
+            clientQueue.await(clientQueue.submit(()->{ handle.abort(); if(remoteWalk==handle) remoteWalk=null; return null; },1000,cleanup),1000);
+        }
+    }
+
+    private void confirmWalkArrival(JsonObject args,GameQueue.Control control,RemoteWalkInput handle,JsonObject plan,
+            JsonObject check,boolean use) throws ExecutionException,InterruptedException {
+        boolean combined=clientQueue.await(clientQueue.submit(()->RemoteReadClient.INSTANCE.supportsWalkArrival(),1000,control),1000);
+        long previousTick=-1;
+        WalkingPathPlanner.Point previousFeet=null;
+        for (int probes=1;probes<=(combined?1:4);probes++) {
+            if (handle.aborted || control.isCancelled() || System.nanoTime()>=handle.deadline)
+                throw new BridgeException("walk_interrupted","Client walk stopped before arrival confirmation.");
+            final long sent=System.nanoTime();
+            JsonObject server;
+            try {
+                server=dispatchRemoteQa(combined?"world.walk_arrival":"world.walk_probe",check,control);
+            } catch (BridgeException failure) {
+                if (!combined && probes<4 && ("invalid_state".equals(failure.code) || "route_unverified".equals(failure.code))) {
+                    previousFeet=null; continue;
+                }
+                throw new BridgeException(failure.code,"Server arrival: "+failure.getMessage());
+            }
+            WalkingPathPlanner.Point feet=RemoteGroundRoute.point(server.getAsJsonObject("feet"));
+            if (!server.get("reached").getAsBoolean()) throw new BridgeException("route_changed","The server did not confirm the local endpoint.");
+            long tick=server.get("worldTick").getAsLong();
+            if (combined ? server.get("settled").getAsBoolean() : previousFeet!=null && tick>previousTick && previousFeet.distance(feet)<=.03) {
+                clientQueue.await(clientQueue.submit(()->{
+                    Minecraft client=Minecraft.getMinecraft(); requireRemoteWalk(client,args,true);
+                    handle.job.checkOwnership();
+                    if (System.nanoTime()-sent>500000000L) throw new BridgeException("stale_world","Server arrival observation expired.");
+                    JsonObject local=RemoteGroundRoute.arrival(handle.actor,checkWalkGeometry(check),client.playerController.getBlockReachDistance());
+                    WalkingPathPlanner.Point actual=RemoteGroundRoute.feet(handle.actor);
+                    if (!local.get("reached").getAsBoolean() || actual.distance(feet)>.10 || Math.hypot(handle.actor.motionX,handle.actor.motionZ)>.018)
+                        throw new BridgeException("route_changed","The client and server did not settle at the same endpoint.");
+                    if (args.has("block")) {
+                        if (!server.get("blockVisible").getAsBoolean() || !local.get("blockVisible").getAsBoolean()
+                                || server.get("side").getAsInt()!=local.get("side").getAsInt())
+                            throw new BridgeException("target_unverified","The client and server did not confirm the same visible target face.");
+                        JsonObject b=args.getAsJsonObject("block");
+                        double dx=b.get("x").getAsInt()+.5-handle.actor.posX, dz=b.get("z").getAsInt()+.5-handle.actor.posZ;
+                        double dy=b.get("y").getAsInt()+.5-handle.actor.getPosition(1F).yCoord;
+                        handle.actor.rotationYaw=(float)-Math.toDegrees(Math.atan2(dx,dz));
+                        handle.actor.rotationPitch=(float)-Math.toDegrees(Math.atan2(dy,Math.hypot(dx,dz)));
+                        if (use) {
+                            OperationPolicyRules.check("player.interact",new JsonObject(),policies,true,handle.actor.capabilities.isCreativeMode,false);
+                            JsonObject click=new JsonObject(); click.addProperty("action","use");
+                            for (String key:new String[]{"x","y","z"}) click.add(key,b.get(key));
+                            click.add("side",local.get("side")); plan.add("interaction",interact(client,click));
+                        }
+                    }
+                    plan.add("clientArrival",RemoteGroundRoute.json(actual));
+                    return null;
+                },1000,control),1000);
+                plan.addProperty("serverProbes",probes); plan.add("source",server.get("source"));
+                plan.add("serverArrival",server); plan.addProperty("serverConfirmed",true);
+                plan.addProperty("arrivalConfirmed",true); plan.addProperty("status","arrived");
+                return;
+            }
+            previousFeet=feet;
+            previousTick=tick;
+        }
+        throw new BridgeException("route_changed","No two distinct server ticks confirmed a settled arrival.");
+    }
+
+    private static BridgeException interruptedWalk(RemoteWalkInput handle,BridgeException failure) {
+        if (handle.pulses==0) return failure;
+        return new BridgeException(failure.code,failure.getMessage() + " Native movement pulses issued: " + handle.pulses
+                + ". Inspect the current pose and any open container before continuing.");
+    }
+    private static JsonObject checkWalkGeometry(JsonObject check) {
+        JsonObject geometry=new JsonObject();
+        for (String key:new String[]{"waypoint","dimension","block"}) if(check.has(key)) geometry.add(key,check.get(key));
+        return geometry;
+    }
+
+    private JsonObject dispatchGatherObservation(JsonObject args, GameQueue.Control control) throws ExecutionException, InterruptedException {
+        ServerContext local = clientQueue.await(clientQueue.submit(() -> {
+            Minecraft client = Minecraft.getMinecraft();
+            requirePlayer(client); refreshServerContext(client);
+            JsonObject target = WorldLifecycle.target(client);
+            if (!sessionId.equals(JsonData.string(args, "expectedSessionId")) || !target.has("expectedWorld")
+                    || !target.get("expectedWorld").getAsString().equals(JsonData.string(args, "expectedWorld"))
+                    || client.thePlayer.dimension != JsonData.integer(args, "dimension", Integer.MIN_VALUE, Integer.MAX_VALUE))
+                throw new BridgeException("stale_world", "Pickup observation context changed.");
+            if (serverContext == null) RemoteReadClient.INSTANCE.requireCurrent(JsonData.string(args, "expectedConnectionId"));
+            return serverContext;
+        }, 8000, control), 8000);
+        if (local == null) return dispatchRemoteQa(SurvivalPickupLedger.OPERATION, args, control);
+        requireUnpausedServer();
+        return serverQueue.await(serverQueue.submit(() -> {
+            ServerContext current = requireDeveloperContext();
+            if (current.server != local.server || !current.playerId.equals(local.playerId) || current.dimension != local.dimension)
+                throw new BridgeException("stale_world", "The integrated pickup observer changed.");
+            JsonObject result = SurvivalPickupLedger.observe((EntityPlayerMP)operationPlayer(true), args);
+            result.addProperty("sessionId", sessionId);
+            return result;
+        }, 8000, control), 8000);
+    }
+
+    private GuardedContext.Result dispatchStorage(String operation,JsonObject args,GameQueue.Control control,GuardedContext guard) throws ExecutionException,InterruptedException {
+        boolean write=SurvivalStorage.write(operation);
+        if(write && guard==null) throw new BridgeException("invalid_request","Survival storage actions require a protected world and dimension guard.");
+        final JsonObject[] before=new JsonObject[1];
+        ServerContext local=clientQueue.await(clientQueue.submit(()->{
+            Minecraft client=Minecraft.getMinecraft(); requirePlayer(client); refreshServerContext(client); requireObservationClient(args);
+            if (serverContext==null) RemoteReadClient.INSTANCE.requireCurrent(JsonData.string(args,"expectedConnectionId"));
+            else if(args.has("expectedConnectionId")) throw new BridgeException("stale_world","The storage connection changed.");
+            if (write && serverContext!=null) { before[0]=snapshot(client); guard.questStarting(before[0]); }
+            return serverContext;
+        },8000,control),8000);
+        JsonObject result;
+        if(local==null) result=dispatchRemoteQa(operation,args,control,guard,before);
+        else {
+            requireUnpausedServer();
+            result=serverQueue.await(serverQueue.submit(()->{
+                ServerContext current=requireDeveloperContext();
+                if(current.server!=local.server || !current.playerId.equals(local.playerId) || current.dimension!=local.dimension)
+                    throw new BridgeException("stale_world","Integrated storage actor or world changed.");
+                JsonObject data=SurvivalStorage.run(operation,args,(EntityPlayerMP)operationPlayer(true));
+                data.addProperty("sessionId",sessionId); return data;
+            },8000,control),8000);
+        }
+        if(guard==null) return new GuardedContext.Result(result,null);
+        if(write) return guard.result(result,before[0]);
+        return clientQueue.await(clientQueue.submit(()->guard.execute(()->snapshot(Minecraft.getMinecraft()),()->{
+            Minecraft client=Minecraft.getMinecraft();
+            if (SurvivalStorage.COUNT.equals(operation) && result.has("windowId") && client.currentScreen instanceof GuiContainer
+                    && client.thePlayer!=null && client.thePlayer.openContainer==((GuiContainer)client.currentScreen).inventorySlots
+                    && client.thePlayer.openContainer.windowId==result.get("windowId").getAsInt()
+                    && client.thePlayer.openContainer.getClass().getName().equals(result.get("containerClass").getAsString()))
+                result.addProperty("screenId",identifyScreen(client.currentScreen));
+            return result;
+        }),8000,control),8000);
+    }
+
+    private GuardedContext.Result dispatchQuest(String operation,JsonObject args,GameQueue.Control control,GuardedContext guard) throws ExecutionException,InterruptedException {
+        final boolean write=QuestPlayerActions.STEP.equals(operation);
+        if(write) RemoteReadProtocol.keys(args,"questId","action","taskId","partyConfirmation","expectedSessionId","expectedConnectionId","worldFolder","dimension");
+        else RemoteReadProtocol.keys(args,"questId");
+        final ServerContext[] local=new ServerContext[1];
+        final JsonObject[] before=new JsonObject[1];
+        JsonObject cached=clientQueue.await(clientQueue.submit(() -> {
+            Minecraft client=Minecraft.getMinecraft(); requirePlayer(client); refreshServerContext(client);
+            if(write && !sessionId.equals(JsonData.string(args,"expectedSessionId"))) throw new BridgeException("stale_session","Quest runtime changed.");
+            local[0]=serverContext;
+            if(write && guard!=null && local[0]!=null) { before[0]=snapshot(client); guard.questStarting(before[0]); }
+            if(local[0]!=null && args.has("expectedConnectionId")) throw new BridgeException("stale_world","An integrated world has no remote quest connection.");
+            if(local[0]==null && !RemoteReadClient.INSTANCE.status().get("ready").getAsBoolean()) {
+                if(write) throw new BridgeException("unsupported","This server cannot verify BetterQuesting participants.");
+                JsonObject read=QuestPlayerActions.run(operation,args,client.thePlayer);read.addProperty("sessionId",sessionId);return read;
+            }
+            if(local[0]==null && write) RemoteReadClient.INSTANCE.requireCurrent(JsonData.string(args,"expectedConnectionId"));
+            return null;
+        },8000,control),8000);
+        JsonObject result=cached;
+        if(result==null && local[0]==null) result=dispatchRemoteQa(operation,args,control,guard,before);
+        if(result==null) {
+            requireUnpausedServer();
+            result=serverQueue.await(serverQueue.submit(()->{
+            ServerContext current=requireDeveloperContext();
+            if(current.server!=local[0].server || !current.playerId.equals(local[0].playerId) || current.dimension!=local[0].dimension)
+                throw new BridgeException("stale_world","Integrated quest owner changed.");
+            JsonObject data=QuestPlayerActions.run(operation,args,operationPlayer(true));data.addProperty("sessionId",sessionId);return data;
+            },8000,control),8000);
+        }
+        if(guard==null) return new GuardedContext.Result(result,null);
+        if(write) return guard.result(result,before[0]);
+        final JsonObject observed=result;
+        return clientQueue.await(clientQueue.submit(()->guard.execute(()->snapshot(Minecraft.getMinecraft()),()->observed),8000,control),8000);
+    }
+
     private JsonObject dispatchRemoteQa(String operation,JsonObject args,GameQueue.Control control) throws ExecutionException,InterruptedException {
+        return dispatchRemoteQa(operation,args,control,null,null);
+    }
+    private JsonObject dispatchRemoteQa(String operation,JsonObject args,GameQueue.Control control,GuardedContext questGuard,JsonObject[] before) throws ExecutionException,InterruptedException {
         final long deadline=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(8000);
         final Object[] binding=new Object[2];
         RemoteReadMailbox.Pending pending=clientQueue.await(clientQueue.submit(() -> {
             Minecraft client=Minecraft.getMinecraft(); requirePlayer(client); refreshServerContext(client);
-            if(!"developer".equals(profile) || !RemoteReadClient.INSTANCE.operatorReady()) throw new BridgeException("permission_denied","Remote QA/authoritative observations require developer profile and server operator level 2.");
+            if(!SurvivalStorage.handles(operation) && !SurvivalPickupLedger.OPERATION.equals(operation) && !QuestPlayerActions.handles(operation) && (!"developer".equals(profile) || !RemoteReadClient.INSTANCE.operatorReady())) throw new BridgeException("permission_denied",operation + " requires a ready server connection with current operator level 2 and developer profile; profile="
+                    + profile + ", operatorReady=" + RemoteReadClient.INSTANCE.operatorReady() + ". Inspect health.serverBridge for this agent account.");
             if (RemoteReadProtocol.OBSERVATIONS.contains(operation) && !policies.permits("machineRead"))
-                throw new BridgeException("permission_denied","Remote owner observations require the selected enhanced observation policy.");
+                throw new BridgeException("policy_denied",operation + " requires machineRead on this agent client's current server scope. Selected mode="
+                        + policies.selected().get("mode").getAsString() + ". Inspect mcb_policy status. The default survival_efficient group enables this observation.");
             if(args.has("expectedSessionId") && !sessionId.equals(JsonData.string(args,"expectedSessionId"))) throw new BridgeException("stale_session","QA client runtime changed.");
+            if ("world.spatial".equals(operation) && !RemoteReadClient.INSTANCE.supportsSpatial())
+                throw new BridgeException("unsupported", "This server does not advertise remote spatial observations. Update the server bridge.");
             String connection=RemoteReadClient.INSTANCE.connectionId();
             if(args.has("expectedConnectionId") && !connection.equals(JsonData.string(args,"expectedConnectionId"))) throw new BridgeException("stale_world","QA server connection changed.");
             JsonObject submitted=new JsonParser().parse(args.toString()).getAsJsonObject();
@@ -449,26 +838,27 @@ public class GameBridge {
                 envelope.add("qaPolicy", QaPolicy.context(policies));
             }
             binding[0]=connection; binding[1]=client.thePlayer.dimension;
+            if(questGuard!=null && (QuestPlayerActions.STEP.equals(operation) || SurvivalStorage.write(operation))) { before[0]=snapshot(client);questGuard.questStarting(before[0]); }
             return RemoteReadClient.INSTANCE.begin(operation,envelope,connection);
         },8000,control),8000);
         Runnable cancel=() -> RemoteReadClient.INSTANCE.mailbox.cancel(pending);
-        boolean action=RemoteQaAdapter.action(operation) || AgentDialogueMailbox.OPERATION.equals(operation);
-        if(!action) control.onReadCancellation(cancel);
+        boolean action=RemoteQaAdapter.action(operation) || AgentDialogueMailbox.OPERATION.equals(operation) || QuestPlayerActions.STEP.equals(operation) || SurvivalStorage.write(operation);
+        boolean cancellable = !action && !operation.startsWith("world.walk_");
+        if(cancellable) control.onReadCancellation(cancel);
         try {
-            JsonObject response; long started=System.nanoTime();
-            try { response=pending.future.get(Math.min(6500,observationRemaining(deadline)),TimeUnit.MILLISECONDS); }
+            JsonObject response;
+            try (NativeAwait wait = new NativeAwait(control, !AgentDialogueMailbox.OPERATION.equals(operation))) { response=pending.future.get(Math.min(6500,observationRemaining(deadline)),TimeUnit.MILLISECONDS); }
             catch(java.util.concurrent.TimeoutException failure) { throw new BridgeException(action ? "qa_outcome_unknown" : "timeout",action ? "QA reply timed out after submission. Inspect the run; never replay automatically." : "Remote observation timed out."); }
-            finally { control.recordNativeAwait(System.nanoTime()-started); }
             final JsonObject delivered=response; long remaining=observationRemaining(deadline);
             return clientQueue.await(clientQueue.submit(() -> {
                 Minecraft client=Minecraft.getMinecraft(); requirePlayer(client);
-                if(client.thePlayer.dimension!=(Integer)binding[1] || !"developer".equals(profile)) throw new BridgeException("qa_context_changed","QA player dimension or profile changed.");
+                if(client.thePlayer.dimension!=(Integer)binding[1] || !SurvivalStorage.handles(operation) && !SurvivalPickupLedger.OPERATION.equals(operation) && !QuestPlayerActions.handles(operation) && !"developer".equals(profile)) throw new BridgeException("qa_context_changed","QA player dimension or profile changed.");
                 JsonObject data=RemoteReadClient.INSTANCE.accept(pending,delivered,(String)binding[0]);
                 data.addProperty("sessionId",sessionId);
-                if (AgentDialogueMailbox.OPERATION.equals(operation)) data.addProperty("connectionId", (String)binding[0]);
+                if (SurvivalPickupLedger.OPERATION.equals(operation) || AgentDialogueMailbox.OPERATION.equals(operation) || RemoteReadProtocol.OBSERVATIONS.contains(operation) || QuestPlayerActions.handles(operation) || SurvivalStorage.handles(operation)) data.addProperty("connectionId", (String)binding[0]);
                 return data;
             },remaining,control),remaining);
-        } finally { if(!action) control.clearReadCancellation(cancel); cancel.run(); }
+        } finally { if(cancellable) control.clearReadCancellation(cancel); cancel.run(); }
     }
     private void requireObservationClient(JsonObject args) {
         Minecraft client=Minecraft.getMinecraft(); requirePlayer(client);
@@ -517,10 +907,9 @@ public class GameBridge {
         Runnable cancellation=() -> { for(RemoteReadMailbox.Pending value:pending) RemoteReadClient.INSTANCE.mailbox.cancel(value); };
         control.onReadCancellation(cancellation);
         try {
-            final java.util.List<JsonObject> responses=new java.util.ArrayList<JsonObject>(); long started=System.nanoTime();
-            try { for(RemoteReadMailbox.Pending value:pending) responses.add(value.future.get(Math.min(6500,observationRemaining(deadline)),TimeUnit.MILLISECONDS)); }
+            final java.util.List<JsonObject> responses=new java.util.ArrayList<JsonObject>();
+            try (NativeAwait wait = new NativeAwait(control, true)) { for(RemoteReadMailbox.Pending value:pending) responses.add(value.future.get(Math.min(6500,observationRemaining(deadline)),TimeUnit.MILLISECONDS)); }
             catch(java.util.concurrent.TimeoutException failure) { throw new BridgeException("timeout","Server read window timed out; no mutation submitted."); }
-            finally { control.recordNativeAwait(System.nanoTime()-started); }
             remaining=observationRemaining(deadline);
             return clientQueue.await(clientQueue.submit(() -> {
                 requireObservationClient(args); java.util.List<JsonObject> results=new java.util.ArrayList<JsonObject>();
@@ -636,9 +1025,7 @@ public class GameBridge {
             }, observationRemaining(deadline), control), observationRemaining(deadline));
             long effective = Math.min(requested, Math.max(1, observationRemaining(deadline) - 1000));
             final boolean signaled;
-            long awaited = System.nanoTime();
-            try { signaled = binding.wait.await(effective); }
-            finally { control.recordNativeAwait(System.nanoTime() - awaited); }
+            try (NativeAwait wait = new NativeAwait(control, true)) { signaled = binding.wait.await(effective); }
             return serverQueue.await(serverQueue.submit(() -> {
                 EntityPlayerMP player = aeOrderPlayer(args);
                 ServerContext context = requireDeveloperContext();
@@ -701,9 +1088,7 @@ public class GameBridge {
         // Leave one second inside the existing eight-second dispatch deadline for a fresh owning-thread guard/read.
         long effective = Math.min(requested, Math.max(0, qaWaitRemaining(deadline) - 1000));
         String terminal;
-        long nativeAwaitStarted = System.nanoTime();
-        try { terminal = PrivateDimensionQaAdapter.awaitCompletion(wait.completion, effective); }
-        finally { control.recordNativeAwait(System.nanoTime() - nativeAwaitStarted); }
+        try (NativeAwait measurement = new NativeAwait(control, true)) { terminal = PrivateDimensionQaAdapter.awaitCompletion(wait.completion, effective); }
         if (terminal != null) PrivateDimensionQaAdapter.requireStatusRun(
                 PrivateDimensionQaAdapter.response(terminal, sessionId, wait.dimension, wait.provider), runId, true);
         return serverQueue.await(serverQueue.submit(() -> {
@@ -760,6 +1145,9 @@ public class GameBridge {
     /** Context work always runs on its owning game thread; server reads keep their post-read client guard. */
     public GuardedContext.Result dispatchGuarded(String operation, JsonObject args, GameQueue.Control control, GuardedContext guard) throws ExecutionException, InterruptedException {
         if (!guard.operation.equals(operation)) throw new BridgeException("invalid_request", "Context operation identity changed.");
+        if (SurvivalStorage.handles(operation)) return dispatchStorage(operation,args,control,guard);
+        if (QuestPlayerActions.handles(operation)) return dispatchQuest(operation,args,control,guard);
+        if (SurvivalFood.OPERATION.equals(operation)) return dispatchFood(args, control, guard);
         if (args.has("waitFor")) {
             if (!"gui.inspect".equals(operation) || guard.action) throw new BridgeException("invalid_args", "waitFor belongs only to a GUI AFTER read.");
             return dispatchGuiWait(args, control, guard);
@@ -915,9 +1303,8 @@ public class GameBridge {
         Runnable cancellation = job::cancel; control.onReadCancellation(cancellation);
         try {
             while (true) {
-                long began = System.nanoTime(); final JsonObject data;
-                try { data = job.await(qaWaitRemaining(deadline)); }
-                finally { control.recordNativeAwait(System.nanoTime() - began); }
+                final JsonObject data;
+                try (NativeAwait measurement = new NativeAwait(control, true)) { data = job.await(qaWaitRemaining(deadline)); }
                 GuardedContext.Result accepted = clientQueue.await(clientQueue.submit(() -> {
                     Minecraft client = Minecraft.getMinecraft();
                     JsonObject result = job.verifyFinal(data);
@@ -1049,9 +1436,7 @@ public class GameBridge {
             }, qaWaitRemaining(deadline), control), qaWaitRemaining(deadline));
             NativeObservationWait.Job job = owned.get();
             final String status;
-            long nativeAwaitStarted = System.nanoTime();
-            try { status = job.await(Math.min(request.millis, Math.max(1, qaWaitRemaining(deadline) - 1500))); }
-            finally { control.recordNativeAwait(System.nanoTime() - nativeAwaitStarted); }
+            try (NativeAwait measurement = new NativeAwait(control, true)) { status = job.await(Math.min(request.millis, Math.max(1, qaWaitRemaining(deadline) - 1500))); }
             final JsonObject data = serverQueue.await(serverQueue.submit(() -> {
                 long observedAt = System.nanoTime();
                 binding.check();
@@ -1204,8 +1589,13 @@ public class GameBridge {
 
     /** Called only by local commands or queued HTTP controls on the client thread. */
     public JsonObject localControl(String control, boolean enabled) {
+        return localControl(control, enabled, false);
+    }
+
+    private JsonObject localControl(String control, boolean enabled, boolean releaseStaleGrab) {
         if("cancel".equals(control)) { releaseInput(); navigation=null; return controlStatus(); }
-        Minecraft client = Minecraft.getMinecraft(); JsonObject result = background.change(client, control, enabled, lifecycle.active(), this::releaseInput);
+        Minecraft client = Minecraft.getMinecraft(); JsonObject result = background.change(client, control, enabled, lifecycle.active(), this::releaseInput, releaseStaleGrab);
+        VirtualGuiMouse.INSTANCE.bind(client, () -> background.active(client), this::agentBusy);
         if (!background.active(client)) LogicalGuiPointer.clear("takeover_released"); return result;
     }
 
@@ -1256,14 +1646,27 @@ public class GameBridge {
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft client = Minecraft.getMinecraft();
+        RemoteWalkInput walk=remoteWalk;
+        if (walk!=null) {
+            walk.tick(client,event.phase==TickEvent.Phase.END);
+            if (walk.aborted && remoteWalk==walk) remoteWalk=null;
+        }
         if (event.phase == TickEvent.Phase.START) {
             clientTicks++;
+            if (emergencyKey != null) {
+                if (!keyboardBound) {
+                    PhysicalKeyboardEvents.bind(this::consumeEmergencyKey);
+                    keyboardBound = true;
+                }
+                if (!org.lwjgl.opengl.Display.isActive()) emergencyKey.reset();
+            }
             AeNativeControls.observe(client.currentScreen);
             if (clientTicks % 20 == 0) machineCaptures.expire();
             WorldObservationsAdapter.maintainCache();
             NeiPreviewResources.ensureTracking(client);
             structures.maintain(NeiPreviewResources.context());
             background.tick(client);
+            VirtualGuiMouse.INSTANCE.bind(client, () -> background.active(client), this::agentBusy);
             maintainNavigation(client);
             LogicalGuiPointer.tick();
             NeiModifierHold.tick();
@@ -1271,6 +1674,7 @@ public class GameBridge {
             lifecycle.tick();
             if (previousWorld != client.theWorld) {
                 releaseInput();
+                lastMine = null;
                 inputDiagnostics.invalidate();
                 LogicalGuiPointer.clear("world_changed"); NeiViewAdapter.invalidateRendered();
                 profile = "player";
@@ -1279,6 +1683,7 @@ public class GameBridge {
                 qa.invalidate();
             }
             refreshServerContext(client);
+            VirtualGuiMouse.INSTANCE.tick();
             if (serverContext == null || !serverContext.developer || serverContext.paused || client.thePlayer == null || client.thePlayer.isDead) {
                 nativeWaits.invalidateAll("The client world, profile, pause or living actor changed during native observation.");
                 aeOrders.invalidateWaits();
@@ -1297,6 +1702,8 @@ public class GameBridge {
                 inputDiagnostics.writeNative("player.input", entry.getKey(), binding, code, true, clientTicks);
             }
         } else {
+            if (mining != null && mining.tick(client)) stopMining("stopped");
+            SurvivalFood.tick();
             maintainApproachEyeReads();
             guiWaits.tick();
             navigationStartWaits.tick();
@@ -1334,6 +1741,12 @@ public class GameBridge {
             captureFlight(serverContext);
             nativeWaits.tick();
         }
+    }
+
+    @SubscribeEvent
+    public void onHudDrawn(net.minecraftforge.client.event.RenderGameOverlayEvent.Post event) {
+        if (event.type == net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType.ALL)
+            VirtualGuiMouse.INSTANCE.afterWorldOverlay(event.resolution.getScaledWidth(), event.resolution.getScaledHeight());
     }
 
     @SubscribeEvent
@@ -1440,7 +1853,13 @@ public class GameBridge {
                 client.thePlayer.getUniqueID(), client.currentScreen != null, client.isGamePaused(), System.nanoTime(), client.currentScreen, identifyScreen(client.currentScreen)) : null;
     }
 
+    private static void requireAvailableGuiInput(String operation) {
+        if (RequestRegistry.readOnly(operation) || VirtualGuiMouse.OPERATION.equals(operation) || "gui.close".equals(operation)) return;
+        if (operation.startsWith("gui.") || operation.startsWith("ae.") || operation.startsWith("nei.")) VirtualGuiMouse.INSTANCE.requireIdle();
+    }
+
     private JsonObject clientOperation(String operation, JsonObject args, GameQueue.Control control) {
+        requireAvailableGuiInput(operation);
         Minecraft client = Minecraft.getMinecraft();
         switch (operation) {
             case "bridge.policy": return policy(args);
@@ -1452,7 +1871,11 @@ public class GameBridge {
                 JsonElement enabled = args.get("enabled");
                 if (enabled == null || !enabled.isJsonPrimitive() || !enabled.getAsJsonPrimitive().isBoolean())
                     throw new BridgeException("invalid_args", "enabled must be a boolean.");
-                return localControl(operation.substring("client.".length()), enabled.getAsBoolean());
+                JsonElement releaseStale = args.get("releaseStaleGrab");
+                if (releaseStale != null && (!releaseStale.isJsonPrimitive() || !releaseStale.getAsJsonPrimitive().isBoolean()))
+                    throw new BridgeException("invalid_args", "releaseStaleGrab must be a boolean.");
+                return localControl(operation.substring("client.".length()), enabled.getAsBoolean(),
+                        releaseStale != null && releaseStale.getAsBoolean());
             case "client.diagnostics": return diagnostics(client);
             case "client.mods": return catalog.mods(args);
             case "client.messages": return messages.inspect(args, sessionId);
@@ -1463,6 +1886,10 @@ public class GameBridge {
             case "registry.items": return catalog.items(args);
             case "registry.item": return catalog.item(args, client.thePlayer);
             case "registry.variants": return catalog.variants(args, client.thePlayer);
+            case "client.compaction_cursor":
+                if (!sessionId.equals(JsonData.string(args, "expectedSessionId")))
+                    throw new BridgeException("stale_session", "Compaction notification belongs to another client session.");
+                return VirtualGuiMouse.INSTANCE.compactionCursor(args);
             case "client.window": return ClientDisplayState.inspect(client);
             case "client.window_action":
                 if (!sessionId.equals(JsonData.string(args, "expectedSessionId"))) throw new BridgeException("stale_session", "Window action requires the current client session.");
@@ -1596,12 +2023,34 @@ public class GameBridge {
                 requireWorldControls(client);
                 if (navigation != null) throw new BridgeException("busy", "Navigation owns world input.");
                 return com.Goderium.BridgeNH.client.control.WorldMouseInput.perform(client, args);
+            case "player.mine":
+                requireWorldControls(client);
+                if (inputTaskId != null || mining != null || navigation != null || remoteWalk != null || following != null)
+                    throw new BridgeException("busy", "Finish or cancel the current input task before mining.");
+                SurvivalMining nextMine = new SurvivalMining(client, args, sessionId);
+                nextMine.start(client, () -> background.active(client));
+                mining = nextMine;
+                return mining.receipt();
             case "player.input": return input(client, args);
             case "player.task": return inputTask(args);
             case "player.follow": return follow(args);
             case "player.flight": return flight(client, args);
+            case "player.entity_interact":
+                if (!args.has("expectedEntity") || !args.get("expectedEntity").isJsonObject()
+                        || !sessionId.equals(JsonData.string(args, "expectedSessionId"))
+                        || !WorldLifecycle.target(client).has("expectedWorld")
+                        || !WorldLifecycle.target(client).get("expectedWorld").getAsString().equals(JsonData.string(args, "expectedWorld")))
+                    throw new BridgeException("stale_world", "Entity interaction requires the current session, world and crosshair identity.");
+                return interact(client, args);
             case "player.interact": return interact(client, args);
             case "player.place_block": return placeBlock(client, args);
+            case "gui.chest_transfer":
+                requirePlayer(client);
+                if (!sessionId.equals(JsonData.string(args, "expectedSessionId"))
+                        || !WorldLifecycle.target(client).has("expectedWorld")
+                        || !WorldLifecycle.target(client).get("expectedWorld").getAsString().equals(JsonData.string(args, "expectedWorld")))
+                    throw new BridgeException("stale_world", "Chest transfer requires the current session and world.");
+                return com.Goderium.BridgeNH.client.gui.ChestTransfer.move(client, args, identifyScreen(client.currentScreen));
             case "gui.slot_click": return slotClick(client, args);
             case "gui.open_inventory": {
                 requireWorldControls(client);
@@ -1627,6 +2076,14 @@ public class GameBridge {
             case "gui.click": return clickGui(client, args);
             case "gui.key": return keyGui(client, args);
             case "gui.close":
+                if (args.has("screenId")) {
+                    GuiScreen owned = requireGui(client, args);
+                    if (!(owned instanceof GuiContainer) || client.thePlayer == null
+                            || client.thePlayer.openContainer != ((GuiContainer) owned).inventorySlots)
+                        throw new BridgeException("stale_screen", "The observed container is no longer open.");
+                    if (client.thePlayer.inventory.getItemStack() != null)
+                        throw new BridgeException("cursor_occupied", "Settle the carried stack before closing this container.");
+                }
                 StartupScreenRecovery.requireNativeChoice(client.currentScreen);
                 releaseInput();
                 if (client.thePlayer != null) client.thePlayer.closeScreen();
@@ -1910,6 +2367,7 @@ public class GameBridge {
             EntityPlayer player = client.thePlayer;
             JsonObject state = new JsonObject();
             state.addProperty("name", player.getCommandSenderName());
+            state.addProperty("uuid", player.getUniqueID().toString());
             state.addProperty("x", player.posX);
             state.addProperty("y", player.posY);
             state.addProperty("feetY", player.boundingBox.minY);
@@ -1945,6 +2403,7 @@ public class GameBridge {
                 hit.addProperty("side", target.sideHit);
             } else if (target.entityHit != null) {
                 hit.addProperty("entityId", target.entityHit.getEntityId());
+                hit.addProperty("uuid", target.entityHit.getUniqueID().toString());
                 hit.addProperty("entityClass", target.entityHit.getClass().getName());
             }
             result.add("target", hit);
@@ -1968,6 +2427,7 @@ public class GameBridge {
         ScreenSemantics.describe(result, screen);
         result.add("clientRecovery", startupRecovery.inspect());
         if (StartupScreenRecovery.startupScreen(screen)) result.add("startupQuery", StartupScreenRecovery.describe(screen));
+        result.add("virtualMouse",VirtualGuiMouse.INSTANCE.inspect());
         result.addProperty("width", screen == null ? client.displayWidth : screen.width);
         result.addProperty("height", screen == null ? client.displayHeight : screen.height);
         JsonArray buttonData = new JsonArray();
@@ -2677,6 +3137,30 @@ public class GameBridge {
     }
 
 
+    private GuardedContext.Result dispatchFood(JsonObject args, GameQueue.Control control, GuardedContext guard) throws ExecutionException, InterruptedException {
+        final JsonObject[] before = new JsonObject[1];
+        SurvivalFood.Job job = clientQueue.await(clientQueue.submit(() -> {
+            Minecraft client = Minecraft.getMinecraft();
+            requireWorldControls(client);
+            if (navigation != null || remoteWalk != null || mining != null || inputTaskId != null || following != null && following.active || !held.isEmpty()
+                    || OwnedKeyState.heldCount() > 0)
+                throw new BridgeException("busy", "Finish the current native input before using food.");
+            OperationPolicyRules.check(SurvivalFood.OPERATION, args, policies, false, client.thePlayer.capabilities.isCreativeMode, false);
+            final long revision = policies.revision();
+            final boolean backgroundOwned = background.active(client);
+            if (guard != null) { before[0] = snapshot(client); guard.foodStarting(before[0]); }
+            return SurvivalFood.start(client, args, () -> revision == policies.revision() && !control.isCancelled()
+                    && background.active(client) == backgroundOwned && (backgroundOwned || client.inGameHasFocus));
+        }, 1000, control), 1000);
+        try {
+            JsonObject data = job.result.get(7500, TimeUnit.MILLISECONDS);
+            return guard == null ? new GuardedContext.Result(data, null) : guard.result(data, before[0]);
+        }
+        catch (java.util.concurrent.TimeoutException timeout) {
+            throw new BridgeException("timeout", "Food observation expired. Inspect hunger and the slot before any further use.");
+        } finally { job.cancelled = true; }
+    }
+
     private JsonObject input(Minecraft client, JsonObject args) {
         if (navigation != null) throw new BridgeException("busy", "A native navigation task owns its input; wait for its completion or release agent control.");
         requireWorldControls(client);
@@ -2708,7 +3192,7 @@ public class GameBridge {
             KeyBinding.setKeyBindState(code, true);
             inputDiagnostics.writeNative("player.input", entry.getKey(), binding, code, true, clientTicks);
             if (binding == client.gameSettings.keyBindAttack || binding == client.gameSettings.keyBindUseItem)
-                KeyBinding.onTick(code);
+                OwnedKeyState.queueInputPress(binding);
         }
         JsonObject result = status("ticksScheduled", ticks);
         result.addProperty("taskId",inputTaskId);
@@ -2904,7 +3388,17 @@ public class GameBridge {
         return true;
     }
 
+    private void stopMining(String reason) {
+        if (mining == null) return;
+        mining.stop(reason);
+        lastMine = mining.receipt();
+        mining = null;
+    }
+
     private void releaseInput() {
+        VirtualGuiMouse.INSTANCE.cancel("Native control released.");
+        stopMining("control_released");
+        if (remoteWalk!=null) remoteWalk.abort();
         stopFollow("input_released");
         PlayerNavigation.State active = navigation;
         if (active != null) { active.abort = true; releaseNavigationKeys(active); }
@@ -2916,7 +3410,6 @@ public class GameBridge {
                     : Mouse.isCreated() && code + 100 >= 0 && code + 100 < Mouse.getButtonCount() && Mouse.isButtonDown(code + 100);
             KeyBinding.setKeyBindState(code, physical);
             inputDiagnostics.writeNative("player.input", entry.getKey(), binding, code, physical, clientTicks);
-            if (!physical) while (binding.isPressed()) { /* Consume pending synthetic clicks after release. */ }
         }
         held.clear();
         heldKeyCodes.clear();
@@ -2931,18 +3424,26 @@ public class GameBridge {
         String action=ExpandedGuiApi.option(args,"action","status","status","cancel");
         PlayerNavigation.State active=navigation;
         FollowTarget tracker=following!=null && following.active ? following : null;
-        String current=tracker!=null ? tracker.taskId : active!=null && !active.abort ? active.taskId : inputTaskId;
+        String foodId=SurvivalFood.activeId();
+        String current=remoteWalk!=null && !remoteWalk.aborted ? remoteWalk.id : tracker!=null ? tracker.taskId : active!=null && !active.abort ? active.taskId : mining!=null ? mining.id : foodId!=null ? foodId : inputTaskId;
         JsonObject result=new JsonObject(); result.addProperty("operation","player.task"); result.addProperty("sessionId",sessionId);
         if("cancel".equals(action)) {
             String expected=CatalogData.text(args,"taskId",128,"");
             if(current==null || !current.equals(expected)) throw new BridgeException("stale_task","Task no longer owns input; no newer task was cancelled.");
-            releaseInput(); if(navigation==active) navigation=null;
+            if (expected.equals(foodId)) {
+                result.addProperty("owner", SurvivalFood.OPERATION);
+                result.add("food", SurvivalFood.cancel(expected));
+            } else {
+                releaseInput(); if(navigation==active) navigation=null;
+            }
             result.addProperty("status","cancelled"); result.addProperty("taskId",expected);
             result.addProperty("ownedKeysReleased",OwnedKeyState.heldCount()==0 && held.isEmpty());
         } else {
             result.addProperty("status",current==null ? "idle" : "active");
             if(current!=null) result.addProperty("taskId",current);
-            result.addProperty("owner",tracker!=null ? "player.follow" : active!=null && !active.abort ? PlayerNavigation.OPERATION : inputTaskId!=null ? "player.input" : "none");
+            result.addProperty("owner",remoteWalk!=null && !remoteWalk.aborted ? RemoteWalkInput.OWNER : tracker!=null ? "player.follow" : active!=null && !active.abort ? PlayerNavigation.OPERATION : mining!=null ? SurvivalMining.OWNER : foodId!=null ? SurvivalFood.OPERATION : inputTaskId!=null ? "player.input" : "none");
+            if (mining != null) result.add("mining", mining.receipt());
+            else if (lastMine != null) result.add("lastMining", lastMine.deepCopy());
             if(tracker!=null) result.add("follow",tracker.inspect());
             result.addProperty("ownedKeyCount",OwnedKeyState.heldCount());
             if(active!=null && !active.abort) { result.addProperty("phase",active.routeReady() ? "executing" : "planning"); result.addProperty("elapsedMillis",(System.nanoTime()-active.started)/1000000.0); }
@@ -2991,9 +3492,8 @@ public class GameBridge {
         Runnable cancellation=job::cancel; control.onReadCancellation(cancellation);
         try {
             while(true) {
-                long began=System.nanoTime(); final JsonObject observed;
-                try { observed=job.await(ApproachPlanner.remaining(deadline)); }
-                finally { control.recordNativeAwait(System.nanoTime()-began); }
+                final JsonObject observed;
+                try (NativeAwait measurement = new NativeAwait(control, true)) { observed=job.await(ApproachPlanner.remaining(deadline)); }
                 JsonObject result=clientQueue.await(clientQueue.submit(() -> job.verifyFinal(observed),
                         ApproachPlanner.remaining(deadline),control),ApproachPlanner.remaining(deadline));
                 if(result==null) continue;
@@ -4046,9 +4546,7 @@ public class GameBridge {
                         approachEyeReads.add(value); return value;
                     }, remaining, control), remaining);
                     ApproachPlanner.Frame current;
-                    long nativeAwaitStarted = System.nanoTime();
-                    try { current = read.await(); }
-                    finally { control.recordNativeAwait(System.nanoTime() - nativeAwaitStarted); }
+                    try (NativeAwait measurement = new NativeAwait(control, true)) { current = read.await(); }
                     eyeSettlingReceipt = read.receipt(); return current;
                 } finally {
                     control.clearReadCancellation(cancellation); ApproachPlanner.EyeRead read = owned.get(); if (read != null) read.close();
@@ -5022,6 +5520,16 @@ public class GameBridge {
             throw new BridgeException("invalid_args", "sneaking must be a boolean on a use action.");
         MovingObjectPosition target = client.objectMouseOver;
         boolean explicit = args.has("x") || args.has("y") || args.has("z");
+        if (args.has("expectedEntity")) {
+            JsonObject expected = args.getAsJsonObject("expectedEntity");
+            if (explicit || target == null || target.entityHit == null || target.entityHit.isDead
+                    || target.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY
+                    || !target.entityHit.getUniqueID().toString().equals(JsonData.string(expected, "uuid"))
+                    || target.entityHit.dimension != JsonData.integer(expected, "dimension", Integer.MIN_VALUE, Integer.MAX_VALUE)
+                    || !client.thePlayer.canEntityBeSeen(target.entityHit) || target.hitVec == null
+                    || client.thePlayer.getPosition(1F).distanceTo(target.hitVec) > client.playerController.getBlockReachDistance())
+                throw new BridgeException("stale_entity", "The requested visible entity is no longer the native crosshair target.");
+        }
         boolean wrenchFacing = GuiDataAdapter.booleanArg(args, "wrenchFacing", false);
         JsonObject hitPoint = InteractionHitPoint.requested(args);
         if (hitPoint != null && (!explicit || !args.has("side") || wrenchFacing))
@@ -5304,6 +5812,25 @@ public class GameBridge {
         return screen;
     }
 
+    private JsonObject dispatchVirtualMouse(JsonObject args, GameQueue.Control control) throws ExecutionException,InterruptedException {
+        java.util.concurrent.CompletableFuture<JsonObject> result=clientQueue.await(clientQueue.submit(()->{
+            Minecraft client=Minecraft.getMinecraft();
+            if (!sessionId.equals(JsonData.string(args,"expectedSessionId"))) throw new BridgeException("stale_session","Virtual mouse session changed.");
+            GuiScreen screen=requireGui(client,args);
+            String expectedScreen=identifyScreen(screen), expectedProfile=profile;
+            Container container=client.thePlayer==null?null:client.thePlayer.openContainer;
+            int window=container==null?-1:container.windowId;
+            long revision=policies.revision();
+            VirtualGuiMouse.INSTANCE.bind(client, () -> background.active(client), this::agentBusy);
+            return VirtualGuiMouse.INSTANCE.submit(args,()->revision==policies.revision() && expectedProfile.equals(profile)
+                    && expectedScreen.equals(screenId) && inputContextMatches(client,screen,container,window),control::isCancelled);
+        },1000,control),1000);
+        try { return result.get(5500,TimeUnit.MILLISECONDS); }
+        catch (java.util.concurrent.TimeoutException timeout) {
+            throw new BridgeException("timeout","Virtual mouse deadline expired. Inspect the current screen before another gesture.");
+        } finally { if (!result.isDone()) result.cancel(false); }
+    }
+
     private JsonObject clickGui(Minecraft client, JsonObject args) {
         GuiScreen screen = requireGui(client, args);
         int x = JsonData.integer(args, "x", 0, Math.max(0, screen.width - 1));
@@ -5316,6 +5843,8 @@ public class GameBridge {
         JsonObject beforeInput = GuiControlAdapter.observeInputState(client, screen, inputScreenId, inputButtons);
         if (!inputContextMatches(client, screen, inputContainer, inputWindow))
             throw new BridgeException("stale_window", "The native input context changed before click dispatch.");
+        GuiCallbacks.requireCoordinateClick(screen.getClass());
+        VirtualGuiMouse.INSTANCE.legacyClick(screen,x,y);
         JsonObject pointer = LogicalGuiPointer.prepareClick(client, screen, x, y, sessionId, () -> background.active(client));
         JsonObject coordinates;
         try { coordinates = GuiCallbacks.click(screen, x, y, button, () -> inputContextMatches(client, screen, inputContainer, inputWindow)); }
@@ -5346,6 +5875,10 @@ public class GameBridge {
         if (!inputContextMatches(client, screen, inputContainer, inputWindow))
             throw new BridgeException("stale_window", "The native input context changed before key dispatch.");
         GuiCallbacks.key(screen, key, character);
+        if (!character.isEmpty() || key == org.lwjgl.input.Keyboard.KEY_BACK || key == org.lwjgl.input.Keyboard.KEY_DELETE)
+            VirtualGuiMouse.INSTANCE.textInput(screen, true);
+        else if (key == org.lwjgl.input.Keyboard.KEY_ESCAPE || key == org.lwjgl.input.Keyboard.KEY_RETURN)
+            VirtualGuiMouse.INSTANCE.textInput(screen, false);
         boolean inputContextCurrent = inputContextMatches(client, screen, inputContainer, inputWindow);
         JsonObject afterInput = inputContextCurrent ? GuiControlAdapter.observeInputState(client, screen, inputScreenId, inputButtons) : null;
         JsonObject result = gui(client);

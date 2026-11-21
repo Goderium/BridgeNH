@@ -1,0 +1,55 @@
+{
+  "hooks": {
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "mcb",
+            "tool": "mcb_compaction_cursor",
+            "input": {
+              "event": "${hook_event_name}",
+              "conversationId": "${session_id}",
+              "turnId": "${turn_id}"
+            },
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "mcb",
+            "tool": "mcb_compaction_cursor",
+            "input": {
+              "event": "${hook_event_name}",
+              "conversationId": "${session_id}",
+              "turnId": "${turn_id}"
+            },
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "mcb",
+            "tool": "mcb_compaction_cursor",
+            "input": {
+              "event": "${hook_event_name}",
+              "conversationId": "${session_id}",
+              "turnId": "${turn_id}"
+            },
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

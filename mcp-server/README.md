@@ -16,6 +16,6 @@ guide. Installing this Python package alone does not install the mod or register
 an MCP server. The `minecraft-codex-bridge-setup` command supports configuration
 with an existing runtime. Run it with `--help` for options.
 
-`mcb_help` and guide resources serve English; `_zh.md` companions are for human review. Use `mcb_help({"topic":"workspace"})` for documentation rules and a reusable startup template.
+`mcb_help` and MCP guide resources return the Chinese operating guides (`*_zh.md`). The English editions are available for human reference. Use `mcb_help({"topic":"workspace"})` for documentation rules and a reusable startup template.
 
 Start feature discovery with `mcb_help({"topic":"capabilities"})`, which indexes every public tool. Use `mcb_help({"topic":"maintenance"})` for hot reload and reconnect boundaries, and `mcb_help({"topic":"tools","tool":"mcb_nei_bookmark_action"})` for a complete current worker-tool schema.

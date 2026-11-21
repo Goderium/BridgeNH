@@ -59,6 +59,19 @@ def validate_instance(path: Path) -> Path:
     return path
 
 
+def built_mod_version(build_dir: Path) -> str:
+    resource = build_dir / 'resources/main/mcmod.info'
+    try:
+        mods = json.loads(resource.read_text(encoding='utf-8'))
+        mod, = (item for item in mods if item.get('modid') == 'codexbridge')
+        version = mod['version']
+        if not isinstance(version, str) or not re.fullmatch(r'[a-zA-Z0-9.+_-]+', version):
+            raise ValueError()
+        return version
+    except (OSError, ValueError, TypeError, KeyError, AttributeError) as error:
+        raise InstallError(f'Cannot read the built mod version from {resource}. Rebuild the mod.') from error
+
+
 def validate_jar(path: Path) -> Path:
     path = path.resolve(strict=True)
     if not re.fullmatch(r'(?:BridgeNH|minecraft-codex-bridge)-[a-zA-Z0-9.+_-]+\.jar', path.name) or re.search(r'-(dev|sources)\.jar$', path.name):

@@ -76,7 +76,11 @@ network request, retry, generated script or persistent per-call plan is involved
 
 ## Initial operations
 
+Survival mining uses `player.mine` against the observed crosshair block with the selected real tool. `player.entity_interact` pins the visible target UUID and dimension. `gui.chest_transfer` performs one ordinary chest shift-click and reports the client-side item deltas. These operations accept `expectedSessionId` and the current `lifecycleTarget.expectedWorld`. The generic `mcb_action_chain` runs independent sequence segments under a native world and dimension guard. An insertion takes effect at the next unstarted segment. [Guide and acceptance](mcp-server/src/minecraft_codex_bridge/guides/survival.md).
+
 ### MCP-only bounded workflows
+
+`mcb_survival_order` stores the caller's material order in the bound instance. `open` fixes an exact item, a quantity and physical endpoints. `advance` requires the current session, lifecycle target, dimension and order revision. Before a material action the worker commits its intent, then records the verified quantity in a separate transaction. `status` reads the durable revision. `reconcile` binds the same actor and save, inspects the recorded operation and leaves inconclusive effects pending. For replenish orders, `remaining` is the destination deficit. For gather orders, it is the quantity yet to be delivered. See [survival orders](mcp-server/src/minecraft_codex_bridge/guides/survival.md).
 
 `mcb_action_recovery` is a worker-local recovery interface, not a new HTTP
 mutation. `list` reads retained action IDs without game calls; `inspect` and
@@ -185,6 +189,9 @@ Individual tools and script-driven tests remain supported.
 | `player.world_mouse` | `{action:"wheel",direction:"up"\|"down",sneaking?}` or `{action:"pick_block"}` | Forge wheel event or native pick on the current block under the crosshair |
 | `inventory.copy_block` | `{expectedSessionId,expectedWorld,dimension,x,y,z,registryName,metadata,destinationSlot,expectedMetaTileId?,side?}` | One portable item from a loaded block, written to a verified empty slot in the owned creative world |
 | `player.hotbar` | `{slot}` | Select hotbar slot 0 through 8 |
+| `quest.progress` | `{questId}` | Read the current player's BetterQuesting state, per-task completion and claim eligibility by canonical UUID or legacy packdata hex ID. A server result includes the bound world, dimension and participant fingerprint. A client-synced read identifies its source and reports unverified membership. |
+| `quest.step` | `{questId,action,expectedSessionId,worldFolder,dimension,expectedConnectionId?,taskId?,partyConfirmation?}` | Submit one ordinary detect, checkbox or claim. Remote servers require the current connection ID. The server checks participants in the same callback. Shared parties require their current confirmation fingerprint. A native action may leave progress unchanged. Global quests and forced choice claims are unsupported writes. |
+| `survival.food` | `{action,slot,registryName,metadata,timeout_ms?}` | Under a writable policy, the survival actor uses a real edible stack once or selects a real Healing Axe. See [food receipts](mcp-server/src/minecraft_codex_bridge/guides/food.md). |
 | `player.input` | `{keys:[...],ticks}` | Hold a supported movement/use/attack binding for a bounded number of client ticks; release automatically |
 | `player.interact` | `{action:"use"|"attack",x?,y?,z?,side?,sneaking?,restoreView?}` | Normal interaction; explicit use keeps target view; local developer mode can restore the prior view |
 | `gui.slot_click` | `{windowId,slot,button?,mode?}` | Normal container click with current window ID verification |
@@ -321,6 +328,7 @@ defaulting to false. The actual current `ItemStack.getTooltip(player, advanced)`
 is preferred, preserving the stack's NBT without dumping it. Supported public
 AE button and cached MUI2 RichTooltip readers supplement it, without invoking
 dynamic builders or reproducing rich icons, clipping or topmost hit routing.
+MUI2 widget inspection and coordinate tooltip lookup skip descendants of disabled or invalid parents.
 The response includes `screenId`, `source`, optional `item`/`widget`, bounded
 `tooltip`, `tooltipTotalLines`/`tooltipTruncated` when available, `advanced`,
 current physical `modifiers` and explicit `coverage`/`budget`. Unavailable
@@ -392,7 +400,7 @@ and linked recipes containing them. Explicit deletion of retained entries requir
 `releaseRetained=true` once they are no longer needed. Ownership lasts for the
 current client/world/native object lifetime; a reset preserves unknown entries.
 Partial failure reports unknown effects with no automatic replay. Read the current
-state before recovery. The [NEI guide](mcp-server/src/minecraft_codex_bridge/guides/nei.md#native-bookmark-management)
+state before recovery. The [NEI operating guide](mcp-server/src/minecraft_codex_bridge/guides/nei_zh.md#原生书签管理)
 describes the exact action selections and native grouping constraints.
 
 ## Current NEI recipe data
@@ -464,6 +472,18 @@ Missing information is unknown, not zero or a complete-page guarantee. MCP
 `mcb_nei` is a repeatable read-only query, never acquires takeover, requests a
 screenshot or automatically enumerates further pages. Prefer these current
 client data; consult local source only for data outside the reported coverage.
+
+## Virtual GUI mouse
+
+A staged event uses the screen’s native input loop after a draw at the target coordinates, including a ModularUI2 replacement draw in Forge Pre. Vanilla `GuiSlot` lists can poll a staged wheel notch during their own draw. Each notch is delivered once. On handoff the client cancels slider drags, discards physical GUI mouse input buffered during takeover, and clears the agent’s vanilla container double-click history. Later player input is processed normally. Physical keyboard events remain queued for the normal input pass. The initial attack or use press from `player.input` belongs to its input lease. Ending the lease discards an unconsumed agent press and preserves the player's pending presses.
+
+`client.compaction_cursor` takes `expectedSessionId`, an opaque UUID `key` scoped to the binding and turn, and an `active` boolean. During takeover it shows busy on the current GUI indicator or world HUD logo. It emits no input. A matching end event clears its own signal. Handoff, screen change or ten minutes without an end event clears outstanding signals.
+
+`gui.virtual_mouse` is a client operation advertised by the loaded lwjgl3ify mouse backend. It requires a current `expectedSessionId`, `screenId`, scaled GUI `x/y` and full background takeover. Supported actions are `move`, `click`, `press`, `release`, `drag` and `scroll`. A press returns a screen-bound `gestureId` for subsequent moves and release. Its hold lease lasts 15 seconds and renews on a held move. Move accepts 1–32 steps from the current pointer position. Drag takes `toX/toY` and 1–32 interpolation steps. Scroll accepts 1–16 signed notches in either direction. The client waits up to five seconds for normal frames and native event dispatch. `eventsDispatched` counts events consumed by native polling, including those consumed before a callback fails. If a click opens another GUI on press, `screen_changed_after_press` records the one delivered event.
+
+`gui.inspect.virtualMouse.active` reports whether the GUI mouse is available. `displayMode` is `pointer` at the GUI target during a gesture, held button, brief coordinate-click feedback or a `gui.pointer` hover lease. Idle takeover uses `status` and displays a separate Codex logo below the center of the screen, just beneath the world crosshair. `hidden` applies during manual control or when F1 hides the world HUD. The current point, `heldButton` and `appearance` (`normal`, `pressed`, `text` or `busy`) describe the current interaction. Busy takes precedence over text, then pressed.
+
+`indicate_thinking` takes the current screen and session IDs and `durationMillis` (0–120000) instead of coordinates. It requests busy without emitting input or switching to pointer display. `thinkingRemainingMillis` reports the remaining duration. A held button selects the pressed artwork in normal mode and remains observable as `heldButton` in every mode. Observe the current widget, carried stack or synchronized game state to determine its effect. An interrupted request may have dispatched part of the gesture.
 
 ## Named NEI, AE and GUI operations
 
@@ -767,6 +787,12 @@ cursor is `busy`; expired, consumed or context-invalid cursors return
 `stale_cursor`. Running cancellation is not an atomic rollback. MCP never
 retries a cursor or caches its state and marks `mcb_world_scan` read-only but
 non-idempotent. It is excluded from `mcb_wait_for` polling.
+
+## Remote spatial reads and grounded walking
+
+The Forge handshake advertises `spatialObservationVersion=1` for `world.spatial` and `groundWalkVersion=1` for `world.walk_probe` and the legacy `world.walk_plan`. The server checks the player, connection epoch, dimension and operator level for each request. A probe reports server feet, current clearance and the visible face of a block goal.
+
+The adapter selects `player.remote_walk` for supported standalone `mcb_navigate` and `mcb_approach` calls. With effective `clientGroundPlanVersion=1`, search runs on client ticks with a cooperative 2 ms planning budget. The client owns local collision checks, native inputs, bounded replanning and transit actions. A negotiated preview (`clientPreview=true`) returns `source=client_world_tick` with zero server probes. Older preview callers receive one server observation of the start. Servers advertising `walkArrivalVersion=1` serve `world.walk_arrival`: one request observes the actual feet on two distinct stable server ticks, allowing up to eight samples. Older servers use up to four endpoint probes. A coordinate arrival needs no server terrain search. The receipt includes `plannerSource`, `planningSlices`, `maximumPlanningSliceMicros`, `replans`, `serverProbes` and both arrival positions. For an explicit block use, `interaction.accepted` is the native click receipt. Verify the intended container or world effect separately.
 
 ## Server runtime observations
 
@@ -1130,6 +1156,8 @@ disable/fault stop/consumed-input failures, AE logistics and NEI lookup. It does
 not replace existing recipe/QA acceptance or declare a root cause from UI text.
 
 ## Client lifecycle and background control
+
+The emergency hotkey increments `background.emergencyReleaseCount` for the current client session. Within a single MCP tool call, control RPCs carry the first observed count as `expectedEmergencyReleaseCount` in the request envelope. A mismatch cancels pending control steps with `manual_override`. A new tool call observes the current count. `playerHandoff` in a tool result advises the agent of a newly observed release.
 
 | Mod operation / MCP tool | Arguments | Behavior |
 | --- | --- | --- |

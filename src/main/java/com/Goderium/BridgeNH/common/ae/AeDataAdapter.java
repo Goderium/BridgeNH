@@ -362,9 +362,7 @@ public final class AeDataAdapter {
         state.add("virtualSlots", slots); state.addProperty("totalVirtualSlots", values.size()); state.addProperty("virtualSlotsTruncated", values.size() > 64);
     }
     public static JsonObject actualItem(ItemStack item) {
-        JsonObject result = JsonData.item(item).getAsJsonObject();
-        if (item.hasTagCompound()) { String nbt = item.getTagCompound().toString(); result.addProperty("nbt", JsonData.bounded(nbt, 4096)); result.addProperty("nbtTruncated", nbt.length() > 4096); }
-        return result;
+        return JsonData.itemWithNbt(item);
     }
     static JsonObject stack(Object stack) {
         require(stack, STACK);

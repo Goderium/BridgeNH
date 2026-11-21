@@ -4,17 +4,25 @@ from __future__ import annotations
 import email
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import tarfile
 import zipfile
 
 from package_release import build
+from minecraft_codex_bridge.installation import built_mod_version
 from release_metadata import ROOT, metadata
 
 
-def prepare(root: Path = ROOT) -> dict:
-    release = metadata(root)
+def prepare(root: Path = ROOT, ref: str = '') -> dict:
+    release = metadata(root, ref)
+    # Use the resource from this Gradle build even when build/libs contains older JARs.
+    mod_version = built_mod_version(root / 'build')
+    if ref.startswith('refs/tags/') and mod_version != release['version']:
+        raise ValueError('The tagged JAR version must match the release.')
+    release['jar_name'] = f'BridgeNH-{mod_version}.jar'
+    release['bundle_name'] = f'BridgeNH-{mod_version}-windows.zip'
     output = root / 'build/dist'
     version = release['python_version']
     wheel = output / f'minecraft_codex_bridge_mcp-{version}-py3-none-any.whl'
@@ -23,7 +31,7 @@ def prepare(root: Path = ROOT) -> dict:
     with zipfile.ZipFile(jar) as archive:
         info = json.loads(archive.read('mcmod.info'))
         if not any(mod.get('modid') == 'codexbridge' and mod.get('name') == 'BridgeNH'
-                   and mod.get('version') == release['version'] for mod in info):
+                   and mod.get('version') == mod_version for mod in info):
             raise ValueError('Built mod identity/version does not match the release.')
         if archive.read('META-INF/LICENSE') != (root / 'LICENSE').read_bytes():
             raise ValueError('Missing or mismatched mod license.')
@@ -39,8 +47,9 @@ def prepare(root: Path = ROOT) -> dict:
             raise ValueError('Unexpected wheel version or Python requirement.')
         if not any(name.endswith('/LICENSE') for name in archive.namelist()):
             raise ValueError('Wheel license is missing.')
-        if 'minecraft_codex_bridge/guides/workspace.md' not in archive.namelist():
-            raise ValueError('Wheel agent guides are missing.')
+        for edition in ('workspace_zh.md', 'workspace.md'):
+            if f'minecraft_codex_bridge/guides/{edition}' not in archive.namelist():
+                raise ValueError(f'Wheel workspace guide is missing: {edition}')
     with tarfile.open(sdist, 'r:gz') as archive:
         if not any(name.endswith('/LICENSE') for name in archive.getnames()):
             raise ValueError('Source distribution license is missing.')
@@ -60,4 +69,4 @@ def prepare(root: Path = ROOT) -> dict:
 
 
 if __name__ == '__main__':
-    print(json.dumps(prepare(), indent=2))
+    print(json.dumps(prepare(ref=os.environ.get('GITHUB_REF', '')), indent=2))

@@ -80,6 +80,9 @@ class Worker:
             "mutationSeen": self.mutation_seen, "uncertain": self.uncertain,
             "failedActions": deepcopy(self.failed_actions), "movementFailures": deepcopy(self.movement_failures),
             "reconciledMovements": self.reconciled_movements}
+        chain = self.adapter.action_chain.checkpoint()
+        if chain is not None:
+            state["actionChain"] = chain
         validate_state(state, _validate)
         return {"state": state, "binding": await self.binding(), "stateFingerprint": fingerprint(state)}
 
@@ -128,6 +131,7 @@ class Worker:
             blockers = switch_blockers(self)
             if not blockers:
                 await self.checkpoint()  # Validate retained state before considering a switch.
+                await self.adapter.compaction_cursor.detach(self.client)
                 self.prepared = True
             return {"blockers": blockers}
         if method == "probe_connection":
@@ -151,6 +155,11 @@ class Worker:
                 raise BackendError("BACKEND_STATE_ALREADY_ACTIVE")
             state = params.get("state")
             restored = validate_state(state, _validate)
+            from .action_chain import ActionChain
+            try:
+                restored_chain = ActionChain.restore(state.get("actionChain"))
+            except (ValueError, TypeError, KeyError, BridgeError):
+                raise BackendError("BACKEND_STATE_INVALID") from None
             if params.get("stateFingerprint") != fingerprint(state):
                 raise BackendError("BACKEND_STATE_FINGERPRINT_CHANGED")
             binding = await self.binding()
@@ -159,6 +168,7 @@ class Worker:
             self.adapter.ae_order_records = restored
             self.mutation_seen = state["mutationSeen"]
             self.uncertain = state["uncertain"]
+            self.adapter.action_chain = restored_chain
             self.failed_actions = deepcopy(state["failedActions"])
             self.movement_failures = deepcopy(state["movementFailures"])
             self.reconciled_movements = state["reconciledMovements"]
@@ -183,6 +193,9 @@ class Worker:
         name, arguments = params.get("name"), params.get("arguments")
         if not isinstance(name, str) or not isinstance(arguments, dict) or len(encode(params)) > MAX_REQUEST_BYTES:
             raise BackendError("BACKEND_TOOL_REQUEST_INVALID")
+        if name == "mcb_compaction_cursor":
+            result = await self.adapter.call_tool(name, arguments)
+            return result.model_dump(mode="json", by_alias=True, exclude_none=True)
         invocation = None
         if name == "mcb_sequence" and "call" in arguments:
             from .dynamic_catalog import resolve_call
@@ -203,8 +216,8 @@ class Worker:
             return _result({"ok": False, "error": {"code": "CLIENT_NOT_BOUND",
                 "message": "No default binding. List clients and explicitly bind this conversation before game tools.",
                 "outcome_unknown": False}, "mcpConnection": self.client.configuration.connection_info()}, error=True).model_dump(mode="json", by_alias=True, exclude_none=True)
-        recovery = name == "mcb_action_recovery"
-        if spec is not None and not spec.read_only and not recovery:
+        tracks_game_effects = spec is not None and not spec.read_only and name != "mcb_action_recovery" and not local_chain_command(name, arguments)
+        if tracks_game_effects:
             if self.replay_blocked(name, arguments):
                 from .action_recovery import action_id, reconciled
                 return _result({"ok": False, "error": {"code": "BACKEND_ACTION_REPLAY_REQUIRES_RECONCILIATION",
@@ -218,7 +231,7 @@ class Worker:
                 raise BackendError("BACKEND_ACTION_RECORD_CAPACITY")
             self.mutation_seen = True
         result = await self.adapter.call_tool(name, arguments)
-        if spec is not None and not spec.read_only and not recovery and uncertain_tool_result(result.structuredContent):
+        if tracks_game_effects and uncertain_tool_result(result.structuredContent):
             self.remember_unknown(name, arguments, result.structuredContent)
         if name == "mcb_health":
             from .action_recovery import reconciled
@@ -235,6 +248,12 @@ class Worker:
             from .dynamic_catalog import annotate_result
             result = annotate_result(result, invocation)
         return result.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+def local_chain_command(name, arguments):
+    if name == "mcb_survival_order":
+        return arguments.get("action") in ("open", "status", "cancel")
+    return name == "mcb_action_chain" and arguments.get("action", "status") in ("open", "status", "insert", "cancel")
 
 
 def uncertain_tool_result(value):
@@ -280,16 +299,19 @@ async def run(source, target, client=None):
                         "outcomeUnknown": getattr(error, "outcome_unknown", False)}})
                     replied = True
                 except Exception:
-                    worker.uncertain = True
-                    if request["method"] == "call_tool":
+                    unknown = not local_chain_command(request["params"].get("name"), request["params"].get("arguments", {}))
+                    if unknown:
+                        worker.uncertain = True
+                    if unknown and request["method"] == "call_tool":
                         worker.remember_unknown(request["params"].get("name"), request["params"].get("arguments", {}),
                             {"ok": False, "error": {"code": "BACKEND_EXECUTION_UNKNOWN", "outcomeUnknown": True}})
                     _emit(target, {"id": identifier, "ok": False, "error": {
-                        "code": "BACKEND_EXECUTION_UNKNOWN", "outcomeUnknown": True}})
+                        "code": "BACKEND_EXECUTION_UNKNOWN", "outcomeUnknown": unknown}})
                     replied = True
             if scope.cancel_called and not replied:
                 spec = TOOL_BY_NAME.get(request["params"].get("name")) if request["method"] == "call_tool" else None
-                unknown = request["method"] == "call_tool" and (spec is None or not spec.read_only)
+                unknown = (request["method"] == "call_tool" and (spec is None or not spec.read_only)
+                           and not local_chain_command(request["params"].get("name"), request["params"].get("arguments", {})))
                 if unknown:
                     worker.remember_unknown(request["params"].get("name"), request["params"].get("arguments", {}),
                         {"ok": False, "error": {"code": "BACKEND_REQUEST_CANCELLED", "outcomeUnknown": True}})

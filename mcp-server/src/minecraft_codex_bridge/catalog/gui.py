@@ -18,6 +18,17 @@ from .nei import (
 )
 
 
+T_MCB_CHEST_TRANSFER = ToolSpec("mcb_chest_transfer", "gui.chest_transfer",
+    "Shift-click one observed real stack into or out of an open vanilla chest. Supply the observed source count and complete NBT for a tagged item. "
+    "Client-side inventory deltas report partial fits. Recheck the synchronized chest and player inventory to verify delivery.",
+    obj({"expectedSessionId": EXPECTED_SESSION, "expectedWorld": EXPECTED_WORLD, "screenId": SCREEN_ID,
+         "windowId": integer(0, 255), "slot": integer(0, 255), "direction": {"enum": ["withdraw", "deposit"]},
+         "registryName": {"type": "string", "minLength": 3, "maxLength": 256}, "metadata": integer(0, 32767),
+         "count": integer(1, 127), "nbt": {"type": "string", "minLength": 1, "maxLength": 4096}},
+        ["expectedSessionId", "expectedWorld", "screenId", "windowId", "slot", "direction", "registryName", "metadata", "count"]),
+    idempotent=False)
+
+
 T_MCB_WINDOW = ToolSpec("mcb_window", "client.window", "Read actual client/framebuffer dimensions and native window flags. window.mode distinguishes windowed, maximized, undecorated_windowed, borderless_fullscreen and game_fullscreen; gameFullscreen and config preferences are separate. Window-controls v2 adds native width/height, startupMode/startupModeApplied and focusProtection. Current focused/minimized flags do not prove uninterrupted startup behavior. Missing SDL/lwjgl3ify support is explicit unknown. No focus, resize or settings changes.", obj(), True)
 
 T_MCB_WINDOW_ACTION = ToolSpec("mcb_window_action", "client.window_action", "Control the observed runtime SDL window without OS input or restart. Supply current health session and mcb_window.window identity/mode. maximize/restore/minimize/resize apply scoped native focus and stacking protection on Windows. Minimizing an active window allows Windows to choose another foreground window. resize requires width=256..8192 and height=144..8192; re-read dimensions on the next normal event. All four require windowed mode; windowed explicitly leaves fullscreen via Minecraft's normal method without sending F11. No implicit fullscreen transition, borderless preference edit or configuration save. confirmed is actual native readback; framebuffer resize follows normal events. Re-read after an unconfirmed result, never blindly replay.", {**obj({"expectedSessionId": EXPECTED_SESSION, "expectedWindowId": {"type": "string", "minLength": 1, "maxLength": 64}, "expectedMode": {"enum": ["windowed", "maximized", "undecorated_windowed", "borderless_fullscreen", "game_fullscreen"]}, "action": {"enum": ["maximize", "restore", "windowed", "minimize", "resize"]}, "width": integer(256, 8192), "height": integer(144, 8192)}, ["expectedSessionId", "expectedWindowId", "expectedMode", "action"]), "if": {"properties": {"action": {"const": "resize"}}}, "then": {"required": ["width", "height"]}, "else": {"not": {"anyOf": [{"required": ["width"]}, {"required": ["height"]}]}}}, idempotent=False)
@@ -136,7 +147,7 @@ T_MCB_TRANSFER_WHOLE_STACK = ToolSpec("mcb_transfer_whole_stack", "gui.transfer_
         }, ["version", "expectedSessionId", "expectedWorld", "screenId", "windowId", "side", "direction", "sourceSlot", "destinationSlot", "playerInventoryIndex", "machineInventoryIndex", "owner", "expectedItem"]), idempotent=False)
 
 
-T_MCB_CLOSE_GUI = ToolSpec("mcb_close_gui", "gui.close", "Close the current game screen through the normal client path once. A close click is not a server container ACK. Before standalone low-level movement or feeding, observe mcb_snapshot with serverControl.sampleId newer than the before-close sample, openContainer.isInventoryContainer=true and clientContainer.isInventoryContainer=true and matching windowId. Prefer a bounded read-only wait/sequence; never repeat close because synchronization is delayed. Goal tasks already enforce their own container barriers, so do not add duplicate checks around them.", obj())
+T_MCB_CLOSE_GUI = ToolSpec("mcb_close_gui", "gui.close", "Supply screenId to require that exact container and an empty cursor. Close the current game screen through the normal client path once. A close click is not a server container ACK. Before standalone low-level movement or feeding, observe mcb_snapshot with serverControl.sampleId newer than the before-close sample, openContainer.isInventoryContainer=true and clientContainer.isInventoryContainer=true and matching windowId. Prefer a bounded read-only wait/sequence; never repeat close because synchronization is delayed. Goal tasks already enforce their own container barriers, so do not add duplicate checks around them.", obj({"screenId": SCREEN_ID}))
 
 
 T_MCB_OPEN_INVENTORY = ToolSpec("mcb_open_inventory", "gui.open_inventory", "Open the normal player inventory screen from world view; close an existing GUI first. With inventoryPlayerTabVersion>=1, creative mode selects the native player-inventory tab once so ordinary inventory packets can synchronize. Returns the current GUI, screenId/windowId and creative tab state; reuse this receipt instead of a second GUI read. Older mods require selecting the returned inventoryTabWidgetId before NEI acquisition.", obj())
@@ -146,6 +157,37 @@ T_MCB_OPEN_PAUSE_MENU = ToolSpec("mcb_open_pause_menu", "gui.open_pause_menu", "
 
 
 T_MCB_OPEN_BAUBLES = ToolSpec("mcb_open_baubles", "gui.open_baubles", "From world view with empty cursor, send the installed Baubles normal inventory-open packet once. No OS key input or direct slot writes. Submission is not an open/gear/flight acknowledgement: wait for the actual new GUI/window and matching fresh server container before native slot clicks, then read mcb_baubles. Missing public API is explicitly unsupported; no retry.", obj())
+
+
+_MOUSE_POINT = ["expectedSessionId", "x", "y"]
+_VIRTUAL_MOUSE_SCHEMA = named_actions({
+    "expectedSessionId": EXPECTED_SESSION, "x": integer(0, 32767), "y": integer(0, 32767),
+    "button": integer(0, 2), "toX": integer(0, 32767), "toY": integer(0, 32767),
+    "steps": integer(1, 32), "notches": {"type": "integer", "minimum": -16, "maximum": 16, "not": {"const": 0}},
+    "durationMillis": integer(0, 120000),
+    "gestureId": {"type": "string", "minLength": 1, "maxLength": 64},
+}, {
+    "indicate_thinking": (["expectedSessionId", "durationMillis"], ["expectedSessionId", "durationMillis"], {}),
+    "move": (_MOUSE_POINT + ["gestureId", "steps"], _MOUSE_POINT, {}),
+    "click": (_MOUSE_POINT + ["button"], _MOUSE_POINT, {}),
+    "press": (_MOUSE_POINT + ["button"], _MOUSE_POINT, {}),
+    "release": (_MOUSE_POINT + ["gestureId"], _MOUSE_POINT + ["gestureId"], {}),
+    "drag": (_MOUSE_POINT + ["button", "toX", "toY", "steps"], _MOUSE_POINT + ["toX", "toY"], {}),
+    "scroll": (_MOUSE_POINT + ["notches"], _MOUSE_POINT + ["notches"], {}),
+})
+
+
+T_MCB_VIRTUAL_MOUSE = ToolSpec("mcb_virtual_mouse", "gui.virtual_mouse",
+    "Operate the bound client's GUI mouse at scaled screen coordinates during full background takeover. "
+    "For GUI gestures without a dedicated action, or explicit pointer tests. Use the dedicated API for every supported operation. "
+    "Move/click/press/release/drag/scroll dispatch normal GUI mouse events after a natural frame at the target. "
+    "Move optionally interpolates over 1..32 steps. A single drag starts at x/y and ends at toX/toY over 1..32 steps (default 8). Buttons 0/1/2 are left/right/middle. "
+    "mcb_gui.virtualMouse.displayMode reports pointer during mouse use, status for the Codex logo below the crosshair, or hidden. "
+    "indicate_thinking sets busy for durationMillis (0..120000, zero clears) without activating the pointer. "
+    "Press returns a gestureId valid for 15 seconds. Supply it to move or release the held button. "
+    "The physical cursor is independent. A dispatch receipt does not establish a widget effect. "
+    "Check current state before another action and record missing specialized interfaces even when the gesture succeeds.",
+    _VIRTUAL_MOUSE_SCHEMA, idempotent=False)
 
 
 T_MCB_GUI_CLICK = ToolSpec("mcb_gui_click", "gui.click", "Click and release scaled GUI coordinates using the exact screenId from mcb_gui. Rejects stale screens. Read the current width/height before choosing coordinates. AE2 virtual grids and ModularUI2 use cached hover state and refuse generic coordinate clicks; dedicated adapters are required. Use mcb_slot_click only for actual container slots. Chat and command-block screens require local developer profile.", obj({"screenId": SCREEN_ID, "x": integer(0, 32_767), "y": integer(0, 32_767), "button": integer(0, 2)}, ["screenId", "x", "y"]))

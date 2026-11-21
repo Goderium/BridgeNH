@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -50,7 +51,13 @@ jobs:
         with:
           cache-provider: basic
       - name: Build and test Forge mod
-        run: .\gradlew.bat --no-daemon --console=plain build
+        env:
+          ORG_GRADLE_PROJECT_buildBranch: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $env:ORG_GRADLE_PROJECT_releaseTag = $env:GITHUB_REF_NAME
+          }
+          .\gradlew.bat --no-daemon --console=plain build
       - name: Build Python packages
         run: python -m build --outdir build/dist mcp-server
       - name: Package and verify release assets

@@ -28,13 +28,34 @@ async def invoke_control(client: BridgeClient, operation: str, arguments: dict[s
     """Verify current protection per action; manual release and session changes invalidate it immediately."""
     if operation == "gui.pointer" and arguments.get("action") == "clear":
         return await client.invoke(operation, arguments)
+    from ..bridge import in_request_context
+    remote_navigation = False
+    rpc_options = {}
+    details = arguments.get("includeDetails", False)
     try:
         # Takeover has to be established before the original action guard can
         # require it. Restore the caller's guard for the once-only action.
+        credentials = (client.configuration.read() if isinstance(client, BridgeClient)
+                       and operation in {"player.navigate", "player.remote_walk"} else None)
         with request_context(None):
             health = await client.invoke("bridge.health", {})
+        from ..operation_policy import environment
+        if operation == "player.navigate" and environment(health) == "remote_server":
+            from ..remote_walk import arguments as remote_arguments
+            arguments = remote_arguments(arguments, health)
+            operation = "player.remote_walk"
+            remote_navigation = True
+        if operation == "player.remote_walk":
+            from ..remote_walk import require_binding
+            require_binding(arguments, health)
+            if in_request_context():
+                raise BridgeError("REMOTE_CONTEXT_UNSUPPORTED", "Use standalone remote navigation for the bound server connection.")
+            if credentials is not None:
+                rpc_options["expected_credentials"] = credentials
         operation_route(operation, arguments, health)
         _require_capability(health, operation)
+        if operation == "gui.close" and "screenId" in arguments and health.get("boundContainerCloseVersion") != 1:
+            raise BridgeError("UNSUPPORTED_CAPABILITY", "The bridge cannot bind closing to a specific container and an empty cursor.")
         if operation == "player.interact" and "sneaking" in arguments and health.get("interactionSneaking") is not True:
             raise BridgeError("UNSUPPORTED_CAPABILITY", "The active mod does not support scoped sneak interaction.", operation=operation)
         if operation == "player.interact" and any(key in arguments for key in ("x", "y", "z")) and health.get("interactionBlockTargeting") is not True:
@@ -44,15 +65,20 @@ async def invoke_control(client: BridgeClient, operation: str, arguments: dict[s
         if operation == "player.interact" and arguments.get("action") == "attack" and "x" in arguments and health.get("interactionAttackViewBinding") is not True:
             raise BridgeError("UNSUPPORTED_CAPABILITY", "The active mod does not support target-bound attack view.", operation=operation)
         _require_capability(health, "client.background")
-        if not _full_background(health.get("background")):
+        background = health.get("background")
+        if not _full_background(background):
             with request_context(None):
-                protection = await client.call("client.background", {"enabled": True})
+                protection = await client.call("client.background", {"enabled": True}, **rpc_options)
             if not _full_background(protection):
                 raise BridgeError("TAKEOVER_NOT_CONFIRMED", "The bridge did not confirm full background protection with its actual mouse helper and unfocused-running state.")
     except BridgeError as error:
         details = {**error.details, "stage": "takeover", "blocked_operation": operation, "original_action_executed": False}
         raise BridgeError(error.code, error.message, **details) from None
     # Transport retains the original action's request ID, cancellation handling and uncertain-outcome semantics.
+    if remote_navigation:
+        from ..remote_walk import receipt
+        data = await client.call(operation, arguments, **rpc_options)
+        return receipt(data, arguments, details=details)
     if operation == "player.navigate":
         from ..navigation_gate import closed_container_before_navigation
         close_sync = await closed_container_before_navigation(client, arguments, health)
@@ -102,4 +128,4 @@ async def invoke_control(client: BridgeClient, operation: str, arguments: dict[s
             raise BridgeError(error.code, error.message, **{**error.details, "outcome_unknown": True,
                 "knownReceipt": dict(data)}) from None
         return data
-    return await client.call(operation, arguments)
+    return await client.call(operation, arguments, **rpc_options)

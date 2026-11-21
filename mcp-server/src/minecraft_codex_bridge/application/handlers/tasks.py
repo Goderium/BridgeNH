@@ -28,6 +28,15 @@ async def handle_recipe_once(adapter, name, arguments, started_at):
 
 
 async def handle_approach(adapter, name, arguments, started_at):
+    if "remoteWalk" in arguments:
+        from ...remote_walk import receipt
+        binding = arguments["remoteWalk"]
+        async with adapter.workflow_lock:
+            if binding["preview"]:
+                data = await adapter.client.invoke("player.remote_walk", binding)
+            else:
+                data = await invoke_control(adapter.client, "player.remote_walk", binding)
+        return _result({"ok": True, "data": receipt(data, binding, details=arguments["includeDetails"])})
     data = await run_interaction_approach(adapter.client, arguments, adapter.workflow_lock, control=invoke_control)
     if not arguments.get("includeDetails", False):
         data = approach_summary(data)
@@ -66,6 +75,19 @@ async def handle_inventory_moves(adapter, name, arguments, started_at):
 
 async def handle_plan_visits(adapter, name, arguments, started_at):
     return _result({"ok": True, "data": await run_visit_plan(adapter.client, arguments)})
+
+
+async def handle_survival_order(adapter, name, arguments, started_at):
+    from ...survival_order import run_order
+    data = await run_order(adapter, arguments)
+    blocked = arguments["action"] in ("advance", "reconcile") and data["status"] in ("blocked", "pending")
+    return _result({"ok": not blocked, "data": data}, error=blocked)
+
+
+async def handle_action_chain(adapter, name, arguments, started_at):
+    data = await adapter.action_chain.call(arguments, adapter.client, adapter.workflow_lock, run_workflow)
+    blocked = data["status"] == "blocked" and arguments.get("action") == "advance"
+    return _result({"ok": not blocked, "data": data}, error=blocked)
 
 
 async def handle_sequence(adapter, name, arguments, started_at):

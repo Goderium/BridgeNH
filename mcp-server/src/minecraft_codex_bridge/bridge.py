@@ -32,17 +32,18 @@ MAX_IMAGE_BYTES = 8_388_608
 MAX_SCREENSHOT_RESPONSE_BYTES = 12_000_000
 READ_OPERATIONS = frozenset({
     "bridge.health", "client.snapshot", "client.window", "gui.inspect", "inventory.inspect", "baubles.inspect",
-    "server.observe", "structure.goal", "world.inspect", "world.scan", "world.structure", "gui.tooltip", "nei.inspect", "nei.view", "nei.bookmarks", "research.read", "recipes.query", "client.screenshot",
+    "quest.progress", "survival.gather_observe", "server.observe", "structure.goal", "world.inspect", "world.scan", "world.structure", "gui.tooltip", "nei.inspect", "nei.view", "nei.bookmarks", "research.read", "recipes.query", "client.screenshot",
     "client.diagnostics", "input.bindings", "client.mods", "client.messages", "client.recording", "registry.items",
     "registry.item", "registry.variants", "world.inspect_many", "world.tiles", "client.worlds",
     "gui.widgets", "ae.inspect", "ae.material_source", "machine.inspect", "waila.inspect", "world.entities", "world.spatial", "player.plan_approach", "state.diff",
     "qa.catalog", "qa.status", "qa.results", "machine.capture",
 })
 
-CONTEXT_READS = frozenset({"bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets", "registry.item",
+CONTEXT_READS = frozenset({"survival.storage_count", "survival.storage_receipt", "quest.progress", "bridge.health", "client.messages", "inventory.inspect", "baubles.inspect", "gui.inspect", "gui.widgets", "registry.item",
     "structure.goal", "world.inspect", "world.inspect_many", "world.spatial", "player.plan_approach", "world.structure", "machine.inspect", "ae.material_source"})
-CONTEXT_ACTIONS = frozenset({"player.hotbar", "player.world_mouse", "player.interact", "player.place_block", "structure.survival_build", "player.look",
-    "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", "gui.transfer_whole_stack", "player.replace_owned_block"})
+CONTEXT_ACTIONS = frozenset({"survival.storage_open", "survival.storage_move", "quest.step", "player.hotbar", "player.world_mouse", "player.interact", "player.place_block", "structure.survival_build", "player.look",
+    "player.flight", "player.navigate", "chat.send", "gui.close", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.widget_action", "gui.key", "gui.slot_click", "gui.transfer_whole_stack", "player.replace_owned_block",
+    "player.mine", "player.entity_interact", "gui.chest_transfer", "survival.food"})
 _OWNED_REPLACEMENT_STAGES = frozenset({"prepare", "before_dig", "attack_plan", "move_before_dig",
     "await_move_before_dig", "native_dig", "after_dig", "place_plan", "move_before_place",
     "await_move_before_place", "native_place", "after_place", "final_observation", "completed"})
@@ -52,12 +53,17 @@ _CAPABILITY_SCOPE: ContextVar[dict[str, Any] | None] = ContextVar("bridge_capabi
 
 @contextmanager
 def capability_scope():
-    """One goal-call lifetime only; never caches dynamic observations or permissions."""
-    token = _CAPABILITY_SCOPE.set({})
+    """Scope negotiated capabilities and the initial player handoff count to one tool call."""
+    scope = {"releaseCounts": {}}
+    token = _CAPABILITY_SCOPE.set(scope)
     try:
-        yield
+        yield scope
     finally:
         _CAPABILITY_SCOPE.reset(token)
+
+
+def in_request_context() -> bool:
+    return _REQUEST_CONTEXT.get() is not None
 
 
 @contextmanager
@@ -346,12 +352,16 @@ class BridgeClient:
             raise BridgeError("SESSION_CHANGED", "Runtime connection changed during the bounded workflow; later operations were blocked.", outcome_unknown=False)
         request_id = str(uuid.uuid4())
         context_request = _REQUEST_CONTEXT.get()
+        scope = _CAPABILITY_SCOPE.get()
+        release_counts = scope["releaseCounts"] if scope is not None else {}
         if context_request is not None and operation not in CONTEXT_READS | CONTEXT_ACTIONS:
             raise BridgeError("INVALID_ARGUMENTS", "Operation is outside the fixed context RPC whitelist.", outcome_unknown=False)
         if trace is not None:
             trace.update(request_id=request_id, dispatched=False)
         try:
             request = {"requestId": request_id, "operation": operation, "args": args}
+            if operation not in READ_OPERATIONS and credentials in release_counts:
+                request["expectedEmergencyReleaseCount"] = release_counts[credentials]
             if context_request is not None:
                 request["includeContext"] = context_request
             body = json.dumps(
@@ -366,6 +376,8 @@ class BridgeClient:
         try:
             interaction_goal = isinstance(args.get("goal"), dict) and args["goal"].get("type") == "interaction"
             navigation_millis = args.get("timeout_ms", 6000) if operation == "player.navigate" and (args.get("segmented") is True or interaction_goal) else 0
+            if operation == "player.remote_walk":
+                navigation_millis = args.get("timeout_ms", 30000)
             long_navigation = type(navigation_millis) is int and 6500 < navigation_millis <= 60000
             request_timeout = max(self.timeout, navigation_millis / 1000 + 2) if long_navigation else self.timeout
             with anyio.fail_after(request_timeout):
@@ -432,6 +444,15 @@ class BridgeClient:
                     data = envelope["data"]
                     if data.get("sessionId") != credentials.session_id or data.get("instancePath") != credentials.instance_path:
                         raise BridgeError("INSTANCE_MISMATCH", "The live bridge does not match the pinned runtime instance/session.")
+                if scope is not None and operation in {"bridge.health", "client.snapshot", "client.background", "client.mouse", "client.unfocused"}:
+                    data = envelope["data"]
+                    background = data.get("background") if operation in {"bridge.health", "client.snapshot"} else data
+                    count = background.get("emergencyReleaseCount") if isinstance(background, dict) else None
+                    if type(count) is int and 0 <= count <= 2**63 - 1:
+                        release_counts.setdefault(credentials, count)
+                        session = credentials.session_id or data.get("sessionId")
+                        if count and isinstance(session, str) and session:
+                            scope["playerHandoff"] = (session, count)
                 if context_request is not None:
                     context = envelope["context"]
                     if not isinstance(context, dict) or set(context) != {"version", "operation", "phase", "snapshot"} \
@@ -534,6 +555,6 @@ class BridgeClient:
             data = await self.call(operation, args, expected_credentials=credentials)
         except BaseException:
             if scope is not None:
-                scope.clear()
+                scope.pop("entry", None)
             raise
         return machine_result(data, args) if original_operation == "machine.inspect" and operation == "server.observe" else data

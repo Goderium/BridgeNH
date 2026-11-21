@@ -141,13 +141,16 @@ def _normalized_path(value: str | Path) -> str:
 
 def _target_java(processes: list[Process], configuration: LaunchConfiguration) -> Process | None:
     pattern = re.compile(re.escape(_normalized_path(configuration.instance_path)) + r"(?=$|[/;\"'\s])")
+    unreadable = False
     for process in processes:
         if process.name.casefold() not in {"java.exe", "javaw.exe"}:
             continue
         if not process.command_line:
-            raise BridgeError("PROCESS_INSPECTION_INCOMPLETE", "A Java command line could not be read; duplicate-client exclusion cannot be confirmed.")
-        if pattern.search(_normalized_path(process.command_line)):
+            unreadable = True
+        elif pattern.search(_normalized_path(process.command_line)):
             return process
+    if unreadable:
+        raise BridgeError("PROCESS_INSPECTION_INCOMPLETE", "A Java command line could not be read; duplicate-client exclusion cannot be confirmed.")
     return None
 
 
@@ -344,7 +347,14 @@ def _launch(configuration: LaunchConfiguration, cancelled: threading.Event, back
         try:
             while True:
                 _check_cancelled(cancelled)
-                java = _target_java(backend.processes(), configuration)
+                try:
+                    java = _target_java(backend.processes(), configuration)
+                except BridgeError as error:
+                    if error.code != "PROCESS_INSPECTION_INCOMPLETE" or backend.monotonic() >= deadline:
+                        raise
+                    # Prism already accepted the request. Only repeat the process observation.
+                    backend.sleep(1.0)
+                    continue
                 if java:
                     return {"status": "scheduled", "scheduled": True, "ready": False, "windowModeRequested": window_mode, "windowModeConfirmed": False, "instanceId": configuration.instance_id, "prismProcessId": ready.process_id, "launchProcessId": command.pid, "javaProcessId": java.process_id, "startup": {"version": 1, "stage": "java_started", "bridgeReady": False, "worldReady": False, "nextTool": "mcb_health", "retryAction": False}, "completion": "Use mcb_health once to observe the current session and readiness; Java startup does not mean Minecraft or a world is ready."}
                 if backend.monotonic() >= deadline:

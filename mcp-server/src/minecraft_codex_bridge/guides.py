@@ -21,11 +21,17 @@ def _packaged_guides():
 
 
 AGENT_GUIDES_DIR = _packaged_guides()
-GUIDE_FILES = {"overview": "overview.md", "capabilities": "capabilities.md", "maintenance": "maintenance.md", "workspace": "workspace.md", "testing": "testing.md", "operations": "operations.md", "nei": "nei.md", "ae": "ae.md"}
+GUIDE_FILES = {
+    topic: f"{topic}_zh.md"
+    for topic in (
+        "overview", "survival", "capabilities", "maintenance", "workspace", "testing",
+        "operations", "nei", "ae", "packdata", "food",
+    )
+}
 GUIDE_RESOURCES = {f"minecraft-codex-bridge://agent-guides/{topic}": topic for topic in GUIDE_FILES}
 APPLICABILITY = {
     "minecraft": "1.7.10", "modpack": "GT New Horizons",
-    "variants": "GTNH builds of NEI and AE2; exact tested versions and client scope are stated in the guide.",
+    "variants": "GTNH builds of NEI and AE2. See the relevant guide for version-specific settings and controls.",
 }
 
 

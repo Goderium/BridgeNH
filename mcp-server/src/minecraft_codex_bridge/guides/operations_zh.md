@@ -1,38 +1,36 @@
 # GTNH 操作检查与边界
 
-[English](operations.md) | [简体中文](operations_zh.md)
+适用 Minecraft 1.7.10。以当前 health、权限和 coverage 为准。`mcb_operation_check` 用于独立排错，既有工作流已做的检查无需重复。
 
-供人工阅读和审核；Agent 使用英文入口，完整规则见[启动模板](workspace_zh.md#可复制的启动提示词)。
+## 接口选择
 
-适用 Minecraft 1.7.10。使用现有工具组合所需操作检查。 实际能力以当前 health 与返回 coverage 为准。`mcb_operation_check` 是独立排错入口；既有搭建、配方与 QA 工作流已完成的预检和验收不要重复调用。
+已有结构化接口时须直接调用。原版箱内的物品转移用 `mcb_chest_transfer`，配方翻页用 `mcb_nei_navigate`，寻路用 `mcb_navigate`，采掘用 `mcb_mine`。界面控件用 `mcb_gui_widgets` 查相关页，再用 `mcb_gui_widget_action` 执行支持的动作，包括滚动、拖动。覆盖不足且目标不明时保持待确认。
+
+遇到权限拒绝、目标失效、部分完成或结果未知时，先核实权限、目标及已发生的变化。禁止用坐标绕过拒绝或重放未确认的动作。
+
+## 界面鼠标手势
+
+仅在可见控件已识别、手势已获授权且无对应结构化动作（如滚动自定义帮助面板），或明确测试指针本身时使用虚拟鼠标。用 `mcb_gui` 读取 `screenId` 和缩放尺寸，必要时将帧缓冲像素换算为 GUI 坐标。客户端声明 `gui.virtual_mouse` 时，向 `mcb_virtual_mouse` 提供当前 `expectedSessionId`。`move` 悬停，`click` 单击，`scroll` 按带符号的 `notches` 滚动，`drag` 从 `x/y` 拖至 `toX/toY`。事件随界面绘制投递，原版列表在绘制时读取滚轮。
+
+接管时，手势、按住鼠标键、坐标点击的短暂反馈及 `mcb_gui_pointer` 悬停租期内，`virtualMouse.displayMode` 为 `pointer`，指针跟随 GUI 操作点。其余时间为 `status`，Codex 标志位于准星下方，闲置界面位置相同。交还手动控制或在世界中按 F1 隐藏 HUD 后为 `hidden`。按住显示按下状态，文本聚焦或编辑显示文本状态，原生等待或活动任务优先显示忙碌。`indicate_thinking` 以 `durationMillis`（0 至 120000 毫秒）设置忙碌而不唤出指针，设为 0、换屏或交还时清除。启用 Codex 钩子后，对话压缩也显示忙碌，完成或中断仅清除压缩信号。
+
+分次手势用 `press` 返回的 `gestureId`，15 秒内移动并 `release`。换屏或尺寸变化后检查界面和光标栈。派发只证明送达。补缺时回读实际效果，即使成功也按[缺口模板](workspace_zh.md#原生控制缺口与必要反馈)记录缺少的动作、回执和结果。指针专项测试只验证所测行为。`mcb_gui_pointer` 悬停与 `mcb_gui_click` 单击保留原参数，共用指针占用状态。
 
 ## 服务端日志与运行信息
 
-使用 `mcb_server_observe(kind="status",expectedSessionId=...)` 取得已认证的服务端连接及读取能力声明。调用 `logs`、`diagnostics` 和 `mods` 时，提供当前 `expectedSessionId`、`expectedConnectionId` 和 `dimension`。两端均需使用兼容的 BridgeNH 版本；握手声明 `serverLogsVersion=1`、`serverDiagnosticsVersion=1` 和 `serverModsVersion=1`。这些读取要求增强观察策略及实际服务端 OP 2 级权限。玩家权限组不会授予 OP。
+查询服务端日志、权限和运行信息时，读取 `mcb_help({"topic":"maintenance"})` 中的[服务端日志与运行信息](maintenance_zh.md#服务端日志与运行信息)。
 
-| Kind | 参数与结果 |
-| --- | --- |
-| `logs` | `log="latest"`（默认）或 `"fml-server-latest"`；`level="WARN"`（默认）、`"ERROR"` 或 `"ANY"`；可选 `query` 为最多 256 字符、不区分大小写的字面文本；`limit` 为 1..128，默认 128。仅读取服务端进程 `logs/` 目录下的指定文件。未标注级别的堆栈行需使用 `ANY`。 |
-| `diagnostics` | 服务端版本及品牌、玩家及模组数量、JVM 内存及运行时长、已有原生 tick 耗时、有限的已加载世界信息，以及日志读取队列数量。`estimatedTpsIfSustained` 根据执行耗时估算持续负载下的能力，不是实测 TPS。 |
-| `mods` | 已加载 FML 模组的 ID、名称及版本；`offset` 为 0..10000，`limit` 为 1..64，默认 16。`hasMore` 为真时按 `nextOffset` 继续，检查 `byteLimited` 和每行的 `fieldsTruncated`。 |
+## 局域网与专用服务器上的地面移动
 
-```json
-{"kind":"logs","expectedSessionId":"<current-session>","expectedConnectionId":"<current-connection>","dimension":0,"log":"latest","level":"WARN","limit":32}
-```
+使用 `mcb_spatial` 获取射线或一页坐标的空间信息。客户端具备当前服务器的 OP 权限并启用增强观测、服务端声明 `spatialObservationVersion=1` 时，由服务端游戏线程读取。选择目的地前，检查回执标明的数据来源和观测范围。拾取掉落物时，先用 `mcb_entities` 确认当前位置，到达后从玩家物品栏核实拾取结果。
 
-日志读取使用一个后台线程，最多排队 16 项。每次最多读取 64 KiB，返回的 JSON 数据最多 24,000 字节，每行最多 2,048 字符。敏感行在查询匹配前脱敏。文件路径固定，拒绝路径重定向；返回结果前再次核对权限和连接身份。检查 `bytesRead`、`truncated`、`byteLimited`、时间戳及覆盖说明：没有匹配结果不能证明相关内容不存在，日志轮转和并发写入也可能影响读取。
+调用 `mcb_navigate` 时提供当前会话、维度以及服务端的 `worldName` 或 `worldFolder`。当 `operationPolicy.effective.clientGroundPlanVersion=1` 时，客户端在已加载区块内规划和检查移动，遇阻最多重算四次。较远的平地坐标按区块加载进度分段前进。需要显式延长时限时，传入 `segmented=true`，最多 60000 毫秒。路线可经过原版木门、梯子和同色 OpenBlocks 电梯。开门需要一个空快捷栏位。回执中的 `serverProbes` 和 `serverArrival` 记录终点核验次数与结果。支持 `walkArrivalVersion=1` 的服务端通过一次请求核实停稳。仅声明 `remoteGroundWalkVersion=1` 的旧客户端支持 32 格以内的同高度路线。
 
-内置服务端与客户端共享日志、JVM 和已加载模组清单；`sharedClientServerLog` 和 `jvm.sharedWithClient` 标识这一范围。独立服务端通过现有 Forge 连接提供自身进程的数据。指定日志文件不存在时返回 `log_unavailable`。`mcb_logs` 仍读取所选客户端的日志。服务端诊断最多检查世界数组的 256 项、返回 64 行，不加载区块、不遍历实体。`samplingMillis` 和 `backgroundReadMillis` 是单次请求的耗时。按需读取，不安装持续监控。
+使用 `mcb_approach` 接近单个已观测方块，传入坐标及包含注册名和方块元数据的 `targetIdentity`。`move=false` 返回规划路径。`interact=true` 会在双端确认到达且方块面可见后提交一次普通使用操作。向箱子存放物品时，读取打开的箱子和槽位，转移指定物品后回读库存。行走中断或界面延迟出现时，先检查当前站位和容器。
 
 ## 按目标值配置创建世界选项
 
-使用当前 `screenId` 读取 `mcb_gui_widgets`，设置 `actionableOnly=false` 以包含另一页面的选项。原版创建世界选项提供 `setting`（`game_mode`、`world_type`、`more_world_options`、`map_features`、`allow_commands`、`bonus_chest`）、当前 `selected`/`value` 和 `options[].index/value`。将目标值匹配到实际返回的索引，不根据翻译后的按钮文字或过滤数组位置推测索引。
-
-调用一次 `mcb_gui_widget_action(action="set_selected",widgetId=...,selected=...)`，工具会执行所需的原生切换，并在同一回执中返回 `localSelectionMatched`、`after` 和 `nativeSelection.afterState`。已满足目标时不调用按钮。已确认的本地菜单值不需要再次点击或另行读取以重复确认同一选择；需要服务器同步的游戏效果仍应单独验收。
-
-多个选项使用 `action="set_selected_many"`，提供 1..8 个不同控件的 `selections:[{widgetId,selected}]`，不使用顶层 widgetId。使用当前控件身份及实际选项索引，按需要修改的控件可见性排列顺序，例如先选创造模式，再进入更多选项页面，最后选择超平坦。组合前使用 `actionableOnly=false` 读取；隐藏页面的控件身份仍可观察，但修改前须先切换页面。已满足目标的隐藏选项无需切换页面。
-
-仅在 `localSelectionMatched=true` 且最终 `afterState` 与请求一致时，确认整组设置完成。`status=partial` 时检查各项回执和当前值，再处理未完成部分，不重放整个批次。创建及取消按钮不能加入批次。游戏模式与作弊默认值联动、世界类型切换时清空自定义预设等行为仍由原生逻辑处理。结果只配置待创建世界的菜单值，不创建或保存存档。需要组合更长的菜单流程时，使用下述 `mcb_sequence` 菜单模式。
+按目标值一次设置并回读创建世界选项，见 `mcb_help({"topic":"testing"})` 的[创建世界设置](testing_zh.md#按目标值配置创建世界选项)。
 
 ## 合并重复操作与结果回读
 
@@ -67,7 +65,7 @@
 取得当前会话、世界和观察到的坐标；将占位值替换为这些观察结果及实际配方数据。
 
 ```json
-{"kind":"machine","expectedSessionId":"CURRENT_SESSION","expectedWorld":"CURRENT_WORLD","target":{"x":0,"y":64,"z":0,"dimension":0}}
+{"kind":"machine","expectedSessionId":"<current-session>","expectedWorld":"<current-world>","target":{"x":0,"y":64,"z":0,"dimension":0}}
 ```
 
 | kind | 实际读取 | 权限与范围 |
@@ -86,7 +84,7 @@ AE 示例：`{"kind":"ae","expectedSessionId":"CURRENT_SESSION","scope":"cpu"}`�
 `mcb_operation_check(kind="process", process=...)` 不访问游戏。将已有 NEI/配方查询取得的确定配方写入临时计划:
 
 ```json
-{"kind":"process","process":{"machines":["reactor"],"resources":[{"id":"ore","identity":{"kind":"item","registryName":"example:ore","metadata":0},"role":"feed","initial":"6"},{"id":"metal","identity":{"kind":"item","registryName":"example:metal","metadata":0},"role":"product","initial":"0","expectedFinal":"2"}],"recipes":[{"id":"convert","machine":"reactor","source":"REPLACE_WITH_OBSERVED_RECIPE_AND_VERSION","batches":2,"inputs":[{"resource":"ore","amount":"3"}],"outputs":[{"resource":"metal","amount":"1"}]}]}}
+{"kind":"process","process":{"machines":["processor"],"resources":[{"id":"input","identity":{"kind":"item","registryName":"example:input","metadata":0},"role":"feed","initial":"6"},{"id":"output","identity":{"kind":"item","registryName":"example:output","metadata":0},"role":"product","initial":"0","expectedFinal":"2"}],"recipes":[{"id":"convert","machine":"processor","source":"<observed-recipe-and-version>","batches":2,"inputs":[{"resource":"input","amount":"3"}],"outputs":[{"resource":"output","amount":"1"}]}]}}
 ```
 
 例子仅说明格式，不代表真实配方。资源角色为有限主输入 `feed`，无限辅助输入 `external`，中间物 `intermediate`，最终产物 `product`，循环库存/非消耗工具 `cycle`。流体身份使用 `{"kind":"fluid","fluidName":"实际名称"}`。数量是精确非负十进制字符串；每配方数量必须大于零。`external.initial` 必须为 `"0"`，不可同时产出该资源。`catalysts` 与 inputs 同格式，要求存在但不扣除。配方用 `batches` 声明本次次数，`machine` 必须在 machines 中，source 记录已查询的出处。
@@ -178,33 +176,19 @@ GT5U **5.09.54.205** 的 `MTEMultiBlockBase.runMachine` 在已有进度时继续
 
 ## AE 与 NEI 的职责
 
-拆除前区分完整方块与 AE 同格部件。具体工具手势依当前版本核对；整格挖掘可能破坏其他部件或后方方块。拆线缆、面板、接口使用兼容的原生扳手潜行右键，绑定实际 targetPart，并验收服务端剩余部件。回收物品可能保留配置 NBT，不能只按注册名重建或补发。
+拆 AE 同格部件时，按当前版本用兼容扳手潜行右键，绑定实际 targetPart，回读服务端剩余部件。整格挖掘可能损及其他部件或后方方块。回收物品可能带配置 NBT，勿仅按注册名补发。
 
-AE 负责网络资源、样板、发配和收货；处理样板不执行机器配方。校验催化剂、非消耗工具、随机产物、容器返还、替代和数量。NEI 转移后用 AE 同步数据验收，幽灵配置不等于实际原料。AE resourceId、幽灵槽与玩家真实 slot 不共用编号。
+AE 管理网络资源、样板与收发，机器执行处理配方。核对催化剂、非消耗工具、概率、返还、替代及数量。NEI 转移后回读 AE 同步配置，再核实实际原料。区分 AE resourceId、幽灵槽与玩家真实 slot。
 
-预览 requestedPending 或 startReady=false 时读取现有预览同步，不重发 craft_request。CPU 取消后仍可能有接口待发送物料；将 CPU、明确接口宿主、机器库存和产物返回网络分别核对。ae_buffers 只覆盖指定宿主，不证明所有接口或全网都已清空。普通外部库存可见性不等于 CPU 已收货。不自动清缓存、抽料或重新下单。
+预览为 requestedPending 或 startReady=false 时等原预览同步，不重发 craft_request。CPU 取消后检查待发送物料，分别核对 CPU、接口宿主、机器库存及回网产物。ae_buffers 仅覆盖指定宿主。外部库存可见不能确认 CPU 收货。勿自动清缓存、抽料或重单。
 
-NEI 负责当前配方/用途/结构候选，不代表真实库存或真实超频结果。保留原始 recipeIndex、上下文、分页、概率单位和未消耗工具语义。模板与投影不证明安装或成型。原生 ghost 标记使用目标支持的配置 API；同步验收后释放残留 ghost，不在生存模式 give/take 材料来配置幽灵槽。
+NEI 提供配方、用途及结构候选。保留原始 recipeIndex、上下文、分页、概率单位及非消耗工具条件。库存、超频、安装和成型须实测。ghost 用目标配置 API，验收同步后释放。生存模式不得用 give/take 配置幽灵槽。
 
-SFM/OC 的数量、组件地址与恢复流程，以及魔法/星系的特殊条件仍属于对应模组。本入口不执行 Wiki 脚本，不推断未知控制 API，不把这些语义混入 GT/AE/NEI 操作。
+SFM/OC 的数量、组件地址与恢复方法，以及魔法、星系模组的条件，查对应模组接口。勿执行 Wiki 脚本或推测未知 API。
 
 ## 跨维度加载、物流与连续运行
 
-ServerUtilities 2.4.14 的认领和强加载分别验收。先核对 world.chunk_claiming/chunk_loading、ranks 是否启用及当前有效权限，将机器完整结构、外部仓室、网络、供电和存储端点的区块并集计入团队跨维度总配额。原生 /chunks claim、/chunks load 作用于玩家当前区块，依次提交并确认效果。submitted、无聊天消息或较旧存盘文件都不能证明当前加载状态；原生通知、后续实际保存及离开后的运行证据分别判断。不编辑世界或强加载持久化文件。
-
-AE2 1080 普通无线连接器只支持同维度。跨维度量子桥用原生爆炸生成的一对纠缠奇点，两端各八个环围住一个链接仓，各放一个保留完整 freq 的奇点，分别供电并加载。外部网络接非角环。使用普通 GUI 槽搬运带 NBT 奇点，不传给仅接受 hasTag=false 的 mcb_inventory_moves。两端同一当前 grid ID 和 active 只证明连接；空有限盘与一批确定数量物品的来源减少、目的 provider 增加才证明交付。再从第三维度观察两端，不用玩家自然加载掩盖失效。
-
-ME 箱子正面打开元件终端，其他面打开元件配置；正面没有可读盘时可能仅有提示。按实际方向选择可见 side，以 ContainerChest 的 STORAGE_CELLS 真槽安装有限盘。EnderStorage 1.8.7 的两端频率和 owner 必须一致；末影袋原生绑定后等待实际 NBT 同步。GT 仓室物流先核对真实工作面，再让漏斗或相邻库存按该面连接。手持门户搬运不等于自动 IO。
-
-PersonalSpace 1.0.41 门户先核实目标地形、脚底支撑、完整身体净空和返程，不能相信未加载地形上的默认高度。跨维度后重读当前连接和双端飞行样本；门户内 onGround 不证明完整身体净空。确认安全方向后可正常跳跃/步行离开，然后复用接近规划。起飞包提交后等待双端 flying 与姿态稳定，再追加升降输入；已落地可继续步行。不用 TP 代替门户，门户不计入火箭出行验收。
-
-操作时复用 mcb_spatial(mode=positions) 核对已加载目的地的支撑、危险和身体净空；未知地形保持未知，不为检查强行加载。需要起飞时优先 mcb_flight_check(action=probe)，其双端确认与受检竖直路线完成后再导航；mcb_flight 的 submitted 回执仍只表示提交。GT 放置可用 expectedPlacementFacing 约束实际视线；创造模式须具备 placementFacingCreativeVersion=1，并验收 serverConfirmed、serverSourceConsumption=0 与实际机器朝向。替换仓室后重新触发原生结构检查，再读取 structureFormed，不沿用替换前的成型结果。
-
-原生 GUI 同时显示旧的“发电中”配方结果和“由于结构不完整关机”时，结合当前 active/progress 判断；按 GUI 给出的无效方块坐标读取现场，再做原生修补、结构复查和启用。mcb_gui_widgets 的空分页可能只是 soft budget 耗尽，应沿 nextOffset 继续；不能当作按钮不存在。飞行为绕过下降障碍临时保持高度时，最终水平位置就绪后必须恢复真实目标高度；仍逐步验证完整身体和惯性路径，不以临时高度判定到达。
-
-完整生产链由当前任务组合通用机器与物流操作，不新增专用整链工具。以有限输入、完整产物、正常 tick、实际吞吐和停止证据验收；科学计数缩写不能用于精确余额差，创造/debug 供料不能证明生存成本或净效率。
-
-上述机制依据 SU CmdLoad/ClaimedChunks、AE2 QuantumCluster/TileQuantumBridge/EntitySingularity/WireLessToolHelper、PersonalSpace PortalTileEntity、EnderStorage 原生库存。mcb_knowledge 的本地经验保留 evidenceIds 与适用连接，只作提示，不自动重放动作或将代理解释升级为已验证策略。
+验证区块加载、跨维度交付及连续运行时，见 `mcb_help({"topic":"testing"})` 的[跨维度验收](testing_zh.md#跨维度加载物流与连续运行)。
 
 ## PersonalSpace 门户 GUI
 
@@ -222,8 +206,8 @@ PersonalSpace 1.0.41 的 `GuiEditWorld` 接入既有 `mcb_gui_widgets` / `mcb_gu
 用预设文本及添加地层下拉框编辑，不重放旧编号。滑条按原生像素量化，检查实际回读。
 适配只使用原生控件输入，不写维度模型或 NBT；未装 PersonalSpace 时没有硬依赖。
 
-## 来源与验证层级
+## 实现与版本参考
 
 - 当前 MCB `MachineDataAdapter`，`AeDataAdapter`，`AeWorldAdapter`，NEI view 与 guarded workflow 的实际实现。
-- GT5U `5.09.54.205` sources.jar：`gregtech/api/metatileentity/implementations/MTEMultiBlockBase.java`，`gregtech/api/logic/ProcessingLogic.java`。已核源码，不代表本次游戏运行验收。
-- AE 1080/AE2FC 1.5.113 的教程结论保留文档级证据；部分原生适配最初按 AE 1073 实现，当前支持以实时 capability 和 coverage 为准。
+- GT5U `5.09.54.205` sources.jar：`gregtech/api/metatileentity/implementations/MTEMultiBlockBase.java`，`gregtech/api/logic/ProcessingLogic.java`。
+- 使用 AE2 1080 或 AE2FC 1.5.113 时，按当前客户端报告的能力和覆盖范围选择操作。

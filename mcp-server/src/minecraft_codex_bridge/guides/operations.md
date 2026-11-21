@@ -1,36 +1,36 @@
 # BridgeNH operation checks and boundaries
 
-Agent reference: English; [Chinese companion](operations_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
-
 For Minecraft 1.7.10. Use existing tools to assemble the required operation checks. Current health, permissions and coverage decide availability. `mcb_operation_check` is a diagnostic entry point, not an extra preflight around workflows which already own their checks. Record missing native paths using [workspace.md](workspace.md); external input cannot establish native acceptance.
+
+## Choosing an interface
+
+Use the structured action whenever it covers the requested operation. For example, use `mcb_chest_transfer` for an observed stack in an open vanilla chest, `mcb_nei_navigate` for recipe pages, `mcb_navigate` for travel and `mcb_mine` for a specific block. For a GUI control, inspect the relevant pages of `mcb_gui_widgets` and use the advertised `mcb_gui_widget_action`, including supported scroll and drag actions. If coverage leaves the target unidentified, keep the step pending.
+
+On a permission denial, stale target, partial result or unknown outcome, stop. Read the current permissions, target and resulting state before deciding what remains. Switching to coordinates or replaying the input can bypass a refusal or repeat a change.
+
+## GUI mouse gestures
+
+Use the virtual mouse for an authorized gesture on an identified, visible control that lacks a structured action (for example, scrolling a custom help panel), or for an explicit test of the pointer itself. Read the current `screenId` and scaled size from `mcb_gui`. Convert framebuffer pixels to GUI coordinates if needed. When the client advertises `gui.virtual_mouse`, call `mcb_virtual_mouse` with the current `expectedSessionId`. Use `move` to hover, `click` for one click, `scroll` with signed `notches`, or `drag` from `x/y` to `toX/toY`. Input follows the screen’s draw cycle. Vanilla lists read the wheel while drawing.
+
+During takeover, `virtualMouse.displayMode` is `pointer` during a gesture, button hold, brief coordinate-click feedback or `mcb_gui_pointer` hover lease. The pointer follows the GUI target. Otherwise `status` shows a separate Codex logo below the world crosshair or at the same position in an idle GUI. Manual control and F1 in the world select `hidden`. A held button selects pressed, text focus or editing selects text, and a native wait or active task takes precedence as busy. `indicate_thinking` sets busy for `durationMillis` (0–120000) without showing a pointer. Zero, a screen change or handoff clears it. Configured Codex hooks show busy during compaction. Completion or interruption clears only the compaction signal.
+
+For separate calls, `press` returns a `gestureId`. Use it for subsequent moves and the final `release` within the 15-second hold lease. A screen or size change interrupts the gesture. After an interruption, inspect the visible state and carried stack. A dispatch receipt records input delivery only. Verify the intended effect, such as the visible page or synchronized counts at both ends of a transfer. For a pointer test, verify the requested pointer behavior. Even if a gesture succeeds, report the missing structured action, receipt, readback and any unresolved result in the [workspace gap template](workspace.md#native-control-gap-and-feedback-template). Existing `mcb_gui_pointer` hover and `mcb_gui_click` retain their own parameters and share pointer ownership.
 
 ## Server logs and runtime observations
 
-Use `mcb_server_observe(kind="status",expectedSessionId=...)` to obtain the authenticated server connection and advertised read capabilities. For `logs`, `diagnostics` and `mods`, supply the current `expectedSessionId`, `expectedConnectionId` and `dimension`. Both endpoints need compatible BridgeNH versions; the handshake advertises `serverLogsVersion=1`, `serverDiagnosticsVersion=1` and `serverModsVersion=1`. These reads require the enhanced-observation policy and actual server OP level 2. Player permission groups do not grant OP.
+Use `mcb_help({"topic":"maintenance"})` for [server log access, permissions and runtime observations](maintenance.md#server-logs-and-runtime-observations).
 
-| Kind | Arguments and result |
-| --- | --- |
-| `logs` | `log="latest"` (default) or `"fml-server-latest"`; `level="WARN"` (default), `"ERROR"` or `"ANY"`; optional literal, case-insensitive `query` up to 256 characters; `limit` 1..128, default 128. Reads only the named file under the server process's `logs/` directory. Use `ANY` for unlabelled stack-trace lines. |
-| `diagnostics` | Server version/brand, player and mod counts, JVM memory/uptime, existing native tick durations, bounded loaded-world metadata and log-reader queue counts. `estimatedTpsIfSustained` estimates capacity from execution time; it is not measured wall-clock TPS. |
-| `mods` | Loaded FML mod IDs, names and versions; `offset` 0..10000 and `limit` 1..64, default 16. Continue with `nextOffset` while `hasMore`; inspect `byteLimited` and per-row `fieldsTruncated`. |
+## Grounded movement on LAN and dedicated servers
 
-```json
-{"kind":"logs","expectedSessionId":"<current-session>","expectedConnectionId":"<current-connection>","dimension":0,"log":"latest","level":"WARN","limit":32}
-```
+Use `mcb_spatial` for a ray or a bounded page of positions. An authenticated operator client with enhanced observation uses the server tick when the server advertises `spatialObservationVersion=1`. Read the receipt's source and coverage before selecting a destination. For a dropped item, inspect its current position with `mcb_entities` and confirm collection from the player's inventory after arrival.
 
-Log reads use one background worker with at most 16 queued jobs. Each read examines at most 64 KiB and returns at most 24,000 bytes of JSON data; lines are limited to 2,048 characters. Sensitive lines are redacted before query matching. File paths are fixed, and redirected paths are refused. Permissions and connection identity are checked again before delivery. Inspect `bytesRead`, `truncated`, `byteLimited`, timestamps and coverage: a missing match does not prove absence, and rotation/concurrent writes can change the file during a read.
+Use `mcb_navigate` with the current session, dimension and the server's `worldName` or `worldFolder`. With `operationPolicy.effective.clientGroundPlanVersion=1`, the client searches loaded terrain, checks each movement and replans up to four times when blocked. Longer level point routes advance through local legs as chunks arrive. Supply `segmented=true` for an explicit timeout up to 60000 ms. A route may use a vanilla wooden door, vanilla ladders or a same-color OpenBlocks elevator. Door use needs an empty hotbar slot. Check `serverProbes` and `serverArrival` for final confirmation. A server advertising `walkArrivalVersion=1` confirms settled arrival in one request. Older clients advertising only `remoteGroundWalkVersion=1` support level routes within 32 blocks.
 
-An integrated server shares its logs, JVM and loaded mod list with the client; `sharedClientServerLog` and `jvm.sharedWithClient` identify this scope. A dedicated server supplies its own process data through the existing Forge connection. Missing fixed log files return `log_unavailable`. `mcb_logs` continues to read the selected client's logs. Server diagnostics inspect at most 256 world-array entries and return at most 64 rows, without loading chunks or traversing entities. Read `samplingMillis` and `backgroundReadMillis` as individual request measurements. Read on demand; no continuous monitor is installed.
+Use `mcb_approach` with one observed block position and `targetIdentity` containing its registry name and block metadata. `move=false` returns the planned waypoints. `interact=true` submits one normal block use after both ends confirm arrival and the visible face. To deposit items, observe the opened chest and its slots, transfer the intended stacks and read back the inventory. Inspect the current pose and container after an interrupted walk or delayed GUI.
 
 ## Set create-world options by target value
 
-Read `mcb_gui_widgets` with the current `screenId` and `actionableOnly=false` to include choices on the other page. Native create-world choices expose `setting` (`game_mode`, `world_type`, `more_world_options`, `map_features`, `allow_commands`, `bonus_chest`), current `selected`/`value` and `options[].index/value`. Match the desired value to its observed index; do not infer it from translated button text or filtered array position.
-
-Use `mcb_gui_widget_action(action="set_selected",widgetId=...,selected=...)` once. It performs the required native transitions and returns `localSelectionMatched`, `after` and `nativeSelection.afterState` in that same call. Already-matching values invoke no callback. A confirmed local menu value does not need another click or a separate read merely to establish the same selection; synchronized game effects still require their own acceptance.
-
-For several choices, use `action="set_selected_many"` and 1..8 unique `selections:[{widgetId,selected}]`, without a top-level widgetId. Use current widget identities and runtime option indices. Order the choices so each changed control is visible when reached: select creative mode, select the advanced page, then select flat world type. Read with `actionableOnly=false` before composing this batch; hidden-page controls retain identities but cannot be changed while hidden. Already-matching hidden choices require no page change.
-
-Accept the whole batch only when `localSelectionMatched=true` and the final `afterState` matches the request. On `status=partial`, inspect per-selection receipts and current values before continuing; do not replay the entire batch. Creation/cancel buttons cannot be included. Normal mode/cheat defaults and world-type preset clearing remain native behavior. The result configures pending menu values; it does not create or save a world. For a longer menu chain, use the guarded `mcb_sequence` menu mode below.
+For one-call world setup and readback, see [create-world options](testing.md#set-create-world-options-by-target-value) in `mcb_help({"topic":"testing"})`.
 
 ## Combine repeated operations and readbacks
 
@@ -162,18 +162,7 @@ AE handles resources, patterns, dispatch and receipt; a processing pattern does 
 
 ## Cross-dimension logistics and sustained runs
 
-Versioned reference mechanisms must be revalidated against the installed client:
-
-- ServerUtilities 2.4.14: claiming and forced loading are distinct. Check enabled features, ranks, effective permission and team quota across dimensions for the union of structure, ports, network, power and storage chunks. Native claim/load affects the player's current chunk. Submission, absent chat or old saved files are not current load proof. Verify native feedback and operation after leaving; do not edit persistence files.
-- AE2 1080: ordinary wireless connectors are same-dimension. Quantum links need a natively produced matching singularity pair with complete frequency NBT, eight rings around each chamber, power/load at both ends and network attachment through a non-corner ring. Move NBT items through real slots, not no-NBT inventory_moves. Same live grid/active proves connection, not delivery: use a finite batch and source decrease/destination provider increase, then observe from another dimension.
-- ME chest front opens its cell terminal; other faces access cell configuration. Choose actual facing and STORAGE_CELLS slots. EnderStorage 1.8.7 requires matching owner/frequency; wait for bag binding NBT. GT IO uses actual working faces. Carrying items through a portal is not automatic logistics.
-- PersonalSpace 1.0.41: verify loaded destination support, full body clearance and return route before entry. Default unloaded heights and portal onGround are not clearance proof. Re-read connection/dimension/dual flight after transfer; leave safely using native movement. Wait for actual dual flight before further vertical input. A portal is not a rocket-travel test.
-
-Use `mcb_spatial(mode="positions")` on loaded destinations without forcing unknown terrain to load. For takeoff use the supported `mcb_flight_check(action="probe")`; a submitted flight packet is not stable flight. GT placement may bind expectedPlacementFacing; creative requires placementFacingCreativeVersion=1 and actual serverConfirmed, zero source consumption and facing evidence. Replaced hatches need a fresh native structure check.
-
-Stale GUI recipe text can coexist with a current structure failure: inspect active/progress and the reported invalid position, repair natively, recheck and enable. Empty widget pages may be soft-budget exhaustion; use nextOffset. Temporary flight height is not arrival: restore target height after horizontal clearance and verify the full path/inertia.
-
-Keep complete production chains as task-specific compositions, with finite input/output, measured throughput and normal ticks. Do not add dedicated hard-coded chains or infer precise energy deltas from abbreviated scientific-notation displays. Creative/debug supply does not prove survival cost or net efficiency.
+Verify chunk loading, delivery and sustained operation using the [cross-dimension checks](testing.md#cross-dimension-logistics-and-sustained-runs) in `mcb_help({"topic":"testing"})`.
 
 ## PersonalSpace portal GUI
 
@@ -183,6 +172,6 @@ The block dropdown uses native set_text search and actual options.index with set
 
 The mod parses presets/text/sliders on natural render frames. commit=true delays local blur until that frame; require pendingNativeFrame=false before save, then reopen/read persisted values. Disabled terrain-generation settings retain native restrictions. Per-frame rebuilt layer-row IDs are read-only; edit using presets/dropdown, not stale rows. Sliders quantize natively. The adapter does not write the dimension model/NBT and has no hard dependency when absent.
 
-## Sources and verification scope
+## Implementation and version references
 
-Implementation references: MachineDataAdapter, AeDataAdapter, AeWorldAdapter, NEI view adapters and guarded workflows. Versioned source references include GT5U 5.09.54.205 MTEMultiBlockBase/ProcessingLogic, ServerUtilities CmdLoad/ClaimedChunks, AE2 QuantumCluster/TileQuantumBridge/EntitySingularity/WireLessToolHelper, PersonalSpace PortalTileEntity and EnderStorage native inventories. Source conclusions are not a new live test. AE 1080/AE2FC 1.5.113 documentation and older adapter baselines must be reconciled with current capability/coverage.
+Implementation references: MachineDataAdapter, AeDataAdapter, AeWorldAdapter, NEI view adapters and guarded workflows. Versioned source references include GT5U 5.09.54.205 MTEMultiBlockBase/ProcessingLogic, ServerUtilities CmdLoad/ClaimedChunks, AE2 QuantumCluster/TileQuantumBridge/EntitySingularity/WireLessToolHelper, PersonalSpace PortalTileEntity and EnderStorage native inventories. For AE2 1080 and AE2FC 1.5.113, use the current client’s advertised capabilities and coverage to select supported operations.

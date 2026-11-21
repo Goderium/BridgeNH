@@ -89,7 +89,30 @@ public final class OwnedKeyStateSelfTest {
         OwnedKeyState.hold("player.input", attack, -100); OwnedKeyState.release("player.input", attack);
         check(!OwnedKeyState.attackInput(false, attack, -100), "Released attack immediately returns native false/reset behavior.");
         OwnedKeyState.clear("player.input");
+        verifyPressHandoff();
         return checks;
+    }
+    private static void verifyPressHandoff() {
+        final int code = 238;
+        net.minecraft.client.settings.KeyBinding binding = new net.minecraft.client.settings.KeyBinding("handoff fixture", code, "fixture");
+        OwnedKeyState.begin("player.input", 100, () -> true, () -> 0);
+        OwnedKeyState.hold("player.input", binding, code);
+        OwnedKeyState.queueInputPress(binding);
+        check(!OwnedKeyState.nativeRead(() -> OwnedKeyState.consumeInputPress(binding, code)), "Diagnostic reads preserve the pending agent press");
+        check(!OwnedKeyState.consumeInputPress(new Object(), code), "A sibling sharing the key code cannot consume the initial press");
+        check(OwnedKeyState.consumeInputPress(binding, code) && !OwnedKeyState.consumeInputPress(binding, code), "An active lease delivers exactly one press");
+        OwnedKeyState.queueInputPress(binding);
+        net.minecraft.client.settings.KeyBinding.setKeyBindState(code, true);
+        net.minecraft.client.settings.KeyBinding.onTick(code);
+        OwnedKeyState.clear("player.input");
+        check(!OwnedKeyState.consumeInputPress(binding, code) && binding.getIsKeyPressed(), "Handoff cancels the undelivered agent press while preserving the physical hold");
+        check(binding.isPressed() && !binding.isPressed(), "The original physical queue retains exactly one player press");
+        net.minecraft.client.settings.KeyBinding.setKeyBindState(code, false);
+        OwnedKeyState.begin("player.input", 100, () -> true, () -> 0);
+        OwnedKeyState.hold("player.input", binding, code);
+        OwnedKeyState.queueInputPress(binding);
+        check(!OwnedKeyState.consumeInputPress(binding, code + 1) && !OwnedKeyState.consumeInputPress(binding, code), "Rebinding cannot replay an outstanding press");
+        OwnedKeyState.clear("player.input");
     }
     private static void check(boolean condition, String label) { checks++; if (!condition) throw new AssertionError(label); }
 }

@@ -5,6 +5,7 @@ from .handlers import local, observations, tasks
 
 HANDLERS = {
     'mcb_action_recovery': local.handle_action_recovery,
+    'mcb_compaction_cursor': local.handle_compaction_cursor,
     'mcb_dialogue': local.handle_dialogue,
     'mcb_recording': local.handle_recording,
     'mcb_run_log': local.handle_run_log,
@@ -21,6 +22,8 @@ HANDLERS = {
     'mcb_structure_transform': tasks.handle_structure_transform,
     'mcb_inventory_moves': tasks.handle_inventory_moves,
     'mcb_plan_visits': tasks.handle_plan_visits,
+    'mcb_action_chain': tasks.handle_action_chain,
+    'mcb_survival_order': tasks.handle_survival_order,
     'mcb_sequence': tasks.handle_sequence,
     'mcb_observe': tasks.handle_sequence,
     'mcb_wait_for': observations.handle_wait_for,
@@ -28,6 +31,7 @@ HANDLERS = {
     'mcb_machine_capture': observations.handle_machine_capture,
     'mcb_interact_sample': observations.handle_interact_sample,
     'mcb_ae_material_source': observations.handle_ae_material_source,
+    'mcb_packdata': local.handle_packdata,
     'mcb_help': local.handle_help,
     'mcb_operation_check': tasks.handle_operation_check,
     'mcb_launch': local.handle_launch,

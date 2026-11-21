@@ -6,7 +6,7 @@ import json
 import httpx
 import pytest
 
-from minecraft_codex_bridge.bridge import BridgeClient, Configuration
+from minecraft_codex_bridge.bridge import BridgeClient, BridgeError, Configuration, capability_scope
 from minecraft_codex_bridge.server import Adapter
 from minecraft_codex_bridge.tools import TOOLS
 from expanded_examples import ACTION_EXAMPLES
@@ -15,6 +15,15 @@ from qa_examples import ACTION_QA
 CONTROL_EXAMPLES = {
     "mcb_look": ("player.look", {"yaw": 10, "pitch": 5}),
     "mcb_hotbar": ("player.hotbar", {"slot": 2}),
+    "mcb_mine": ("player.mine", {"expectedSessionId": "first-session", "expectedWorld": "test", "dimension": 0,
+                                  "x": 0, "y": 64, "z": 0, "hotbarSlot": 2, "registryName": "minecraft:stone", "metadata": 0}),
+    "mcb_chest_transfer": ("gui.chest_transfer", {"expectedSessionId": "first-session", "expectedWorld": "test",
+                       "screenId": "screen", "windowId": 1, "slot": 0, "direction": "withdraw",
+                       "registryName": "minecraft:stone", "metadata": 0, "count": 1}),
+    "mcb_entity_interact": ("player.entity_interact", {"expectedSessionId": "first-session", "expectedWorld": "test",
+                       "action": "use", "expectedEntity": {"uuid": "00000000-0000-0000-0000-000000000001", "dimension": 0}}),
+    "mcb_quest_step": ("quest.step", {"action": "detect", "questId": "0", "expectedSessionId": "first-session", "worldFolder": "test", "dimension": 0}),
+    "mcb_food": ("survival.food", {"action": "eat", "slot": 2, "registryName": "minecraft:apple", "metadata": 0}),
     "mcb_world_mouse": ("player.world_mouse", {"action": "pick_block"}),
     "mcb_input": ("player.input", {"keys": ["forward"], "ticks": 2}),
     "mcb_flight_check": ("player.flight_check", {"action": "inspect", "expectedSessionId": "first-session", "expectedWorld": "test", "dimension": 0}),
@@ -60,11 +69,19 @@ async def bridge():
         body = json.loads(request.content)
         state["calls"].append({**body, "path": request.url.path})
         error = None
+        if state.get("interrupt_before") and state["interrupt_before"] == body.get("operation"):
+            state.pop("interrupt_before")
+            count = state["background"]["emergencyReleaseCount"] + 1
+            state["background"] = {**MANUAL, "emergencyReleaseCount": count}
+            state["protection"]["emergencyReleaseCount"] = count
         if request.url.path == "/v1/cancel":
             data = {"status": state["cancel_status"]}
+        elif "expectedEmergencyReleaseCount" in body and body["expectedEmergencyReleaseCount"] != state["background"]["emergencyReleaseCount"]:
+            error, data = "manual_override", {}
         elif body["operation"] == "bridge.health":
             error = state["health_error"]
             data = {"protocolVersion": state["protocol_version"], "capabilities": state["capabilities"], "sessionId": state["session_id"], "background": state["background"]}
+            data["operationPolicy"] = {"available": True, "selected": {"mode": "survival", "readOnly": False}}
         elif body["operation"] == "client.background":
             state["entered_background"].set()
             if state["slow_background"]:
@@ -76,6 +93,8 @@ async def bridge():
         else:
             error = state["action_error"]
             data = {"operation": body["operation"], "args": body["args"]}
+            if body["operation"] == "survival.food":
+                data.update(complete=True, status="already_full", foodGainVerified=False, useSubmitted=False)
         envelope = {"requestId": body["requestId"], "ok": error is None}
         envelope["error" if error else "data"] = {"code": error, "message": "Request refused."} if error else data
         return httpx.Response(200, json=envelope)
@@ -125,7 +144,10 @@ async def test_each_control_is_protected_before_dispatch(bridge, name):
     assert operations(state) == ["bridge.health", "client.background", operation]
     assert state["calls"][1]["args"] == {"enabled": True}
     assert state["calls"][2]["args"] == arguments
-    assert result.structuredContent["data"] == {"operation": operation, "args": arguments}
+    expected = {"operation": operation, "args": arguments}
+    if name == "mcb_food":
+        expected.update(complete=True, status="already_full", foodGainVerified=False, useSubmitted=False)
+    assert result.structuredContent["data"] == expected
 
 
 async def test_current_protection_avoids_repeated_toggle_but_release_and_new_session_are_observed(bridge):
@@ -192,6 +214,44 @@ async def test_missing_or_malformed_capability_blocks_takeover_and_control(bridg
     assert operations(state) == ["bridge.health"]
 
 
+@pytest.mark.parametrize("boundary", ["client.background", "player.hotbar"])
+async def test_emergency_release_stops_old_call_and_allows_new_takeover(bridge, boundary):
+    adapter, state = bridge
+    state["background"]["emergencyReleaseCount"] = 0
+    state["protection"]["emergencyReleaseCount"] = 0
+    state["interrupt_before"] = boundary
+    old = await adapter.call_tool("mcb_hotbar", {"slot": 1})
+    assert old.isError and old.structuredContent["error"]["code"] == "manual_override"
+    assert state["calls"][-1]["expectedEmergencyReleaseCount"] == 0
+    state["calls"].clear()
+    fresh = await adapter.call_tool("mcb_hotbar", {"slot": 2})
+    assert not fresh.isError
+    assert operations(state) == ["bridge.health", "client.background", "player.hotbar"]
+    assert [call["expectedEmergencyReleaseCount"] for call in state["calls"][1:]] == [1, 1]
+    assert state["calls"][1]["args"] == {"enabled": True}
+    assert fresh.structuredContent["playerHandoff"]["emergencyReleaseCount"] == 1
+    again = await adapter.call_tool("mcb_hotbar", {"slot": 2})
+    assert not again.isError and "playerHandoff" not in again.structuredContent
+
+
+async def test_reading_fresh_health_does_not_restart_an_interrupted_tool(bridge):
+    adapter, state = bridge
+    client = adapter.client
+    state["background"]["emergencyReleaseCount"] = 3
+    with capability_scope():
+        await client.call("bridge.health", {})
+        state["background"]["emergencyReleaseCount"] = 4
+        updated = await client.call("bridge.health", {})
+        assert updated["background"]["emergencyReleaseCount"] == 4
+        with pytest.raises(BridgeError) as stopped:
+            await client.call("client.background", {"enabled": True})
+        assert stopped.value.code == "manual_override"
+        assert state["calls"][-1]["expectedEmergencyReleaseCount"] == 3
+    fresh = await adapter.call_tool("mcb_background", {"enabled": True})
+    assert not fresh.isError
+    assert state["calls"][-1]["expectedEmergencyReleaseCount"] == 4
+
+
 async def test_dictionary_capabilities_are_supported(bridge):
     adapter, state = bridge
     state["capabilities"] = {"player.hotbar": True, "client.background": True}
@@ -199,7 +259,7 @@ async def test_dictionary_capabilities_are_supported(bridge):
     assert operations(state) == ["bridge.health", "client.background", "player.hotbar"]
 
 
-@pytest.mark.parametrize("mode,code", [("health-error", "AUTH_FAILED"), ("protocol", "PROTOCOL_VERSION"), ("mouse-grabbed", "mouse_grabbed")])
+@pytest.mark.parametrize("mode,code", [("health-error", "AUTH_FAILED"), ("protocol", "PROTOCOL_VERSION"), ("mouse-grabbed", "mouse_grabbed"), ("manual-override-race", "manual_override")])
 async def test_takeover_errors_preserve_the_cause_and_block_original(bridge, mode, code):
     adapter, state = bridge
     if mode == "health-error":
@@ -213,13 +273,17 @@ async def test_takeover_errors_preserve_the_cause_and_block_original(bridge, mod
     assert result.isError and error["code"] == code
     assert error["stage"] == "takeover" and error["original_action_executed"] is False
     assert "player.hotbar" not in operations(state)
-    assert operations(state).count("client.background") == (1 if mode == "mouse-grabbed" else 0)
+    assert operations(state).count("client.background") == (1 if mode in {"mouse-grabbed", "manual-override-race"} else 0)
+    if mode in {"mouse-grabbed", "manual-override-race"}:
+        assert state["calls"][-1]["args"] == {"enabled": True}
 
 
 @pytest.mark.parametrize("name,args,operation", [
     ("mcb_mouse", {"enabled": True}, "client.mouse"),
     ("mcb_unfocused", {"enabled": False}, "client.unfocused"),
     ("mcb_background", {"enabled": False}, "client.background"),
+    ("mcb_background", {"enabled": True, "releaseStaleGrab": True}, "client.background"),
+    ("mcb_mouse", {"enabled": False, "releaseStaleGrab": True}, "client.mouse"),
     ("mcb_policy", {"action": "status"}, "bridge.policy"),
     ("mcb_snapshot", {}, "client.snapshot"),
 ])

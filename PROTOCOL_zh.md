@@ -14,7 +14,15 @@ POST /v1/cancel 使用同样认证，仅提交原 requestId，返回 cancelled/a
 
 旧独立进程内适配器保留 MCB_RUNTIME_FILE、MCB_INSTANCE_PATH、发现目录变量及 URL/TOKEN 入口，其省略/auto 发现仍可能选最新运行记录；这不是聊天绑定策略。独立调用应明确固定目标，旧环境变量不会重定向运行中的聊天。运行文件和凭据不纳入版本控制。
 
+## 远端空间观测与地面行走
+
+Forge 握手通过 `spatialObservationVersion=1` 声明支持 `world.spatial`，通过 `groundWalkVersion=1` 声明支持 `world.walk_probe` 和兼容旧客户端的 `world.walk_plan`。服务端逐次核对玩家、连接、维度和 OP 等级。探测回传脚部位置、当前通行空间及目标方块的可见面。
+
+适配器为受支持的独立 `mcb_navigate` 和 `mcb_approach` 调用选择 `player.remote_walk`。有效策略声明 `clientGroundPlanVersion=1` 时，客户端按游戏刻分摊搜索，每刻规划预算为 2 毫秒，在可中断处让出。碰撞检查、移动输入、有界重算及设施通行均由客户端处理。协商后的预览（`clientPreview=true`）返回 `source=client_world_tick`，服务端探测次数为零。旧适配器预览会核验一次起点。服务端声明 `walkArrivalVersion=1` 时，一次 `world.walk_arrival` 请求即可在两个不同的服务端刻确认停稳，最多采样八次。坐标目标只核实脚部位置和着地状态。旧服务端最多探测终点四次。回执记录 `plannerSource`、`planningSlices`、`maximumPlanningSliceMicros`、`replans`、`serverProbes` 和双端到达位置。指定方块交互时，`interaction.accepted` 表示原生点击的回执，容器或世界变化需另行核实。
+
 ## 服务端运行信息读取
+
+生存操作 `survival.food` 从实际快捷栏单次使用食物或选中治愈之斧。可通过新版服务端的 `server.observe(kind=self)` 独立读取 `food` 和 `foodSaturation`。[食物与回执](mcp-server/src/minecraft_codex_bridge/guides/food_zh.md)
 
 `server.observe` / `mcb_server_observe` 在既有读取中增加 `kind=logs|diagnostics|mods`，均要求当前 `expectedSessionId`、`expectedConnectionId` 和 `dimension`。客户端应用增强观察策略；服务端独立核验实际玩家、连接、维度及 OP 2 级权限，异步日志读取完成后仍需再次核验。握手声明 `serverLogsVersion=1`、`serverDiagnosticsVersion=1`、`serverModsVersion=1` 并扩充 `readOperations`。仅更新客户端不会使旧服务端获得这些能力。
 
@@ -32,7 +40,11 @@ POST /v1/cancel 使用同样认证，仅提交原 requestId，返回 cancelled/a
 
 仅已知代码获得明确解释，未知代码不猜根因。未知效果优先；outcome_unknown=false 不等于从未执行，sideEffectsPossible=true 也不必然是未知。只有明确未派发或队列取消确认，才能证明该请求未执行，不能证明之前动作已回滚。submitted、scheduled、completed、真实状态验收各有区别。只读部分覆盖、分页、Waila 显示缓存也不能合并成完整证据。
 
+`player.mine` 使用选中的真实工具采掘一个准星目标方块。`player.entity_interact` 绑定观察到的可见实体 UUID 和维度。`gui.chest_transfer` 执行一次原生箱子 Shift 点击并报告客户端库存增减。三者均接受 `expectedSessionId` 和当前的 `lifecycleTarget.expectedWorld`。`mcb_action_chain` 在原生世界和维度校验下执行各步骤组，插入内容从下一未开始的组生效。见[生存操作与验收](mcp-server/src/minecraft_codex_bridge/guides/survival_zh.md)。
+
 ## 有界组合操作
+
+`mcb_survival_order` 在绑定实例中保存当前对话的物料工单。`open` 指定精确物品、数量和仓位。`advance` 校验当前会话、世界、维度和工单修订号。worker 在变动物品前写入意向，按实物回执另行提交数量。`status` 读取持久化修订。`reconcile` 核对同一角色、存档及待确认操作；证据不足时保留待核对状态。补料时 `remaining` 为目标仓的库存差额，采集时为尚待交付的数量。见[生存物料工单](mcp-server/src/minecraft_codex_bridge/guides/survival_zh.md)。
 
 `mcb_action_recovery` 是 worker 本地恢复接口，不是新的 HTTP 修改操作。`list` 离线读取保留的动作 ID；`inspect` 和 `reconcile` 复用已有的受保护 `baubles.inspect`、`world.inspect_many` 读取。核对要求当前会话、原始准确存档目录参数及维度、重复一致的客户端/服务器完整 NBT 背包与方块证据，以及明确确认。回执只解除所选创造模式放置的重放保护，历史结果仍为未知，新放置必须另行请求，其他未知动作继续受保护。详见[适用范围和流程](mcp-server/src/minecraft_codex_bridge/guides/maintenance_zh.md#核对已有回执的创造模式放置)。
 
@@ -48,9 +60,21 @@ GUI、NEI、AE 动作明确返回部分完成、拒绝、未确认或未知结�
 
 机器、产线、访问路线和坐标由当前任务组合，不能把一位用户的整套布局固化为通用接口。规划、目录候选、nativeDone、recipe count 或 QA testPassed 均不能单独证明结构成立、原料消耗、产物交付和停止。
 
+## 界面虚拟鼠标
+
+虚拟鼠标在界面完成目标坐标的绘制后，通过界面的原生输入循环投递事件。此路径支持 ModularUI2 在 Forge Pre 阶段完成的绘制。原版 `GuiSlot` 列表可在自身绘制阶段读取滚轮，每格投递一次。交还控制时，客户端终止滑块拖动，丢弃接管期间积压的实体界面鼠标事件，并清除 Agent 在原版容器中的双击记录。交还后的玩家输入正常处理。实体键盘事件留待正常输入循环处理。`player.input` 的首次攻击或使用按键由当前输入任务持有。任务结束时清除尚未消费的 Agent 按键，并保留玩家待处理的按键。
+
+`client.compaction_cursor` 接受 `expectedSessionId`、按绑定和回合派生的 UUID `key` 及布尔值 `active`。接管期间，当前 GUI 指示器或世界 HUD 标志显示忙碌状态，不派发输入。结束事件仅清除对应信号。交还手动控制、切换界面或十分钟未收到结束事件时，客户端清除相应信号。
+
+`gui.virtual_mouse` 由已加载且支持虚拟输入的 lwjgl3ify 鼠标后端声明。需要完整后台接管、当前 `expectedSessionId`、`screenId` 和缩放后的 GUI 坐标 `x/y`。动作包括 `move`、`click`、`press`、`release`、`drag` 和 `scroll`。按住时返回绑定当前界面的 `gestureId`，用于后续移动和松开。持有期为 15 秒，按住期间每次完成移动可续期。移动可从当前位置分 1 至 32 步到达目标。拖拽使用 `toX/toY` 和 1 至 32 个插值步，滚轮可向任一方向滚动 1 至 16 格。客户端最多等待 5 秒完成自然帧更新和原生事件派发。`eventsDispatched` 统计客户端原生输入循环已取出的事件，包括取出后回调报错的事件，操作效果以控件、光标物品或游戏同步状态为准。单击按下后打开其他界面时，返回 `screen_changed_after_press` 并记录已派发的一个事件。
+
+`gui.inspect.virtualMouse.active` 表示 GUI 鼠标是否可用。手势、按住鼠标键、坐标点击的短暂反馈及 `gui.pointer` 悬停租期内，`displayMode` 为 `pointer`，指针位于实际操作点。其余接管时间为 `status`。独立的 Codex 标志显示在屏幕中心下方，即世界准星下方。交还手动控制或 F1 隐藏世界 HUD 时为 `hidden`。GUI 鼠标状态还包括当前坐标、`heldButton` 和 `appearance`（`normal`、`pressed`、`text` 或 `busy`）。忙碌优先于文本，文本优先于按下。
+
+`indicate_thinking` 接受当前界面和会话 ID 及 `durationMillis`（0 至 120000），显示忙碌状态，不会切换为指针显示。派发的输入事件数为 0，`thinkingRemainingMillis` 为剩余时长。普通模式下按住鼠标键会显示按下外观，各模式均可通过 `heldButton` 读取实际按键状态。中断前可能已派发部分事件。
+
 ## GUI、NEI 与 AE
 
-MUI2 滚动区域通过 `scrollAxes` 报告可用轴、当前偏移、最大偏移及动画目标。`scroll` 接受 `axis=vertical|horizontal` 和 `direction=up|down`，每次滚动一格。`drag_scrollbar` 接受同一轴及 `percent=0..100`。行按钮的 `activate` 根据布局变换后的边界和面板原生事件顺序命中，允许事件穿过可透传的文字和布局子控件。点击后可读取选中行或详情。命令方块可编辑字段标记为 `command_block_input`，单行上限为 16,384 个 UTF-16 单元、16,368 个 UTF-8 字节，并受原生字段限制。`expectedText` 和 `localTextMatchesRequested` 均比较完整文本。另行点击“完成”后，再核对命令的实际效果。
+MUI2 的控件概览和坐标提示查询跳过已禁用或失效父控件的子树。MUI2 滚动区域通过 `scrollAxes` 报告可用轴、当前偏移、最大偏移及动画目标。`scroll` 接受 `axis=vertical|horizontal` 和 `direction=up|down`，每次滚动一格。`drag_scrollbar` 接受同一轴及 `percent=0..100`。行按钮的 `activate` 根据布局变换后的边界和面板原生事件顺序命中，允许事件穿过可透传的文字和布局子控件。点击后可读取选中行或详情。命令方块可编辑字段标记为 `command_block_input`，单行上限为 16,384 个 UTF-16 单元、16,368 个 UTF-8 字节，并受原生字段限制。`expectedText` 和 `localTextMatchesRequested` 均比较完整文本。另行点击“完成”后，再核对命令的实际效果。
 
 原版 `GuiCreateWorld` 的游戏模式、世界类型、更多选项页面、地图特性、作弊及奖励箱按钮提供 `kind=choice`、`setting`、`selected`、`value` 和 `options[].index/value`。`set_selected` 按观察到的选项索引调用原生按钮回调，直至回读目标值。已满足目标时不调用按钮，当前隐藏但仍可读取值的选项也适用。世界类型取自当前可创建的注册项，索引可能不连续。游戏模式对作弊默认值的影响，以及切换世界类型时清空自定义生成参数等原生行为均保留。
 
@@ -68,6 +92,12 @@ AE 真实物品槽、网络 resourceId、VirtualMESlot 和幽灵样板各自独�
 
 完整使用说明见[NEI](mcp-server/src/minecraft_codex_bridge/guides/nei_zh.md)、[AE](mcp-server/src/minecraft_codex_bridge/guides/ae_zh.md)及[通用操作](mcp-server/src/minecraft_codex_bridge/guides/operations_zh.md)。
 
+## BetterQuesting 本人任务
+
+`quest.progress` 按完整 UUID 或资料库旧版十六进制 ID 读取本人任务状态、子任务完成情况和领奖条件。服务端回执包含当前世界、维度、连接和队伍指纹。仅有客户端同步数据时，回执注明来源并标记队伍未经验证。
+
+`quest.step` 依据进度回执执行一次原生检测提交、勾选或领奖。参数为 `{questId,action,expectedSessionId,worldFolder,dimension,expectedConnectionId?,taskId?,partyConfirmation?}`。远端须匹配连接，勾选须匹配子任务编号。服务端在同一回调中验证参与者，涉及多人队伍时须显式确认当前队伍指纹。检测可能消耗实际物品。全局任务和强制选择奖励不支持写入，回执不明时先重读进度。
+
 ## 世界、结构、移动及开发操作
 
 扫描只读已加载范围，返回有界页及真实访问覆盖，未加载/未访问不等于空气。游标会过期和消费，空页可能仍有进展；续页使用实际返回值，不自行按条数推算。缓存不代替实时库存、碰撞或最终验收，也不加载新区块。
@@ -83,6 +113,8 @@ AE 真实物品槽、网络 resourceId、VirtualMESlot 和幽灵样板各自独�
 `inventory.copy_block` 要求当前会话、自有集成世界、实际创造模式及创造补给权限。提供维度、坐标、已观察到的方块注册名和元数据，以及索引为 0..35 的背包空槽。先关闭容器并清空光标。GT 机器及管道另需 `expectedMetaTileId`，副本保留物品形式的覆盖板及机器自行导出的设置和子类型标记。其他方块采用原生 Forge 选取结果，`side` 为 0..5，默认顶面。源方块保留在原位。无物品形态或物品标签超限时，操作在写入前结束。`serverSlotConfirmed` 表示服务端槽位回读结果，`tagPreview` 是有界预览。回执不确定时，先检查指定槽位。
 
 ## 生命周期与后台控制
+
+每次按下紧急交还热键，当前客户端会话的 `background.emergencyReleaseCount` 增加一次。同一次 MCP 工具调用内，控制 RPC 在请求信封的 `expectedEmergencyReleaseCount` 字段携带首次观测到的计数。计数变化时，待执行的控制步骤以 `manual_override` 终止。新的工具调用读取当前计数。工具结果的 `playerHandoff` 字段向 Agent 提示新观测到的交还事件。
 
 `clientWindowControlsVersion=2` 增加 `minimize` 与 `resize`；后者要求 `width=256..8192`、`height=144..8192`，其他动作不接受尺寸参数。Windows 下的窗口尺寸调整、最大化及还原通过临时原生保护保留焦点及窗口层级，操作后仍可手动激活。最小化当前活动窗口时，Windows 正常选择其他前台窗口。全屏切换仍须明确请求。`confirmed` 表示原生状态或尺寸回读，客户端及帧缓冲尺寸可能在后续正常事件中更新；未知结果不得重放。`foregroundPreserved` 比较操作前后的前台窗口，用户同时切换窗口也可能使其为 false。
 

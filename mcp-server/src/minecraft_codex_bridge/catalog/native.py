@@ -1,6 +1,7 @@
 """Stable public native-tool order, independent of source-file grouping."""
 
 from .gui import (
+    T_MCB_CHEST_TRANSFER,
     T_MCB_WINDOW,
     T_MCB_WINDOW_ACTION,
     T_MCB_GUI,
@@ -16,6 +17,7 @@ from .gui import (
     T_MCB_OPEN_PAUSE_MENU,
     T_MCB_OPEN_BAUBLES,
     T_MCB_GUI_CLICK,
+    T_MCB_VIRTUAL_MOUSE,
     T_MCB_GUI_KEY,
 )
 from .world import (
@@ -46,19 +48,23 @@ from .nei import (
     T_MCB_NEI_ITEM_ACTION,
     T_MCB_NEI_PREVIEW_CONTROL,
 )
+from .creative import T_MCB_COPY_BLOCK, T_MCB_SUPPLY_ITEMS
+from .survival import T_MCB_MINE
+from .survival_food import T_MCB_FOOD
 from .player import (
     T_MCB_INTERACT_SAMPLE,
     T_MCB_INVENTORY,
     T_MCB_LOOK,
     T_MCB_HOTBAR,
+    T_MCB_QUEST_PROGRESS,
+    T_MCB_QUEST_STEP,
     T_MCB_PLACE_BLOCK,
     T_MCB_INPUT,
     T_MCB_WORLD_MOUSE,
-    T_MCB_COPY_BLOCK,
     T_MCB_NAVIGATE,
     T_MCB_INTERACT,
+    T_MCB_ENTITY_INTERACT,
     T_MCB_CHAT,
-    T_MCB_SUPPLY_ITEMS,
     T_MCB_APPROACH,
     T_MCB_FLIGHT_CHECK,
     T_MCB_FLIGHT,
@@ -141,8 +147,10 @@ NATIVE_TOOLS = [
     T_MCB_SCREENSHOT,
     T_MCB_LOOK,
     T_MCB_HOTBAR,
+    T_MCB_QUEST_PROGRESS,
+    T_MCB_QUEST_STEP,
     T_MCB_PLACE_BLOCK,
-    T_MCB_INPUT,
+    T_MCB_INPUT, T_MCB_FOOD, T_MCB_MINE, T_MCB_ENTITY_INTERACT, T_MCB_CHEST_TRANSFER,
     T_MCB_WORLD_MOUSE,
     T_MCB_COPY_BLOCK,
     T_MCB_NAVIGATE,
@@ -155,6 +163,7 @@ NATIVE_TOOLS = [
     T_MCB_OPEN_BAUBLES,
     T_MCB_SURVIVAL_BUILD,
     T_MCB_GUI_CLICK,
+    T_MCB_VIRTUAL_MOUSE,
     T_MCB_GUI_KEY,
     T_MCB_CHAT,
     T_MCB_SUPPLY_ITEMS,

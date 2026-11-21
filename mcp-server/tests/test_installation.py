@@ -132,7 +132,8 @@ def test_inspection_questions_and_multiple_instances_do_not_write(tmp_path, monk
     guide = plan['agentGuide']
     assert guide['tool'] == 'mcb_help' and guide['arguments'] == {'topic': 'workspace'}
     assert guide['workspaceCreated'] is False
-    assert Path(guide['sourceFile']).is_file()
+    assert guide['packageResource'] == 'minecraft_codex_bridge/guides/workspace_zh.md'
+    assert Path(guide['sourceFile']).name == 'workspace_zh.md'
     assert 'EXPERIENCE.md' in Path(guide['sourceFile']).read_text(encoding='utf-8')
 
 
@@ -189,7 +190,12 @@ def test_source_inspection_uses_root_build_without_client_api_jars(tmp_path, mon
     (payload / 'mcp-server/pyproject.toml').touch()
     (payload / 'build.gradle').touch()
     (payload / 'build/libs').mkdir(parents=True)
-    source = jar(payload / 'build/libs/BridgeNH-0.1.0.jar')
+    jar(payload / 'build/libs/BridgeNH-0.1.0.jar')
+    version = '0.1.0-feature.2+1234567890-dirty'
+    source = jar(payload / f'build/libs/BridgeNH-{version}.jar')
+    resource = payload / 'build/resources/main/mcmod.info'
+    resource.parent.mkdir(parents=True)
+    resource.write_text(json.dumps([{'modid': 'codexbridge', 'version': version}]), encoding='utf-8')
     monkeypatch.delenv('MCB_CONFIG_FILE', raising=False)
     options = setup.parser().parse_args(['--scope', 'source', '--inspect', '--manual-launch',
         '--payload', str(payload), '--instance', str(selected), '--codex-config', str(tmp_path / 'codex.toml')])

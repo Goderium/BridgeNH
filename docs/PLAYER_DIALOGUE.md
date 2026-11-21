@@ -40,7 +40,7 @@ Ordinary start/status/stop/reply results omit full binding IDs; lastDelivery sho
 
 Call `mcb_dialogue {"action":"start"}` in the intended chat. It binds current CODEX_THREAD_ID and the selected client; the server permits one active dialogue lease. Authorized logged-in players may then use say/steer.
 
-Status reports relay state, hostCapabilities and compact lastDelivery. Supported native steering reports steer=true/steerTransport=desktop-ipc; unavailable steering reports steer=false/DIALOGUE_STEER_UNAVAILABLE, while ordinary input remains usable. Every native submission verifies the current owner. Stop revokes the lease.
+Status reports relay state, hostCapabilities and compact lastDelivery. Supported native steering reports steer=true/steerTransport=desktop-ipc; unavailable steering reports steer=false/DIALOGUE_STEER_UNAVAILABLE, while ordinary input remains usable. Every native submission verifies the current owner. Stop requests local cancellation and releases the server lease when the original connection is reachable.
 
 ```json
 {"action":"reply","replyTo":"0123456789","text":"The output inventory has been checked."}
@@ -80,7 +80,21 @@ The adapter only handshakes, discovers ownership, reads setting capabilities and
 
 The relay helper waits one second after each poll; an empty queue does not query the host. The mod reuses Forge networking, identity/OP guards and server tick queues; commands need no new Mixin.
 
-An instance OS lock prevents duplicate helpers. State under `%LOCALAPPDATA%/MinecraftCodexBridge/dialogue/` excludes tokens/player text. Compatible worker reload does not resubmit. Full frontend shutdown may terminate the process group; the server lease expires within 60 seconds. Client/server/host restart requires a fresh dialogue start, without automatic client/world/chat switching or task resumption. Helper-code changes use stop/start.
+An instance OS lock prevents duplicate helpers. State under `%LOCALAPPDATA%/MinecraftCodexBridge/dialogue/` excludes tokens and player text. Compatible worker reload preserves the binding. Use stop/start to apply helper-code changes.
+
+### Reconnecting and diagnosing the helper
+
+After a world transition or brief disconnect, `mcb_dialogue {"action":"status"}` can report `reconnecting`. Return to the original server with the original account. For up to 60 seconds the helper checks the pinned client session, server-verified account and server run. A fresh handshake on an updated server carries the same `serverRunId` across dimension changes and reconnects. An older server requires the original connection ID. The helper verifies the original local chat and asks the mailbox to confirm its existing lease before polling again. Only messages still queued on that lease can be dispatched. Replies wait until status is `ready`.
+
+Use `mcb_dialogue {"action":"stop"}` in the owning chat to cancel locally, including while Minecraft is offline. Check status for completion. An in-flight submission can have an uncertain outcome. A lease that cannot be closed expires within 60 seconds of its last renewal. A new frontend binding cannot send replies through an existing helper. The same chat may stop its helper after explicitly selecting the original instance.
+
+| Status or diagnostic | Action |
+| --- | --- |
+| `DIALOGUE_TARGET_CHANGED`, `DIALOGUE_LEASE_LOST` or `DIALOGUE_RECONNECT_TIMEOUT` | Check `mcb_connection` and `mcb_health` for the intended instance, account and server. Call `mcb_dialogue {"action":"start"}` explicitly for that target. A server restart, another world opened on LAN, or an expired lease requires this step. |
+| `DIALOGUE_HELPER_EXITED` | The instance lock is free. Reopen the original chat, check its binding and call start there. A full frontend shutdown can terminate the helper. If the original server reports `busy`, wait for lease expiry or for the current owner to stop. |
+| `unresponsive` | The helper still holds the instance lock and its heartbeat is old. Request stop and check status before starting another helper. |
+| `app_tools_pipe_missing`, `app_tools_request_failed`, or `callerHost.appToolsPipeConfigured=false` | Run start from the original desktop chat. Reconnect its BridgeNH MCP frontend so it receives that chat's App Tools pipe, then check `mcb_connection` and explicitly bind the intended instance if needed. A missing caller pipe and a running helper can coexist. |
+| `bound_chat_not_visible` or `app_tools_catalog_incomplete` | Open or pin the original chat. Check that its frontend exposes both `list_threads` and `send_message_to_thread` before starting again. |
 
 ## Limits and acceptance
 
@@ -90,7 +104,7 @@ An instance OS lock prevents duplicate helpers. State under `%LOCALAPPDATA%/Mine
 - Ordinary submission uses the latest observed idle state; no atomic expected-idle parameter exists. Concurrent desktop input follows host rules. An ordinary message starting a turn does not redirect a steer originally received while idle.
 - The desktop owner selects its active turn when handling the request and supplies expectedTurnId, not at the player's sending instant. Steering never creates an idle turn. Timeout, unfamiliar errors or mismatched receipts remain uncertain without retry/fallback.
 - Discovery must identify the target in the supported local list (recent 50 or pinned). Unsupported/invisible/permission-changed targets stop; no substitute is chosen.
-- Desktop IPC is an internal versioned integration, not a stable public API. Record actual desktop/bundled app-server versions separately from PATH CLI, and revalidate after upgrades.
+- Steering an active turn uses the internal Windows desktop IPC protocol. For compatibility issues, record the desktop and bundled app-server versions and check the protocol after upgrades. A separately installed CLI on PATH has its own version.
 - Steering acceptance requires delivery into the original active turn before it ends, with a matching native turnId. Delivery alone is insufficient. Integrated and dedicated-server/multiple-player acceptance remain separate.
 
 Reference: [App Server input and steering](https://learn.chatgpt.com/docs/app-server). The desktop owner calls the native interface; BridgeNH creates no additional app-server WebSocket.

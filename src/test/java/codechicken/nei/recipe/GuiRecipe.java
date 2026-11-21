@@ -11,6 +11,7 @@ public class GuiRecipe extends net.minecraft.client.gui.GuiScreen {
     public int recipetype;
     public int page;
     public Object prevGui;
+    public void fixtureChangePage(int delta) { handlerPages.changePage(delta); }
     private RecipePageManager handlerPages = new RecipePageManager(10);
     private codechicken.nei.WidgetContainer container = new codechicken.nei.WidgetContainer();
     public codechicken.nei.WidgetContainer fixtureContainer() { return container; }

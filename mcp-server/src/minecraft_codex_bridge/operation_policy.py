@@ -31,6 +31,7 @@ def guidance(health: dict[str, Any]) -> dict[str, Any]:
     return {
         "version": 1, "environment": environment(health),
         "machineRead": "mcb_machine_inspect (automatically routed to server.observe)" if remote else "mcb_machine_inspect",
+        "remoteGroundMovement": (health.get("operationPolicy") or {}).get("effective", {}).get("remoteGroundWalkVersion") == 1 if remote else None,
         "remoteQa": bridge.get("qaExecutionSupported") is True if remote else None,
         "loadedCode": "Use executingBridge.buildFingerprint for the executing bridge build; mcb_mods loadedSource is FML selection. Disk hashes/candidates alone never prove loaded code.",
         "machineObservation": "mcb_machine_inspect and Waila are live/display observations, not one frozen production round. When needed, use explicit developer mcb_machine_capture with includeNbt=true and page the same captureId. NBT covers serialized fields, not every transient field; inspect completeness and source.",
@@ -92,6 +93,12 @@ def flight_guidance(snapshot: dict[str, Any]) -> dict[str, Any]:
 def route(operation: str, args: dict[str, Any], health: dict[str, Any], *, guarded: bool = False):
     from .bridge import BridgeError
 
+    if operation == "survival.food":
+        policy = health.get("operationPolicy") or {}
+        selected = policy.get("selected") or {}
+        if policy.get("available") is not True or selected.get("readOnly") is not False:
+            raise BridgeError("POLICY_DENIED", "Food requires a writable policy on the current client scope.",
+                              outcome_unknown=False, original_action_executed=False)
     if operation == "recipes.query":
         access = health.get("recipeQueryAccess")
         public = args.get("mode", "catalog") == "catalog" and (
@@ -178,6 +185,10 @@ async def movement_arguments(client, name: str, arguments: dict[str, Any]) -> di
     """Resolve saved intent once before a workflow; never retry a failed movement."""
     from .bridge import BridgeError
     health = await client.invoke("bridge.health", {})
+    if name == "mcb_approach" and environment(health) == "remote_server":
+        from .remote_walk import arguments as remote_arguments
+        return {"remoteWalk": remote_arguments(arguments, health, approach=True),
+                "includeDetails": arguments.get("includeDetails", False)}
     route("player.navigate" if name == "mcb_navigate" else "player.plan_approach", arguments, health)
     policy = health.get("operationPolicy", {})
     if policy.get("available") is not True:

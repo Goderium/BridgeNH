@@ -174,13 +174,13 @@ public final class NeiRenderedSelfTest {
         check(objects.getAsJsonObject("data").getAsJsonArray("entries").size() == 8 && objects.get("total").getAsInt() == 72 && objects.get("complete").getAsBoolean(), "camera and unchanged actions preserve the pinned old frame while ordinary rendering continues");
         request = detail("rendered_text_value"); request.addProperty("itemIndex", 0); request.addProperty("contextToken", token); request.addProperty("offset", 1); request.addProperty("limit", 1);
         JsonObject text = read(screen, request); check(text.getAsJsonObject("data").get("text").getAsString().equals("\uD83D\uDE80") && text.get("nextOffset").getAsInt() == 2 && text.get("total").getAsInt() == 3, "Unicode paging operates on whole codepoints");
-        final JsonObject stale = request; screen.page++; expect("stale_context", () -> read(screen, stale)); screen.page--;
+        final JsonObject stale = request; screen.fixtureChangePage(1); expect("stale_context", () -> read(screen, stale)); screen.fixtureChangePage(-1);
         expect("stale_context", () -> NeiViewAdapter.read(screen, null, stale, "other-session", generous()));
         expect("stale_context", () -> read(new GuiRecipe(handler, Arrays.asList(0)), stale));
         JsonObject fresh = read(screen, args("rendered")); check(fresh.getAsJsonObject("data").get("textDrawsTotal").getAsInt() == 1 && !fresh.get("contextToken").getAsString().equals(token), "offset-zero recapture publishes a fresh frame/token");
         JsonObject goodAction = args("summary"); goodAction.addProperty("contextToken", fresh.get("contextToken").getAsString());
         NeiViewAdapter.validateContext(screen, goodAction, "render-fixture"); check(true, "read context is reusable for exact current preview action");
-        screen.page++; expect("stale_context", () -> NeiViewAdapter.validateContext(screen, goodAction, "render-fixture")); screen.page--;
+        screen.fixtureChangePage(1); expect("stale_context", () -> NeiViewAdapter.validateContext(screen, goodAction, "render-fixture")); screen.fixtureChangePage(-1);
         final JsonObject bad = detail("rendered_text"); bad.addProperty("advanced", true); expect("invalid_args", () -> read(screen, bad));
         final JsonObject badSummary = args("rendered"); badSummary.addProperty("target", "rendered_text"); expect("invalid_args", () -> read(screen, badSummary));
         final JsonObject noIndex = detail("rendered_text_value"); expect("invalid_args", () -> read(screen, noIndex));
@@ -197,6 +197,51 @@ public final class NeiRenderedSelfTest {
             expect("stale_context", () -> read(screen, old));
             check(NeiTextCapture.latest(screen, marker) == null, action + " clears the completed frame together with the whole old context");
         }
+        verifySidePanelFrames(screen);
+        verifySidePanelFrames(new net.minecraft.client.gui.inventory.GuiContainer(null) {
+            @Override protected void drawGuiContainerBackgroundLayer(float partial, int x, int y) {}
+        });
+    }
+
+    private static void verifySidePanelFrames(Object screen) {
+        codechicken.nei.ItemPanel previous = codechicken.nei.ItemPanels.itemPanel;
+        String previousSearch = codechicken.nei.LayoutManager.searchField.value;
+        try {
+            codechicken.nei.ItemPanel panel = new codechicken.nei.ItemPanel();
+            codechicken.nei.ItemPanels.itemPanel = panel;
+            codechicken.nei.LayoutManager.searchField.setText("FB");
+            publishPanelFrame(screen, "panel A");
+            JsonObject hover = read(screen, detail("hover_tooltip_lines"));
+            check(hover.getAsJsonObject("data").getAsJsonArray("entries").toString().contains("panel A"), "first panel hover is readable");
+            JsonObject old = detail("hover_tooltip_lines");
+            old.addProperty("contextToken", hover.get("contextToken").getAsString());
+            panel.grid.page++;
+            expect("stale_context", () -> read(screen, old));
+            check("not_present".equals(read(screen, args("rendered")).get("status").getAsString()), "a fresh token cannot adopt rendered text from the previous side-panel page");
+            check("not_present".equals(read(screen, detail("hover_tooltip_lines")).get("status").getAsString()), "previous-page hover cannot appear before the new page draws");
+            publishPanelFrame(screen, "panel B");
+            check(read(screen, detail("rendered_text")).getAsJsonObject("data").getAsJsonArray("entries").toString().contains("panel B"), "newly published panel draws can be read");
+            check(read(screen, detail("hover_tooltip_lines")).getAsJsonObject("data").getAsJsonArray("entries").toString().contains("panel B"), "newly published hover belongs to the new page");
+            codechicken.nei.LayoutManager.searchField.setText("Ea"); // Equal String hash to FB.
+            check("not_present".equals(read(screen, args("rendered")).get("status").getAsString()), "an exact changed search rejects the old draws on the same numbered page");
+            publishPanelFrame(screen, "search B");
+            panel.grid.items = new java.util.ArrayList<>(panel.grid.items);
+            check("not_present".equals(read(screen, detail("hover_tooltip_lines")).get("status").getAsString()), "asynchronously replaced filtered results invalidate hover before a redraw");
+        } finally {
+            codechicken.nei.ItemPanels.itemPanel = previous;
+            codechicken.nei.LayoutManager.searchField.setText(previousSearch);
+            NeiViewAdapter.invalidateRendered();
+        }
+    }
+
+    private static void publishPanelFrame(Object screen, String text) {
+        String marker = NeiRenderCapture.marker(screen);
+        NeiTextCapture.begin(screen, marker, "fixture", true, 640, 360);
+        NeiHoverCapture.begin(screen, marker, 10, 20);
+        NeiTextCapture.observe(screen, text, 10, 20, -1, false);
+        NeiHoverCapture.observe("handleTooltip", new Object[] {screen, 10, 20, Collections.singletonList(text)});
+        NeiTextCapture.end(screen, marker);
+        NeiHoverCapture.end(screen, marker);
     }
 
     private static JsonObject receipt(String action, String status, boolean screenChanged) {

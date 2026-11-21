@@ -37,6 +37,8 @@ BridgeNH 有两套独立设置：**玩家权限组**决定谁能向 Agent 发消
 
 分组按 UUID 保存，在线名字只用于解析 UUID。指令修改成功后立即保存；写入失败不会只改变内存。手动编辑后执行 `permissions reload`；检测到外部修改时，指令会要求先重载，避免覆盖。无效配置会禁用玩家权限，修正后由后台重载恢复。组标签可以修改，能力可以收紧；不接受给访客增权、给用户调试/管理权限、OP 自动继承、免绑定 Agent 或非访客默认组。
 
+玩家组权限拒绝消息会列出所需的 `capability`（`send`、`debug`、`manage` 或对话绑定 `bind`）、服务端登记的分组 `assigned` 和本次判定使用的分组 `effective`。`/mcb whoami` 可查看两项分组。例如 `capability=manage assigned=agent effective=guest` 表示已登记的账号还需要有效的对话租约。两个分组相同时，核对该组的能力配置。若返回 `config_unavailable` 及 `assigned=unknown effective=guest`，表示服务端无法加载有效权限配置。修复服务端 `config/codexbridge/permissions.json` 后，在服务器控制台执行 `mcb permissions reload`。
+
 调试默认关闭。管理员/有效 Agent 使用 `debug on` 后才会收到私密内部详情；服务器日志仍保留诊断记录。组变更会清除该玩家的个人调试开关。撤销发送权限会取消尚未投递的消息，撤销当前 Agent 资格会关闭租约；已经进入聊天的消息无法撤回。
 
 普通发送玩家不需要安装 BridgeNH，也不需要 OP。承载 Agent 的客户端与服务器需要兼容版本；服务器对话桥还要求承载账号具有实际 OP 2 权限及已登记的 `agent` 组。其执行上下文以当前连接为准。完整消息用法见[玩家对话](PLAYER_DIALOGUE_zh.md)。

@@ -114,6 +114,14 @@ public final class LogicalGuiPointerSelfTest {
         Fixture access = new Fixture(); final Fixture initialAccess = access; AtomicInteger targetReads = new AtomicInteger();
         GuiPointerLocator.Target target = new GuiPointerLocator.Target(52, 63, "fixture_native_rectangle", () -> { targetReads.incrementAndGet(); return initialAccess.target; });
         arm(access, target); long generation = LogicalGuiPointer.inspect().get("generation").getAsLong();
+        LogicalGuiPointer.renderStart();
+        Point custom = LogicalGuiPointer.beforePre(access.screen, 7, 8);
+        LogicalGuiPointer.completedCustomDraw(new Object(), custom.x, custom.y);
+        LogicalGuiPointer.completedCustomDraw(access.screen, custom.x + 1, custom.y);
+        check(!LogicalGuiPointer.drewScreen(access.screen), "a different screen or point cannot acknowledge the staged frame");
+        LogicalGuiPointer.completedCustomDraw(access.screen, custom.x, custom.y);
+        check(LogicalGuiPointer.drewScreen(access.screen), "a completed replacement draw in Forge Pre is accepted");
+        LogicalGuiPointer.renderEnd();
         LogicalGuiPointer.renderStart(); Point pre = LogicalGuiPointer.beforePre(access.screen, 7, 8);
         check(LogicalGuiPointer.frameData().get("logicalReads").getAsInt() == 0 && !LogicalGuiPointer.frameData().has("logicalReadX"), "an armed frame has no invented GuiDraw reads or returned coordinates");
         check(pre.equals(new Point(52, 63)) && LogicalGuiPointer.guiDrawPosition().equals(pre), "Pre callback gets bound native point including GuiDraw reads");

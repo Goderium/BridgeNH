@@ -100,7 +100,7 @@ public final class AgentDialogueMailbox {
         RemoteReadProtocol.keys(args, "action", "leaseId", "threadId", "messageId", "state", "text");
         String requestedLease = RemoteReadProtocol.uuid(args, "leaseId");
         if ("bind".equals(action)) {
-            if (!permissions.canBind(playerId)) throw new BridgeException("permission_denied", "Agent account must be assigned group agent in server config or by /mcb group set before binding. OP alone does not grant MCB permissions.");
+            permissions.requireBinding(playerId);
             String target = RemoteReadProtocol.uuid(args, "threadId");
             if (!lease.isEmpty() && (!owner.equals(playerId) || !lease.equals(requestedLease) || !thread.equals(target)))
                 throw new BridgeException("busy", "Another agent already owns this server inbox.");

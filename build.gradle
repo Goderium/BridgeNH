@@ -4,7 +4,7 @@ plugins {
 }
 
 group = providers.gradleProperty('modGroup').get()
-version = providers.gradleProperty('modVersion').get()
+apply from: 'gradle/build-version.gradle'
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(8) }
@@ -31,7 +31,8 @@ tasks.withType(JavaCompile).configureEach {
 tasks.injectTags { outputClassName.set('com.Goderium.BridgeNH.util.Tags') }
 def buildIdentityDir = layout.buildDirectory.dir('generated/sources/bridgeIdentity')
 def identityInputs = files(fileTree('src/main') { include '**/*'; exclude '**/.DS_Store' },
-    'build.gradle', 'settings.gradle', 'gradle.properties', 'dependencies.gradle', 'repositories.gradle')
+    'build.gradle', 'settings.gradle', 'gradle.properties', 'gradle/build-version.gradle',
+    'dependencies.gradle', 'repositories.gradle')
 tasks.register('generateBridgeIdentity') {
     inputs.files(identityInputs)
     outputs.dir(buildIdentityDir)

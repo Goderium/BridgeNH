@@ -1,8 +1,6 @@
 # GTNH NEI operation guide
 
-Agent reference: English; [Chinese companion](nei_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
-
-For Minecraft 1.7.10 and GTNH NotEnoughItems. Native bookmark APIs are source-scoped to **2.8.171-GTNH**; the shortcut reference uses **2.8.155-GTNH**, and the other baseline behavior uses **2.8.145-GTNH**. These source baselines do not establish complete live-test coverage. Read current bindings, configuration and tooltips after upgrades or rebinding.
+For Minecraft 1.7.10 and GTNH NotEnoughItems. Native bookmark APIs are source-scoped to **2.8.171-GTNH**; the shortcut reference uses **2.8.155-GTNH**, and the other baseline behavior uses **2.8.145-GTNH**. Read current bindings, configuration and tooltips after upgrades or rebinding.
 
 ## Native structure previews
 
@@ -200,16 +198,6 @@ The favorite star selects a recipe/output; Shift+A there saves a favorite tree, 
 
 Ctrl+C copies an escaped search name, Ctrl+D ore dictionary entries and Ctrl+X the registry identifier (possibly metadata). Chat-link shortcuts actually send and are not default debugging steps. F7/F9 world overlays differ from recipe S. Item zoom/next-tooltip key conflicts need current verification.
 
-## Sources and verification limits
+## Version references
 
-Bookmark reference: [NEI 2.8.155-GTNH sources](https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/NotEnoughItems/2.8.155-GTNH/NotEnoughItems-2.8.155-GTNH-sources.jar), SHA256 `fd7efd4ad77a7d250b2d2e9854cba7d643222a941cc28a4c808937505c0b2973`.
-
-- Defaults/modifiers: NEIClientConfig.setDefaultKeyBindings, KeyManager.isKeyDown/isHashDown.
-- Item/recipe toggles, count preservation, V and deletion: api/ShortcutInputHandler; favorites: recipe/GuiFavoriteButton and recipe/widget/RecipeWidget.
-- Grouping, ordering, wheel and retrieval preparation: BookmarkPanel, bookmark/BookmarkGrid and SortableItem.
-- Quantity/fallback: ItemQuantityField, PanelWidget, NEIClientUtils.cheatItem/getScrollMultiplier.
-- BridgeNH coverage: NeiControlAdapter, NeiOverlayAdapter.bookmark, NeiItemControlAdapter and catalog/nei.py / catalog/gui.py.
-
-Earlier baseline: [NEI 2.8.145-GTNH sources](https://nexus.gtnewhorizons.com/repository/public/com/github/GTNewHorizons/NotEnoughItems/2.8.145-GTNH/NotEnoughItems-2.8.145-GTNH-sources.jar), SHA256 `d4ede32d2bd510e4d5312f79a2012da79ea7fec7f5eab23c52064e4377af3c5e`. Relevant classes also include RecipeItemInputHandler, GuiUsageRecipe, GuiRecipe, NEIRecipeWidget, SearchField/TextField/SearchTokenParser/ModNameFilter, GuiOverlayButton and DefaultOverlayHandler.
-
-Source review is not live shortcut acceptance. Runtime rebinding, world-mode overrides, third-party handlers, chemical search providers and key conflicts require current evidence. A guide does not imply complete native support or universal recipe filling.
+Use the current GUI and bindings for shortcuts. See the [NEI version references](testing.md#nei-version-references) in `mcb_help({"topic":"testing"})` for the corresponding defaults.

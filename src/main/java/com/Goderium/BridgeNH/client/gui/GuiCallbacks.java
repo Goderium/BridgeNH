@@ -195,8 +195,8 @@ public class GuiCallbacks {
         int width = screen.width, height = screen.height;
         BooleanSupplier current = () -> screen.width == width && screen.height == height && stillCurrent.getAsBoolean();
         return LogicalGuiPointer.input(screen, x, y, current, () -> {
-            invoke(PRESS, screen, x, y, button);
-            if (current.getAsBoolean()) invoke(RELEASE, screen, x, y, button);
+            VirtualGuiMouse.INSTANCE.callback(screen,x,y,button,true,()->invoke(PRESS, screen, x, y, button));
+            if (current.getAsBoolean()) VirtualGuiMouse.INSTANCE.callback(screen,x,y,button,false,()->invoke(RELEASE, screen, x, y, button));
         });
     }
 

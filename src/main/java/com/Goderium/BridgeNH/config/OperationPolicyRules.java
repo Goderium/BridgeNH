@@ -1,6 +1,8 @@
 package com.Goderium.BridgeNH.config;
 
 import com.Goderium.BridgeNH.util.BridgeException;
+import com.Goderium.BridgeNH.common.bridge.RequestRegistry;
+import com.google.gson.JsonPrimitive;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
@@ -10,12 +12,30 @@ import java.util.Set;
 /** One policy boundary for authenticated RPC, independent of transport and GUI adapters. */
 public final class OperationPolicyRules {
     private static Set<String> set(String text) { return new HashSet<String>(Arrays.asList(text.split(" "))); }
-    private static final Set<String> CONTROL = set("bridge.health bridge.policy client.snapshot client.worlds client.load_world client.connect client.leave_world client.exit client.background client.mouse client.unfocused client.diagnostics client.mods client.messages client.recording input.bindings world.scan_config agent.dialogue player.task");
-    private static final Set<String> READ = set("registry.items registry.item registry.variants gui.inspect gui.tooltip gui.widgets inventory.inspect baubles.inspect nei.inspect nei.view nei.bookmarks research.read waila.inspect ae.inspect state.diff client.screenshot world.inspect world.inspect_many world.scan world.entities world.spatial player.plan_approach player.flight_check");
+    private static final Set<String> CONTROL = set("bridge.health bridge.policy client.snapshot client.worlds client.load_world client.connect client.leave_world client.exit client.compaction_cursor client.background client.mouse client.unfocused client.diagnostics client.mods client.messages client.recording input.bindings world.scan_config agent.dialogue player.task");
+    private static final Set<String> READ = set("registry.items registry.item registry.variants gui.inspect gui.tooltip gui.widgets inventory.inspect baubles.inspect nei.inspect nei.view nei.bookmarks research.read survival.gather_observe quest.progress survival.storage_count survival.storage_receipt waila.inspect ae.inspect state.diff client.screenshot world.inspect world.inspect_many world.scan world.entities world.spatial player.plan_approach player.flight_check");
     private static final Set<String> MACHINE = set("machine.inspect machine.capture world.structure world.tiles structure.goal ae.material_source");
-    private static final Set<String> MOVE = set("player.look player.hotbar player.navigate player.flight dev.teleport gui.open_inventory gui.open_pause_menu gui.open_baubles gui.close gui.pointer nei.open nei.navigate nei.preview_control");
-    private static final Set<String> MUTATE = set("player.world_mouse player.interact player.place_block player.replace_owned_block structure.survival_build gui.slot_click gui.transfer_whole_stack gui.click gui.key gui.widget_action ae.action nei.item_action nei.bookmark_action");
+    private static final Set<String> MOVE = set("player.remote_walk player.look player.hotbar player.navigate player.flight dev.teleport gui.open_inventory gui.open_pause_menu gui.open_baubles gui.close gui.pointer nei.open nei.navigate nei.preview_control");
+    private static final Set<String> MUTATE = set("quest.step survival.storage_open survival.storage_move gui.chest_transfer player.world_mouse player.mine player.entity_interact player.interact player.place_block player.replace_owned_block structure.survival_build gui.slot_click gui.transfer_whole_stack gui.virtual_mouse gui.click gui.key gui.widget_action ae.action nei.item_action nei.bookmark_action");
     public static boolean control(String operation) { return CONTROL.contains(operation) || "client.window".equals(operation) || "client.window_action".equals(operation); }
+    /** Reads and cleanup do not acquire input and may finish across a player handoff. */
+    public static boolean observesOrReleases(String operation, JsonObject args) {
+        if ("player.flight_check".equals(operation)) return !"probe".equals(text(args, "action"));
+        if (READ.contains(operation) || MACHINE.contains(operation) || RequestRegistry.readOnly(operation)) return true;
+        switch (operation) {
+            case "client.recording": case "agent.dialogue": case "client.compaction_cursor": case "player.task": return true;
+            case "ae.order": return "status".equals(text(args, "action"));
+            case "world.scan_config": return args.entrySet().isEmpty();
+            case "bridge.policy": case "player.follow":
+                return !args.has("action") || "status".equals(text(args, "action"));
+            case "gui.pointer": return "clear".equals(text(args, "action"));
+            case "client.background": case "client.unfocused":
+                return new JsonPrimitive(false).equals(args.get("enabled"));
+            case "client.mouse": return new JsonPrimitive(true).equals(args.get("enabled"));
+            default: return false;
+        }
+    }
+
     public static String execution(String movement, boolean flying, boolean canTp) {
         return "tp".equals(movement) && canTp ? "developer_teleport" : flying ? "ability_flight" : "walking";
     }
@@ -61,6 +81,9 @@ public final class OperationPolicyRules {
         } else if ("ae.order".equals(operation)) {
             if ("status".equals(text(args, "action"))) require(policies.permits("machineRead") && authority, "Authoritative order status requires enhanced observation.");
             else mutation = true; // The existing adapter still binds the player's actual open terminal and native callbacks.
+        } else if ("survival.food".equals(operation)) {
+            require(!creative, "Food requires the actual actor to be in survival.");
+            mutation = true;
         } else if ("player.input".equals(operation)) {
             String keys = args.toString(); mutation = keys.contains("\"attack\"") || keys.contains("\"use\"");
         } else if ("chat.send".equals(operation)) {

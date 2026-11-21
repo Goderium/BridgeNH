@@ -19,6 +19,7 @@ import java.util.UUID;
 
 /** Server-owned config. Minecraft OP is deliberately not an input to this policy. */
 public final class AgentPermissions {
+    private static final String CONFIG_RECOVERY = "Repair server config/codexbridge/permissions.json and run /mcb permissions reload from the server console. / 请修复服务端权限配置，再在服务器控制台执行上述重载命令。";
     private Path path;
     private byte[] saved;
     private JsonObject config = defaults();
@@ -59,7 +60,7 @@ public final class AgentPermissions {
             }
             available = true;
         } catch (IOException | RuntimeException failure) {
-            throw new BridgeException("config_unavailable", "MCB permissions config is invalid or unreadable; access disabled. Fix permissions.json and reload from server console.");
+            throw new BridgeException("config_unavailable", CONFIG_RECOVERY);
         }
     }
 
@@ -119,11 +120,41 @@ public final class AgentPermissions {
 
     public String label(String group) { return config.getAsJsonObject("groups").getAsJsonObject(group).get("label").getAsString(); }
     public boolean canBind(String uuid) { return available && "agent".equals(assigned(uuid)); }
+    public void requireBinding(String uuid) {
+        if (!canBind(uuid)) throw denial(uuid, false, "bind");
+    }
     public boolean allows(String uuid, boolean bound, String capability) {
         return available && config.getAsJsonObject("groups").getAsJsonObject(effective(uuid, bound)).get(capability).getAsBoolean();
     }
     public void require(String uuid, boolean bound, boolean console, String capability) {
-        if (!console && !allows(uuid, bound, capability)) throw new BridgeException("permission_denied", "MCB 权限不足, 请联系管理员或服务器后台.");
+        if (!console && !allows(uuid, bound, capability)) throw denial(uuid, bound, capability);
+    }
+
+    public String identity(String uuid, boolean bound) {
+        return "assigned=" + (available ? assigned(uuid) : "unknown") + " effective=" + effective(uuid, bound);
+    }
+
+    private BridgeException denial(String uuid, boolean bound, String capability) {
+        String assigned = available ? assigned(uuid) : "unknown";
+        String effective = effective(uuid, bound);
+        String hint;
+        if (!available) hint = CONFIG_RECOVERY;
+        else if ("bind".equals(capability))
+            hint = "A server-side agent assignment is required for dialogue binding. / 对话绑定要求服务端将此账号登记为 agent。";
+        else if ("agent".equals(assigned) && !bound)
+            hint = "This agent account needs an active dialogue lease. / 此 agent 账号需要有效的对话绑定。";
+        else hint = "Check /mcb whoami and this group's server permissions. / 请用 /mcb whoami 核对分组，并检查服务端组权限。";
+        return new Denial(available ? "permission_denied" : "config_unavailable", capability, assigned, effective, hint);
+    }
+
+    public static final class Denial extends BridgeException {
+        public final String capability, assigned, effective;
+        private Denial(String code, String capability, String assigned, String effective, String hint) {
+            super(code, "capability=" + capability + " assigned=" + assigned + " effective=" + effective + ". " + hint);
+            this.capability = capability;
+            this.assigned = assigned;
+            this.effective = effective;
+        }
     }
     public boolean debugEnabled(String uuid, boolean bound) {
         if (!allows(uuid, bound, "debug")) return false;

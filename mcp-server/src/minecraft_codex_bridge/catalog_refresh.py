@@ -22,7 +22,7 @@ from .validation import tool_validator
 from .catalog.sources import DECLARATION_FILES
 
 
-MAX_SOURCE_BYTES = 262_144
+MAX_SOURCE_BYTES = 320 * 1024
 MAX_CATALOG_BYTES = 2_097_152
 MAX_DECLARATION_STEPS = 100_000
 MAX_DECLARATION_COLLECTION = 8192
@@ -358,7 +358,8 @@ class ToolCatalogRefresh:
     def _backend_paths(self):
         # Include nested packages and detect additions/removals, not just edits
         # to files that happened to exist when this process started.
-        return sorted(path for path in Path(__file__).parent.rglob("*.py") if path not in self._source_paths)
+        root = Path(__file__).parent
+        return sorted(path for path in root.rglob("*.py") if path not in self._source_paths)
 
     def remember_session(self, session) -> None:
         if session not in self._sessions:

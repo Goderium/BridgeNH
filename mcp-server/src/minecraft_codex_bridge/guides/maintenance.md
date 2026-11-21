@@ -1,7 +1,5 @@
 # BridgeNH maintenance and tool discovery
 
-Agent reference: English; [Chinese companion](maintenance_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
-
 Read offline with `mcb_help({"topic":"maintenance"})`. Use [capabilities](capabilities.md) to find a tool, then its live schema.
 
 ## What can reload
@@ -27,8 +25,6 @@ Compatible reload preserves the conversation binding, AE order phases and unreso
 6. Record activation, host rediscovery, actual call result and remaining limits separately. Remove any temporary acceptance probe and verify the original runtime/catalog are restored. Never inject a probe as a routine prerequisite for ordinary reloads.
 
 If the restart response is lost or uncertain, inspect status first. Reusing the same request ID with the identical arguments retrieves that recorded restart result; it is not a second restart. A changed argument set with the same ID is refused. After a definite refusal and a corrected cause, a new attempt uses a new ID and fresh generation. This restart-specific result retrieval never authorizes repeating a game action.
-
-**Verified scope:** Codex desktop 26.1103.7773.0 with `mcp_tool_list_changed` enabled rediscovered a newly added read-only tool, exposed it in the current chat's native catalog and executed it. Removal propagated on the next worker reload. The frontend and binding were unchanged, with no Codex/Minecraft restart and no game calls. Other host versions still need their own observed support.
 
 ## Discover and call current tools
 
@@ -106,6 +102,24 @@ After one launch dispatch, continue only its read-only `--status --timeout-ms 30
 
 ## Keep help current when maintaining tools
 
-For a new or changed tool, update its [capabilities](capabilities.md) row, detailed guide and `_zh.md` companion. Follow the repository's [documentation standards](../../../../AGENTS.md#documentation-standards) for style, scope, shared rules and examples. Preserve tool-specific prerequisites and verification limits; fixed guide topics serve English.
+For a new or changed tool, update its [capabilities](capabilities.md) row and detailed guide in both editions. Follow the repository's [documentation standards](../../../../AGENTS.md#documentation-standards) for style, scope, shared rules and examples. Preserve tool-specific prerequisites and verification limits.
 
-Validate the public index against the loaded catalog including frontend tools, local links, UTF-8, redaction, offline guide reads and the 32 KiB raw/serialized English-guide limit. Use existing relevant regressions. After an authorized installed guide update, hot-reload this connection and read the actual revised topic. Source editing, runtime deployment, distribution packaging and publication are separate checkpoints; report exactly which ones were completed.
+Validate the public index against the loaded catalog including frontend tools, local links, UTF-8, redaction, offline guide reads and the 32 KiB raw and serialized size limit for Chinese guides. Use existing relevant regressions. After an authorized installed guide update, hot-reload this connection and read the actual revised topic. Source editing, runtime deployment, distribution packaging and publication are separate checkpoints; report exactly which ones were completed.
+
+## Server logs and runtime observations
+
+Use `mcb_server_observe(kind="status",expectedSessionId=...)` to obtain the authenticated server connection and advertised read capabilities. For `logs`, `diagnostics` and `mods`, supply the current `expectedSessionId`, `expectedConnectionId` and `dimension`. Both endpoints need compatible BridgeNH versions; the handshake advertises `serverLogsVersion=1`, `serverDiagnosticsVersion=1` and `serverModsVersion=1`. These reads require the enhanced-observation policy and actual server OP level 2. Player permission groups do not grant OP.
+
+| Kind | Arguments and result |
+| --- | --- |
+| `logs` | `log="latest"` (default) or `"fml-server-latest"`; `level="WARN"` (default), `"ERROR"` or `"ANY"`; optional literal, case-insensitive `query` up to 256 characters; `limit` 1..128, default 128. Reads only the named file under the server process's `logs/` directory. Use `ANY` for unlabelled stack-trace lines. |
+| `diagnostics` | Server version/brand, player and mod counts, JVM memory/uptime, existing native tick durations, bounded loaded-world metadata and log-reader queue counts. `estimatedTpsIfSustained` estimates capacity from execution time; it is not measured wall-clock TPS. |
+| `mods` | Loaded FML mod IDs, names and versions; `offset` 0..10000 and `limit` 1..64, default 16. Continue with `nextOffset` while `hasMore`; inspect `byteLimited` and per-row `fieldsTruncated`. |
+
+```json
+{"kind":"logs","expectedSessionId":"<current-session>","expectedConnectionId":"<current-connection>","dimension":0,"log":"latest","level":"WARN","limit":32}
+```
+
+Log reads use one background worker with at most 16 queued jobs. Each read examines at most 64 KiB and returns at most 24,000 bytes of JSON data; lines are limited to 2,048 characters. Sensitive lines are redacted before query matching. File paths are fixed, and redirected paths are refused. Permissions and connection identity are checked again before delivery. Inspect `bytesRead`, `truncated`, `byteLimited`, timestamps and coverage: a missing match does not prove absence, and rotation/concurrent writes can change the file during a read.
+
+An integrated server shares its logs, JVM and loaded mod list with the client; `sharedClientServerLog` and `jvm.sharedWithClient` identify this scope. A dedicated server supplies its own process data through the existing Forge connection. Missing fixed log files return `log_unavailable`. `mcb_logs` continues to read the selected client's logs. Server diagnostics inspect at most 256 world-array entries and return at most 64 rows, without loading chunks or traversing entities. Read `samplingMillis` and `backgroundReadMillis` as individual request measurements. Read on demand; no continuous monitor is installed.

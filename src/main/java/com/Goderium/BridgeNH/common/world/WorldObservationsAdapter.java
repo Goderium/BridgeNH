@@ -313,6 +313,12 @@ public class WorldObservationsAdapter {
         return result;
     }
 
+    public static Vec3 eyePosition(EntityPlayer player) {
+        return player instanceof net.minecraft.entity.player.EntityPlayerMP
+                ? Vec3.createVectorHelper(player.posX, player.posY + player.getEyeHeight(), player.posZ)
+                : player.getPosition(1);
+    }
+
     private static JsonObject ray(World world, EntityPlayer player, JsonObject args, long started) {
         reject(args, "positions", "offset", "limit", "width", "height");
         boolean explicit = args.has("from") || args.has("to");
@@ -323,7 +329,8 @@ public class WorldObservationsAdapter {
             from = vector(args, "from"); to = vector(args, "to");
         } else {
             double distance = args.has("distance") ? JsonData.number(args, "distance", .1, 128) : 5;
-            Vec3 eye = player.getPosition(1); Vec3 look = player.getLookVec();
+            Vec3 eye = eyePosition(player);
+            Vec3 look = player.getLookVec();
             from = new double[] {eye.xCoord, eye.yCoord, eye.zCoord};
             to = new double[] {eye.xCoord + look.xCoord * distance, eye.yCoord + look.yCoord * distance, eye.zCoord + look.zCoord * distance};
         }

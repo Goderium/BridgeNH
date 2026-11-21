@@ -1,0 +1,47 @@
+def identity = new Properties()
+file('gradle.properties').withReader('UTF-8') { identity.load(it) }
+def base = identity.getProperty('modVersion')
+if (providers.gradleProperty('modVersion').get() != base) {
+    throw new GradleException('Set the base modVersion in gradle.properties.')
+}
+def checkout = rootDir
+def releaseTag = providers.gradleProperty('releaseTag').orNull
+
+if (!new File(checkout, '.git').exists()) {
+    if (releaseTag != null) throw new GradleException('A release build requires its Git checkout.')
+    version = "${base}-source"
+    return
+}
+
+def git = { String... args ->
+    providers.exec {
+        workingDir checkout
+        commandLine(['git'] + args.toList())
+    }.standardOutput.asText.get().trim()
+}
+def dirty = !git('status', '--porcelain=v1', '--untracked-files=normal').isEmpty()
+def baseTag = "v${base}".toString()
+def taggedRelease = !dirty && git('tag', '--points-at', 'HEAD', '--list', baseTag) == baseTag
+if (releaseTag != null && (releaseTag != baseTag || !taggedRelease)) {
+    throw new GradleException("A release build requires a clean checkout of ${baseTag} at HEAD.")
+}
+if (taggedRelease) {
+    version = base
+    return
+}
+
+def branch = providers.gradleProperty('buildBranch').orNull ?: git('branch', '--show-current') ?:
+    providers.environmentVariable('GIT_BRANCH').orNull ?: 'git'
+// The Windows installer and portable checksum format accept ASCII artifact names.
+def branchName = branch.replaceFirst(/^origin\//, '').replaceAll(/[^a-zA-Z0-9-]+/, '-')
+def description = git('describe', '--tags', '--match', 'v[0-9]*', '--long', '--always', '--abbrev=10', 'HEAD')
+def tagged = description =~ /^.+-(\d+)-g([0-9a-f]+)$/
+def revision = description
+if (tagged.matches()) {
+    if (tagged.group(1) != '0') branchName += '.' + tagged.group(1)
+    revision = tagged.group(2)
+}
+
+def parts = base.split(/\+/, 2)
+def metadata = parts.size() == 2 ? parts[1] + '.' : ''
+version = "${parts[0]}-${branchName}+${metadata}${revision.take(10)}" + (dirty ? '-dirty' : '')

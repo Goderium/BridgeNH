@@ -18,6 +18,8 @@
 | 读取边界 | application/reads.py | 有界条件等待、复合归属读取、冻结游标分页 |
 | 呈现 | application/results.py、descriptions.py | MCP 结果/图像和工具/资源说明 |
 | 领域处理器 | application/handlers/local.py、observations.py、tasks.py | 本地记录/生命周期、组合读取、组合动作 |
+| 执行数据库 | `packdata.py`、`packdata_inputs.py`、`packdata_updates.py`、`packdata_links.py`、`recex_packdata.py` | 按实例保存快照、检查安装输入、比对内容并关联记录。[采集与查询](../mcp-server/src/minecraft_codex_bridge/guides/packdata_zh.md) |
+| 生存物料工单 | `survival_order.py`、`survival_order_store.py`、`survival_gather.py`、`survival_storage.py` | 有界采集、定量搬运和按对话与工单持久化的中断对账 |
 | 领域实现 | 下表列出的任务/规划模块 | 状态机、几何和领域验收 |
 | 证据 | knowledge.py、operation_knowledge.py、run_log.py、player_recordings.py、call_timing.py、feedback.py | 历史证据、有界记录及诊断 |
 | HTTP/连接 | bridge.py、runtime_discovery.py、operation_policy.py | 凭据、受校验 RPC、取消及本地/远程路由 |
@@ -65,6 +67,12 @@ OperationPolicies 持有有界的本地意图和存档/服务器选择；LocalJs
 
 这些模块与传输分离，不为改导入名而无关移动。
 
+### 通用工具与模式专用操作
+
+普通观察、原生库存、GUI 和实体控件共用。Python 工具目录将生存专用声明放在 `catalog/survival*.py`，创造供给放在 `catalog/creative.py`。客户端生存动作归入 `client/survival`。策略定义权限上限，执行时核对实际角色和资源。测试服务器条件由独立测试夹具设置。
+
+`action_chain.py` 为每个适配器维护一个可分段执行的队列。每组动作复用原有 sequence 执行器并声明各自的验收条件。续接或插入时使用最新队列编号和修订号。
+
 ## 热更新边界
 
 应用变化替换私有 worker；固定前端、启动指引及依赖版本须匹配。工具/资源增删及 schema 变化随新 worker 提交，激活成功后发送 list_changed。宿主是否原生重新发现仍取决于宿主支持。订单/未知效果经过版本化 checkpoint 交接，不自动续做或重放。
@@ -88,7 +96,7 @@ Java 使用 `src/main/java/com/Goderium/BridgeNH/`，BridgeNH.java 为根包入�
 | common.diagnostics | 有界服务端运行信息及固定日志异步读取 |
 | common 下 ae/inventory/machine/recipe/structure/world/qa | 共享领域适配及状态 |
 | client 下 control/lifecycle/recording | 原生控制、菜单/世界生命周期、录制 |
-| client 下 gui/nei/navigation/render | GUI、NEI、移动和帧缓冲读取 |
+| client 下 gui/nei/navigation/render | GUI、NEI、客户端按刻规划与执行路线、帧缓冲读取 |
 | config | 配置持久化、限制、策略 |
 | loader、loader.core、loader.rfb | 客户端初始化、隔离的 Forge/RFB 钩子 |
 | mixin | Mixin 配置引用的类 |

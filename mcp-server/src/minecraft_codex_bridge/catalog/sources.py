@@ -9,6 +9,10 @@ DECLARATION_FILES = (
     'catalog/gui.py',
     'catalog/ae.py',
     'catalog/player.py',
+    'catalog/creative.py',
+    'catalog/survival.py',
+    'catalog/survival_food.py',
+    'catalog/references.py',
     'catalog/native.py',
     'tools.py',
 )

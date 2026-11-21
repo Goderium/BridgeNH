@@ -79,7 +79,8 @@ def http_bridge():
             state["executed"].append(operation)
             if operation == "bridge.health":
                 data = {"protocolVersion": 1, "capabilities": state["capabilities"], "profile": state["profile"], "sessionId": state["session_id"], "instancePath": state.get("instance_path"), "background": background()}
-                data["operationPolicy"] = {"available": True, "effective": {"movementImplementation": "developer_teleport"}}
+                data["operationPolicy"] = {"available": True, "selected": {"mode": "full", "readOnly": False},
+                                           "effective": {"movementImplementation": "developer_teleport"}}
                 data["recipeQueryAccess"] = {"version": 1, "publicCatalog": True,
                     "localMachineBackend": state["profile"] == "developer", "remoteMachineBackend": False}
             elif operation == "client.snapshot":
@@ -89,6 +90,8 @@ def http_bridge():
                 data = {"base64": PNG, "width": 1, "height": 1, "mimeType": "image/png"}
             elif operation == "bridge.policy":
                 data = {"available": True, "selected": {"mode": "survival", "movement": "path"}}
+            elif operation == "survival.food":
+                data = {"complete": True, "status": "already_full", "useSubmitted": False, "foodGainVerified": False}
             elif operation == "world.inspect":
                 state["inspect_counter"] += 1
                 data = {"source": "integrated_server", "gregtech": {"progress": state["inspect_counter"], "maxProgress": 20, "active": True, "allowedToWork": True, "storedEU": 5000, "signedCalculatedEUt": -32, "eutMeaning": "Calculated machine EU/t; negative consumes, positive generates; not original recipe EU/t.", "recipeResultMessage": "working"}}
@@ -212,6 +215,14 @@ async def test_actual_mcp_initialize_list_and_call_all_tools(http_bridge, tmp_pa
         "mcb_scan_config": {}, "mcb_world_structure": {"x": 0, "y": 64, "z": 0},
         "mcb_gui_tooltip": {"screenId": "mock-screen", "slot": 0}, "mcb_nei": {"screenId": "mock-screen"},
         "mcb_screenshot": {}, "mcb_look": {"yaw": 1080, "pitch": 0}, "mcb_hotbar": {"slot": 2},
+        "mcb_food": {"action": "eat", "slot": 2, "registryName": "minecraft:apple", "metadata": 0},
+        "mcb_mine": {"expectedSessionId":"mock-session","expectedWorld":"mock-world","dimension":0,
+                     "x":0,"y":64,"z":0,"registryName":"minecraft:stone","metadata":0,"hotbarSlot":0},
+        "mcb_entity_interact":{"expectedSessionId":"mock-session","expectedWorld":"mock-world","action":"use",
+                               "expectedEntity":{"dimension":0,"uuid":"00000000-0000-0000-0000-000000000001"}},
+        "mcb_chest_transfer":{"expectedSessionId":"mock-session","expectedWorld":"mock-world","screenId":"mock-screen",
+                              "windowId":1,"slot":0,"direction":"withdraw","registryName":"minecraft:stone","metadata":0,"count":1},
+        "mcb_action_chain": {"action":"status"},
         "mcb_input": {"keys": ["forward"], "ticks": 5}, "mcb_interact": {"action": "use"},
         "mcb_place_block": {"x": 0, "y": 64, "z": 0, "hotbarSlot": 1, "expectedWorld": "mock-world"},
         "mcb_slot_click": {"windowId": 1, "slot": 0}, "mcb_close_gui": {},
@@ -244,7 +255,7 @@ async def test_actual_mcp_initialize_list_and_call_all_tools(http_bridge, tmp_pa
         "mcb_mouse": {"enabled": True}, "mcb_unfocused": {"enabled": True},
         "mcb_wait_for": {"condition": {"path": "player.health", "operator": "equals", "value": 20}, "timeout_ms": 1_000},
         "mcb_launch": {},
-        "mcb_help": {}, "mcb_logs": {}, "mcb_capture": {"include_screenshot": True, "positions": [{"x": 0, "y": 64, "z": 0}]},
+        "mcb_help": {}, "mcb_packdata": {"action": "status"}, "mcb_logs": {}, "mcb_capture": {"include_screenshot": True, "positions": [{"x": 0, "y": 64, "z": 0}]},
         "mcb_machine_watch": {"x": 0, "y": 64, "z": 0, "duration_ms": 100, "interval_ms": 200},
         "mcb_sequence": {"expectedSessionId": "mock-session", "steps": [{"id": "gui", "kind": "read", "tool": "mcb_gui", "fields": ["screenId"]}]},
         "mcb_recipe_query": {"map": "gt.recipe.assembler", "output": {"source": "registry", "registryName": "minecraft:chest"}},
@@ -295,9 +306,15 @@ async def test_actual_mcp_initialize_list_and_call_all_tools(http_bridge, tmp_pa
                     "map", "x", "y", "z", "dimension", "input", "output", "cursor", "limit", "maxPages",
                     "mode", "inputs", "fluidInputs", "fluids", "specialSlot"}
                 assert len(tool.inputSchema["oneOf"]) == 2
-            if tool.name in {"mcb_mouse", "mcb_unfocused"}:
+            if tool.name in {"mcb_background", "mcb_mouse", "mcb_unfocused"}:
                 assert tool.inputSchema["required"] == ["enabled"]
-                assert tool.inputSchema["properties"] == {"enabled": {"type": "boolean"}}
+                properties = tool.inputSchema["properties"]
+                assert properties["enabled"] == {"type": "boolean"}
+                if tool.name == "mcb_unfocused":
+                    assert set(properties) == {"enabled"}
+                else:
+                    assert set(properties) == {"enabled", "releaseStaleGrab"}
+                    assert properties["releaseStaleGrab"]["type"] == "boolean"
                 assert tool.annotations.readOnlyHint is False
                 assert tool.annotations.idempotentHint is False
             if tool.name in {"mcb_hotbar", "mcb_load_world", "mcb_exit", "mcb_supply_items", "mcb_survival_build"}:
@@ -580,7 +597,7 @@ async def test_actual_mcp_fixed_guide_tools_and_resources_need_no_game(tmp_path)
             assert resource.contents[0].mimeType == "application/json"
             data = json.loads(resource.contents[0].text)
             assert data == tool.structuredContent["data"]
-            assert data["source"] == f"mcp-server/src/minecraft_codex_bridge/guides/{topic}.md"
+            assert data["source"] == f"mcp-server/src/minecraft_codex_bridge/guides/{topic}_zh.md"
             assert TOKEN not in json.dumps(data)
         with pytest.raises(McpError, match="Unknown agent guide resource"):
             await session.read_resource("minecraft-codex-bridge://agent-guides/other")

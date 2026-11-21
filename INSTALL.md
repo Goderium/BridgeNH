@@ -112,9 +112,13 @@ connections, not the live chat's binding.
 
 ## Agent project and local knowledge
 
-Read [AGENTS.md](AGENTS.md) for project rules, including documentation language. The [workspace guide](mcp-server/src/minecraft_codex_bridge/guides/workspace.md) provides a startup template, task records and native-control feedback. Merge its relevant rules into the selected project; keep notes outside the installer folder and game saves.
+Read [AGENTS.md](AGENTS.md) for project rules, including documentation language. The [Chinese operating guide](mcp-server/src/minecraft_codex_bridge/guides/workspace_zh.md) ([English edition](mcp-server/src/minecraft_codex_bridge/guides/workspace.md)) provides a startup template, task records and native-control feedback. Merge its relevant rules into the selected project; keep notes outside the installer folder and game saves.
 
 Installation inspection and success JSON include `agentGuide` with the source file and `mcb_help({"topic":"workspace"})` entry. The fixed resource is `minecraft-codex-bridge://agent-guides/workspace`. It remains available offline in the installed Python package after the extracted folder is removed, without a game session or token.
+
+## Codex compaction indicator
+
+Merge the entries from [the hook configuration](docs/codex-compaction-hooks.json) into the `hooks` object in `~/.codex/hooks.json`. Set `server` to the BridgeNH server name in your Codex MCP settings. In **Settings → Hooks**, review and trust the three entries. Codex calls the connected MCP server for automatic and manual compaction.
 
 ## Configuration locations
 
@@ -190,9 +194,13 @@ python -m build --outdir build/dist mcp-server
 python scripts/prepare_release.py
 ```
 
-The runtime JAR is `build/libs/BridgeNH-<version>.jar`; release assets and SHA-256
-checksums are collected in `build/dist/`. After building, `install.ps1 -Scope source`
-can configure a development installation. It does not need local dependency JARs.
+Gradle writes `build/libs/BridgeNH-<base>-<branch>[.<commits>]+<hash>[-dirty].jar`.
+The commit count starts at the nearest release tag and is omitted at zero. The hash
+uses ten Git digits. A source export without Git metadata uses `<base>-source`.
+A clean checkout tagged `v<base>` produces `BridgeNH-<base>.jar`. Release CI
+passes `-PreleaseTag=v<base>` to require that state. The installer ZIP uses the built mod version and
+`build/dist/` contains the assets and SHA-256 checksums. After building, use
+`install.ps1 -Scope source` to configure a development installation.
 
 Update `modVersion` in `gradle.properties` and `__version__` in
 `mcp-server/src/minecraft_codex_bridge/_version.py` together. Release validation

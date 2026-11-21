@@ -294,6 +294,27 @@ def test_prism_gui_reuse_requires_same_data_directory(launch_settings):
     assert error.value.code == "PROCESS_INSPECTION_INCOMPLETE"
 
 
+def test_dispatched_launch_waits_for_readable_process_identity(launch_settings):
+    gui = prism(launch_settings)
+    unknown = Process(45, "javaw.exe", None, None)
+    target = java(launch_settings)
+    backend = Workflow([[gui], [gui], [gui, unknown], [gui, unknown, target]])
+    result = _launch(launch_settings, threading.Event(), backend)
+    assert result["javaProcessId"] == target.process_id
+    assert backend.commands == [(launch_settings, True)]
+
+
+def test_dispatched_launch_with_persistently_unreadable_process_stays_unknown(launch_settings):
+    gui = prism(launch_settings)
+    unknown = Process(45, "javaw.exe", None, None)
+    backend = Workflow([[gui], [gui], [gui, unknown]])
+    with pytest.raises(BridgeError) as error:
+        _launch(launch_settings, threading.Event(), backend)
+    assert error.value.code == "PROCESS_INSPECTION_INCOMPLETE"
+    assert error.value.details["outcome_unknown"] is True
+    assert backend.commands == [(launch_settings, True)]
+
+
 def test_unreadable_java_refuses_duplicate_uncertainty(launch_settings):
     backend = Workflow([[Process(20, "javaw.exe", "javaw.exe", None)]])
     with pytest.raises(BridgeError) as error:

@@ -65,7 +65,7 @@ def test_type_and_range_feedback_retains_schema_limits_without_input_values(valu
 
 def test_enum_feedback_uses_only_actual_bundled_choices():
     result = invalid("mcb_help", {"topic": "secret-token-value"})
-    assert set(result["allowed_values"]) == {"overview", "capabilities", "maintenance", "operations", "nei", "ae", "workspace", "testing", "tools"}
+    assert set(result["allowed_values"]) == {"overview", "capabilities", "maintenance", "operations", "nei", "ae", "workspace", "testing", "tools", "food", "packdata", "survival"}
     assert result["allowed_values_complete"] and "secret-token-value" not in json.dumps(result)
 
 

@@ -1,8 +1,6 @@
 # BridgeNH agent workspace and records
 
-Agent reference: English; [Chinese companion](workspace_zh.md) for human review ([reading rules](workspace.md#reusable-startup-instructions)).
-
-This guide ships with the source and Python package. `mcb_help({"topic":"workspace"})` reads it offline; MCP guide resources also serve English only.
+The Chinese operating guide ships with the source and Python package. Both `mcb_help({"topic":"workspace"})` and the MCP guide resource return it offline. This English edition is for human reference.
 
 Use [capabilities](capabilities.md) for the complete tool-purpose index and [maintenance](maintenance.md) for hot updates, schema discovery and reconnect boundaries. Both are offline `mcb_help` topics; exact executable parameters come from `mcb_help(topic="tools",tool=...)` or the direct frontend tool schema.
 
@@ -40,27 +38,19 @@ Use the project's existing local exclusions for personal records/configuration.
 Merge applicable instructions below into the operations project's agent file.
 
 ```text
-Use BridgeNH to operate the requested Minecraft client through native tools. Maintain reusable experience, task state and a local knowledge base during authorized work.
+Operate the selected GTNH client through BridgeNH native tools. Read the packaged operating guides in Chinese through mcb_help. Use English for other BridgeNH project documentation. Consult the companion edition when translating or reviewing it. Reply in the user's preferred language.
 
-For routine use and development, read English documentation only and exclude *_zh.md from file and content searches. Use rg --files -g '!*_zh.md' for file discovery and rg -g '!*_zh.md' ... for content searches, or equivalent exclusions in other tools. Read relevant Chinese companions only when the current task requires maintaining, translating or reviewing them, including synchronizing translations after English edits. Limit the exception to those documents, keep English as the instruction source and restore the search exclusion afterward. Reply in the user's preferred language.
+Read the existing project rules, related task state and experience index. Merge records into the selected workspace outside game saves, installed mods and disposable packages.
 
-Read existing project rules, the related task state, EXPERIENCE.md and the knowledge index; retrieve only relevant topics. Reuse the selected workspace and merge existing records. Keep notes outside game saves, installed mods and disposable packages.
+Search mcb_packdata for published quests, guides and recipes. Check changed recipes in live NEI. For reusable operating methods, query mcb_knowledge. For present inventories, machine state and action results, read the game. Find tools by purpose in the capabilities guide, then request the exact schema with mcb_help. Consult the detailed guide for the operation at hand.
 
-Explicitly bind this chat to the selected Prism directory and instance name. Verify live session, world/server, dimension, capability coverage and effective policy. Do not reuse historical IDs or another chat's binding. Ask only for information that cannot be obtained from current tools or established configuration.
+For live work, bind this chat to the intended Prism directory and instance name. Verify session, world/server, dimension, policy and applicable capabilities. Resolve targets and GUI identities from current observations. Ask about missing details only when neither tools nor established configuration can supply them.
 
-Before searching source for an available feature, read the relevant capabilities index and detailed guide, then query the current tool description/schema. Use the maintenance guide for compatible hot reload, host rediscovery and reconnect boundaries. A stale host list does not establish that the worker lacks a feature; a server notification does not prove native host refresh. When maintaining tools, update the index and relevant English/Chinese explanations together.
+Plan materials, layout, access and dependencies once. Use the dedicated API for each supported operation. Reserve the virtual mouse for uncovered GUI gestures or explicit pointer tests. Reuse batches, bounded waits and built-in checks. After partial completion, timeout or unknown effects, reconcile the original action and actual inventory or world changes before continuing. Verify synchronized state and received products.
 
-Compose existing general tools for each task. Prefer structured observations, semantic GUI controls, native events, batch reads and bounded waits. Plan complex materials, layout, ports, orientation, access and dependencies once, then update changed parts. Preserve built-in preflight and acceptance; do not repeat them at every outer step. Use normal polling near one second unless a supported waiter defines otherwise.
+If a required step needs Computer Use, tell the user immediately and report an error under the workspace guide. This includes read-only checks, preparation and troubleshooting. Record any manual assistance. Use the testing guide to select relevant checks with the existing permissions and world, and identify pending native acceptance.
 
-After timeout, partial completion or unknown effects, inspect the same action and reconcile before continuing. Do not replay a batch or replace its request ID to bypass uncertainty. Plans, submitted receipts and cached text are not completion. Verify real blocks, synchronized settings, full inventory identities and actual products.
-
-When a required operation has no native path, record a capability gap with evidence and native completion criteria. Do not silently use Computer Use, OS input, manual clicks or save edits. An explicitly authorized temporary workaround remains external assistance and leaves the native gap open.
-
-Choose relevant regression, optional QA and live client/server checks using the testing guide. QA is optional; do not install it, raise permissions or switch worlds solely for validation. Record skipped/unavailable layers and unresolved acceptance. testPassed is not fullFlowVerified; mocked tests, QA and singleplayer results cannot stand in for native GUI or dedicated-server acceptance.
-
-Record useful methods, failures, user corrections and tool gaps promptly. Task state holds current locations, orders, progress, recovery and evidence. EXPERIENCE.md holds short searchable conclusions. knowledge/ holds reusable mechanisms with versions, source, scope and verification status. Separate preferences, observations, source conclusions and hypotheses; revise obsolete entries and update verification dates only after real checks.
-
-At a checkpoint or handoff, save unresolved actions and recovery steps, update relevant indexes and briefly report changes, evidence and remaining gaps. Link supporting records instead of copying full logs/chat histories. Sanitize content before writing it into the BridgeNH (MCB) project.
+Keep current progress, uncertainties and recovery in task state, short lessons in EXPERIENCE.md and reusable mechanisms in knowledge/. Record source, version and verification scope, distinguishing observations from hypotheses and user preferences. At handoff, update the indexes and link evidence. Sanitize material written into the BridgeNH project. For tool changes, update the capability index and bilingual guides, then follow the maintenance guide to verify the loaded catalog.
 ```
 
 ## Record boundaries
@@ -88,30 +78,22 @@ A knowledge entry keeps its conclusion, prerequisites, evidence and limits. Vers
 
 ## Native-control gap and feedback template
 
-Use one issue/task reference consistently in project records and `mcb_run_log` reports. Record failed native observations as well as failed actions, including controls currently usable only through Computer Use.
+As soon as a necessary observation or action requires Computer Use, tell the user which step is blocked and which native or CLI route was tried. This counts as an error even for a desktop read, setup or diagnosis. Report it in the selected instance with `mcb_run_log`. To open a new error, supply `category`, `title` and `observed`.
 
-```text
-Issue/task reference:
-Goal and required native step:
-Environment: BridgeNH/mod versions, local or remote, policy/capability scope
-Preconditions and minimal reproduction: native tools and arguments
-Expected native behavior:
-Observed behavior: error, missing coverage, partial effects, actual readback
-External assistance: none | proposed | explicitly authorized and used
-Why the native path is incomplete:
-Evidence and recovery state:
-Proposed general capability/fix:
-Acceptance: complete the same task through native tools, verify real effects,
-  require no external input, preserve identity/permission/no-replay guards
-Status: open | implemented, awaiting native verification | verified
+```json
+{"action":"report","category":"error","title":"Desktop required for a readiness check","observed":"Native status did not expose the required readiness state.","expected":"Read readiness through the CLI or native tool."}
 ```
 
-A screenshot can support a visual defect; it does not replace structured state or prove a completed action. Do not mark a gap resolved merely because a human clicked the control. Keep working on independent native steps when possible and report the concrete blocker.
+Keep the returned `id` in `tasks/<task-id>/state.md`. Update the same error with `action="report"` and its `id`, including the versions and steps in `reproduction`, the desktop action and readback in `observed`, and the proposed fix and native retest in `suggestion`. If the journal is unavailable, record those details in task state, deliver the feedback in this chat and file it when logging resumes.
+
+At handoff, state the task outcome, the desktop assistance used and any remaining work. Cite the evidence and open issue ID or task reference. Full native acceptance stays pending until the same step succeeds through its intended interface with identity, permission and replay guards intact. Verify other steps independently. A screenshot can document a visual defect.
+
+The bound client's virtual GUI mouse is native. When it compensates for a missing specialized operation, record that gap and the observed result. When the test specifically targets pointer display, hover or clicks, record the pointer behavior against its own criteria.
 
 ## Reusing built-in knowledge and logs
 
 Use `mcb_knowledge` with `lessons` or `query` for relevant operating lessons; `learn` records evidence, `review` checks it and `retire` marks obsolete knowledge. Use current schemas and returned evidence IDs. If unavailable, maintain project files without blocking unrelated work. Cross-link structured lessons with files instead of copying entire logs. Connection-scoped evidence never authorizes a different server or action replay.
 
-Use `mcb_run_log` to read/export relevant events and report issue findings. `mcb_logs` and diagnostics inspect the selected client's logs/process; `mcb_recording(view="summary")` reviews passive history. Preserve dispatched/acknowledged/observed/verified/unknown distinctions. A history gap or missing stop marker is unknown, not proof that nothing happened.
+Use `mcb_run_log` to read or export historical evidence. `mcb_logs` and diagnostics inspect the selected client's logs/process; `mcb_recording(view="summary")` reviews passive history. Preserve dispatched/acknowledged/observed/verified/unknown distinctions. A history gap or missing stop marker leaves the outcome unknown.
 
 For acceptance layers, see the [testing guide](testing.md).

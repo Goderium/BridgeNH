@@ -23,6 +23,8 @@ Paths below are relative to `mcp-server/src/minecraft_codex_bridge/`.
 | Read boundary | `application/reads.py` | Bounded condition waits, composite owner reads and frozen cursor paging |
 | Presentation | `application/results.py`, `application/descriptions.py` | MCP result/image rendering and advertised tool/resource descriptions |
 | Domain handlers | `application/handlers/local.py`, `observations.py`, `tasks.py` | Local files/knowledge/lifecycle, compound reads, and composed actions |
+| Execution database | `packdata.py`, `packdata_inputs.py`, `packdata_updates.py`, `packdata_links.py`, `recex_packdata.py` | Per-instance snapshots, installation checks, semantic differences and linked records. [Capture and lookup](../mcp-server/src/minecraft_codex_bridge/guides/packdata.md) |
+| Survival material orders | `survival_order.py`, `survival_order_store.py`, `survival_gather.py`, `survival_storage.py` | Bound collection, exact storage transfers and durable reconciliation by order and conversation |
 | Domain implementation | Existing task/planning modules listed below | State machines, geometric calculations and domain acceptance |
 | Evidence | `knowledge.py`, `operation_knowledge.py`, `run_log.py`, `player_recordings.py`, `call_timing.py`, `feedback.py` | Historical evidence, bounded records and diagnostics |
 | HTTP/connection | `bridge.py`, `runtime_discovery.py`, `operation_policy.py` | Credentials, guarded RPC, transport cancellation and local/remote routing |
@@ -105,6 +107,12 @@ rename imports. Choose the owner of a change by responsibility:
 | AE | `ae_tasks`, `ae_orders`, `ae_task_schema` |
 | QA | `qa_tasks`, `qa_debug_tasks`, `qa_machine_flows`, `qa_flow_schema` |
 
+### Shared and mode-specific operations
+
+General observations and native inventory, GUI and entity controls are shared. The Python catalog keeps survival-only declarations in `catalog/survival*.py` and creative supply in `catalog/creative.py`. Client-side survival actions live under `client/survival`. A policy defines an authority ceiling; the action checks the actual player and game resources. Dedicated test-world rules belong to the fixture.
+
+`action_chain.py` stores one cooperative queue per adapter. Each segment runs through the existing guarded sequence executor and has its own acceptance conditions. The next advance or insertion uses the returned chain ID and revision.
+
 ## Reload boundary
 
 Application changes replace the private worker. The stable frontend,
@@ -150,7 +158,7 @@ API fixtures in test sources keep the corresponding mod's namespace.
 | `common.diagnostics` | Bounded server runtime metadata and asynchronous fixed log reads |
 | `common.ae`, `inventory`, `machine`, `recipe`, `structure`, `world`, `qa` | Shared domain adapters and their state models |
 | `client.control`, `lifecycle`, `recording` | Native controls, menu/world lifecycle and player recording |
-| `client.gui`, `nei`, `navigation`, `render` | GUI adapters, NEI observations, movement and framebuffer capture |
+| `client.gui`, `nei`, `navigation`, `render` | GUI adapters, NEI observations, client-tick route planning and execution, framebuffer capture |
 | `config` | Configuration persistence, limits and operation policies |
 | `loader`, `loader.core`, `loader.rfb` | Client initialization and isolated Forge/RFB loading hooks |
 | `mixin` | Mixin classes referenced by the shared Mixin configuration |

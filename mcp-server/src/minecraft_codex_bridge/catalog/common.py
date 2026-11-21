@@ -105,8 +105,8 @@ NONDESTRUCTIVE_OPERATIONS = frozenset({
 
 TAKEOVER_OPERATIONS = frozenset({
     "client.window_action",
-    "player.look", "player.hotbar", "player.input", "player.world_mouse", "inventory.copy_block", "player.navigate", "player.interact", "player.place_block", "structure.survival_build",
-    "gui.slot_click", "gui.transfer_whole_stack", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.click", "gui.key", "gui.close", "gui.pointer",
+    "player.look", "player.hotbar", "player.input", "player.mine", "gui.chest_transfer", "player.entity_interact", "player.world_mouse", "inventory.copy_block", "player.navigate", "player.interact", "player.place_block", "structure.survival_build",
+    "gui.slot_click", "gui.transfer_whole_stack", "gui.open_inventory", "gui.open_baubles", "gui.open_pause_menu", "gui.click", "gui.virtual_mouse", "gui.key", "gui.close", "gui.pointer",
     "chat.send", "inventory.supply", "machine.set_working", "dev.teleport", "player.flight", "player.flight_check",
     "client.load_world", "client.connect", "client.leave_world", "client.exit",
     "nei.open", "nei.navigate", "nei.item_action", "nei.preview_control", "nei.bookmark_action", "ae.action", "gui.widget_action",

@@ -49,18 +49,59 @@ public final class NeiUiAccess {
         List<String> names = ALLOWED.get(owner);
         if (names == null || !names.contains(name)) throw new BridgeException("unsupported", "NEI fallback is not in the fixed field allowlist.");
         try {
-            Class<?> api = Class.forName(owner, false, loader); Field field;
-            synchronized (CACHE) {
-                Map<String, Field> fields = CACHE.get(api);
-                if (fields == null) { fields = new HashMap<String, Field>(); CACHE.put(api, fields); }
-                field = fields.get(name);
-                if (field == null) { field = api.getDeclaredField(name); field.setAccessible(true); fields.put(name, field); }
-            }
+            Field field = cachedDeclaredField(Class.forName(owner, false, loader), name);
+            if (field == null) throw new NoSuchFieldException(name);
             return field.get(target);
         } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
             throw new BridgeException("unsupported", "Audited NEI 2.8.145 field unavailable: " + owner + "." + name);
         }
     }
+    private static Field cachedDeclaredField(Class<?> owner, String name) {
+        synchronized (CACHE) {
+            Map<String, Field> fields = CACHE.computeIfAbsent(owner, key -> new HashMap<String, Field>());
+            if (!fields.containsKey(name)) {
+                Field field = null;
+                try { field = owner.getDeclaredField(name); field.setAccessible(true); }
+                catch (NoSuchFieldException absent) { /* Older NEI versions may lack the field. */ }
+                fields.put(name, field);
+            }
+            return fields.get(name);
+        }
+    }
+
+    private static final Class<?>[] NO_ARGS = new Class<?>[0];
+
+    /** History and craftables are optional in older ItemPanel versions. Cache absence on the declared owner. */
+    static Object optionalSubpanel(ClassLoader loader, Object panel, String name) {
+        if (!"historyPanel".equals(name) && !"craftablesPanel".equals(name))
+            throw new BridgeException("unsupported", "Unknown NEI item subpanel field.");
+        try {
+            Field field = cachedDeclaredField(Class.forName("codechicken.nei.ItemPanel", false, loader), name);
+            return field == null ? null : field.get(panel);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError unavailable) {
+            throw new BridgeException("unsupported", "NEI item subpanel could not be observed: " + name);
+        }
+    }
+
+    /** Modern NEI retains GuiRecipe.page for compatibility while its page manager owns navigation. */
+    public static int recipePage(ClassLoader loader, Object screen) {
+        String gui = "codechicken.nei.recipe.GuiRecipe";
+        try {
+            Field field = cachedDeclaredField(Class.forName(gui, false, loader), "handlerPages");
+            Object value;
+            if (field == null) {
+                value = publicField(loader, gui, screen, "page");
+            } else {
+                Object manager = field.get(screen);
+                if (manager == null) return -1;
+                value = publicCall(loader, "codechicken.nei.recipe.RecipePageManager", manager, "getCurrentPageIndex", NO_ARGS);
+            }
+            return value instanceof Number ? ((Number) value).intValue() : -1;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError unavailable) {
+            return -1;
+        }
+    }
+
     static Object optional(ClassLoader loader, String owner, Object target, String name) { try { return get(loader, owner, target, name); } catch (BridgeException error) { return null; } }
     public static Object publicField(ClassLoader loader, String owner, Object target, String name) {
         try {
@@ -74,7 +115,7 @@ public final class NeiUiAccess {
     }
     public static Object publicCall(ClassLoader loader, String owner, Object target, String name, Class<?>[] types, Object... args) {
         try {
-            Class<?> api = Class.forName(owner, false, loader); Method method; String key = name + Arrays.toString(types);
+            Class<?> api = Class.forName(owner, false, loader); Method method; String key = types.length == 0 ? name : name + Arrays.toString(types);
             synchronized (PUBLIC_METHODS) {
                 Map<String, Method> methods = PUBLIC_METHODS.get(api); if (methods == null) { methods = new HashMap<String, Method>(); PUBLIC_METHODS.put(api, methods); }
                 method = methods.get(key); if (method == null) { method = api.getMethod(name, types); methods.put(key, method); }

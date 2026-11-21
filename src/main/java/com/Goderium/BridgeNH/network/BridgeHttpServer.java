@@ -162,16 +162,19 @@ public class BridgeHttpServer {
                 GameQueue.Control control = registry.register(id, operation);
                 current.set(control);
                 if (expired.get()) control.cancelBeforeExecution();
-                args = bridge.prepareOperation(operation, args, control);
-                if (PlayerNavigation.OPERATION.equals(operation)) {
-                    PlayerNavigation.Request navigationRequest = new PlayerNavigation.Request(args);
+                args = request.has("expectedEmergencyReleaseCount")
+                        ? bridge.prepareOperation(operation, args, control, JsonData.nonnegativeLong(request, "expectedEmergencyReleaseCount"))
+                        : bridge.prepareOperation(operation, args, control);
+                if (PlayerNavigation.OPERATION.equals(operation) || "player.remote_walk".equals(operation)) {
+                    int timeout=PlayerNavigation.OPERATION.equals(operation) ? new PlayerNavigation.Request(args).timeout
+                            : args.has("timeout_ms") ? JsonData.integer(args,"timeout_ms",250,60000) : 30000;
                     // Request validation permits long interaction goals as well as segmented routes.
-                    if (navigationRequest.timeout > 6500) {
+                    if (timeout > 6500) {
                         ScheduledFuture<?> old = watchdogTicket.get();
                         ScheduledFuture<?> extended = watchdog.schedule(() -> {
                             expired.set(true); GameQueue.Control active = current.get();
                             if (active != null) active.cancelBeforeExecution(); exchange.close();
-                        }, navigationWatchdogMillis(navigationRequest), TimeUnit.MILLISECONDS);
+                        }, Math.max(10000L,timeout+1500L), TimeUnit.MILLISECONDS);
                         watchdogTicket.set(extended); old.cancel(false);
                     }
                 }
