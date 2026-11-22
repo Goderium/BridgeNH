@@ -23,15 +23,17 @@ def build(jar: Path, output: Path):
                  'docs/NATIVE_CONTROL_GAPS.md', 'docs/NATIVE_CONTROL_GAPS_zh.md',
                  'LICENSE', 'mcb-config.example.json',
                  'scripts/mcb.ps1', 'scripts/mcb-common.ps1', 'scripts/update_packdata.py',
-                 'scripts/packdata_nei.py',
+                 'scripts/packdata_nei.py', 'scripts/plan_production.py',
                  'scripts/packdata_runner/AiPlayerMod.java', 'scripts/packdata_runner/ExportRun.java',
+                 'scripts/packdata_runner/ExportFocus.java',
                  'scripts/packdata_runner/SelectedTooltips.java', 'scripts/packdata_runner/TooltipKeys.java',
                  'mcp-server/pyproject.toml',
                  'mcp-server/README.md', 'mcp-server/README_zh.md', 'mcp-server/LICENSE', 'mcp-server/MANIFEST.in', 'mcp-server/codex-config.example.toml'):
         files[name] = (ROOT / name).read_bytes()
     package = ROOT / 'mcp-server/src/minecraft_codex_bridge'
     for path in sorted(package.rglob('*')):
-        if path.is_file() and (path.suffix == '.py' or path.suffix == '.md' and path.parent.name == 'guides'):
+        if path.is_file() and (path.suffix == '.py' or path.suffix == '.md' and path.parent.name == 'guides'
+                               or path == package / 'factory_flow_runner.cjs'):
             files[path.relative_to(ROOT).as_posix()] = path.read_bytes()
     files['mod/' + jar.name] = jar.read_bytes()
     manifest = {'formatVersion': 1, 'files': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(files.items())}}

@@ -213,6 +213,7 @@
 | `mcb_recording` | 用 summary/list/events 或 live 读取被动玩家记录；磁盘历史可离线读取，缺口和缺停止标记仍未知，不回放。 |
 | `mcb_run_log` | 读写所选实例的 Agent 日志配置和问题报告、解决、延期、导出；历史和总结不证明游戏效果。 |
 | `mcb_packdata` | 检索绑定实例的离线任务书、GuideNH 页面、物品及配方。准备方法和数据范围见[离线资料](packdata_zh.md)。 |
+| `mcb_plan_production` | 按绑定实例的配方、现有机器和库存展开一批生产订单，使用 Factory Flow 计算负荷、供料及功耗。见[产线规划](planner_zh.md)。 |
 | `mcb_knowledge` | 按真实证据和兼容上下文查询、复核、记录本地经验；区分推测与验证结论。 |
 
 ## 任务完成与能力缺口

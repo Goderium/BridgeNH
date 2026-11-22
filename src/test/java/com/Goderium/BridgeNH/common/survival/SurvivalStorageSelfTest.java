@@ -1,10 +1,13 @@
 package com.Goderium.BridgeNH.common.survival;
 
 import com.google.gson.JsonObject;
+import net.minecraft.entity.player.PlayerCapabilities;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.WorldSettings.GameType;
 
 public final class SurvivalStorageSelfTest {
     public static int run() {
+        int actorChecks = actorEligibility();
         NBTTagCompound original=new NBTTagCompound();
         JsonObject receipt=new JsonObject();
         receipt.addProperty("actorId","actor"); receipt.addProperty("folder","world");
@@ -32,7 +35,26 @@ public final class SurvivalStorageSelfTest {
         assertTrue(!StorageItemNbt.roundTrips("{a:1,a:2}","{a:2}"));
         assertTrue(!StorageItemNbt.roundTrips("{list:[0:1,1:2]}","{list:[0:2,1:1]}"));
         assertTrue(!StorageItemNbt.roundTrips("{a:[4 bytes]}","{a:\"[4 bytes]\"}"));
-        return 12;
+        return 12 + actorChecks;
+    }
+
+    private static int actorEligibility() {
+        PlayerCapabilities caps = new PlayerCapabilities();
+        caps.disableDamage = true;
+        if (!SurvivalStorage.eligibleActor(false, 20, caps, GameType.SURVIVAL))
+            throw new AssertionError("A living survival player with spawn protection must be eligible for storage");
+        assertTrue(caps.disableDamage);
+        assertTrue(SurvivalStorage.eligibleActor(false, 20, caps, GameType.ADVENTURE));
+        assertTrue(!SurvivalStorage.eligibleActor(true, 20, caps, GameType.SURVIVAL));
+        assertTrue(!SurvivalStorage.eligibleActor(false, 0, caps, GameType.SURVIVAL));
+        caps.disableDamage = false;
+        assertTrue(SurvivalStorage.eligibleActor(false, 20, caps, GameType.SURVIVAL));
+        assertTrue(!SurvivalStorage.eligibleActor(false, 20, caps, GameType.CREATIVE));
+        assertTrue(!SurvivalStorage.eligibleActor(false, 20, caps, null));
+        assertTrue(!SurvivalStorage.eligibleActor(false, 20, caps, GameType.NOT_SET));
+        caps.isCreativeMode = true;
+        assertTrue(!SurvivalStorage.eligibleActor(false, 20, caps, GameType.SURVIVAL));
+        return 10;
     }
     private static void assertTrue(boolean value) {
         if(!value) throw new AssertionError("Survival storage receipt or item identity mismatch");

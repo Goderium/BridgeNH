@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerCapabilities;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,6 +24,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.WorldSettings;
 import net.minecraftforge.common.util.ForgeDirection;
 
 /** Runs on the actual player's server thread. Open through normal block interaction; count only the bound window. */
@@ -37,6 +39,12 @@ public final class SurvivalStorage {
 
     static void need(boolean yes,String code,String message) { if (!yes) throw new BridgeException(code,message); }
     private static JsonObject reason(String code) { JsonObject r=new JsonObject(); r.addProperty("reason",code); return r; }
+
+    static boolean eligibleActor(boolean dead, float health, PlayerCapabilities capabilities, WorldSettings.GameType gameType) {
+        // Spawn protection can set disableDamage on an ordinary survival player.
+        return !dead && health > 0 && !capabilities.isCreativeMode
+                && (gameType == WorldSettings.GameType.SURVIVAL || gameType == WorldSettings.GameType.ADVENTURE);
+    }
     private static final class Ledger {
         String observation;
         JsonObject request;
@@ -113,8 +121,9 @@ public final class SurvivalStorage {
         if(RECEIPT.equals(op)) RemoteReadProtocol.keys(args,"expectedSessionId","expectedConnectionId","worldFolder","dimension","intentId");
         else if(MOVE.equals(op)) RemoteReadProtocol.keys(args,"expectedSessionId","expectedConnectionId","worldFolder","dimension","endpoint","item","direction","intentId","observationId","limit","target","actorId","storageKey");
         else RemoteReadProtocol.keys(args,"expectedSessionId","expectedConnectionId","worldFolder","dimension","endpoint","item","direction");
-        need(player!=null && !player.isDead && player.getHealth()>0 && !player.capabilities.isCreativeMode
-             && !player.capabilities.disableDamage,"survival_actor_required","A living survival actor is required.");
+        need(player!=null && eligibleActor(player.isDead, player.getHealth(), player.capabilities,
+                player.theItemInWorldManager == null ? null : player.theItemInWorldManager.getGameType()),
+                "survival_actor_required","A living survival actor is required.");
         need(MinecraftServer.getServer().getFolderName().equals(JsonData.string(args,"worldFolder"))
              && player.dimension==JsonData.integer(args,"dimension",Integer.MIN_VALUE,Integer.MAX_VALUE),"stale_world","Storage world or dimension changed.");
         Ledger ledger=ACTORS.get(player);

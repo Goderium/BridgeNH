@@ -5,7 +5,7 @@ This guide is available offline for Minecraft 1.7.10 / GT New Horizons. Use the 
 | Need | First lookup |
 | --- | --- |
 | Quest requirements, recipes or a machine manual | Check the revision and search the instance’s [execution database](packdata.md). |
-| Collect and deliver items, or replenish a store | Use a [survival order](survival.md#quantitative-collection-and-replenishment) and verify the delivered quantity. |
+| A production order | Use the [production planner](planner.md) with observed stock and machines. Verify each stage against actual consumption and delivery. |
 | A reusable operating method | Search `mcb_knowledge` or the workspace experience index. |
 | Current ingredients, machine state or the result of an action | Read the relevant live tool and its receipt for the bound client. |
 

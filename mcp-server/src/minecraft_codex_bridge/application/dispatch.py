@@ -32,6 +32,7 @@ HANDLERS = {
     'mcb_interact_sample': observations.handle_interact_sample,
     'mcb_ae_material_source': observations.handle_ae_material_source,
     'mcb_packdata': local.handle_packdata,
+    'mcb_plan_production': local.handle_plan_production,
     'mcb_help': local.handle_help,
     'mcb_operation_check': tasks.handle_operation_check,
     'mcb_launch': local.handle_launch,

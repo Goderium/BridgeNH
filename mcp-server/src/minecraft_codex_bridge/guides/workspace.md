@@ -42,7 +42,7 @@ Operate the selected GTNH client through BridgeNH native tools. Read the package
 
 Read the existing project rules, related task state and experience index. Merge records into the selected workspace outside game saves, installed mods and disposable packages.
 
-Search mcb_packdata for published quests, guides and recipes. Check changed recipes in live NEI. For reusable operating methods, query mcb_knowledge. For present inventories, machine state and action results, read the game. Find tools by purpose in the capabilities guide, then request the exact schema with mcb_help. Consult the detailed guide for the operation at hand.
+Search mcb_packdata for published quests, guides and recipes. Use mcb_plan_production for a finite order and live NEI for changed recipes. For reusable operating methods, query mcb_knowledge. For present inventories, machine state and action results, read the game. Find tools by purpose in the capabilities guide, then request the exact schema with mcb_help. Consult the detailed guide for the operation at hand.
 
 For live work, bind this chat to the intended Prism directory and instance name. Verify session, world/server, dimension, policy and applicable capabilities. Resolve targets and GUI identities from current observations. Ask about missing details only when neither tools nor established configuration can supply them.
 

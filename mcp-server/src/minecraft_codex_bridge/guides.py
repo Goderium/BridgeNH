@@ -25,7 +25,7 @@ GUIDE_FILES = {
     topic: f"{topic}_zh.md"
     for topic in (
         "overview", "survival", "capabilities", "maintenance", "workspace", "testing",
-        "operations", "nei", "ae", "packdata", "food",
+        "operations", "nei", "ae", "packdata", "planner", "food",
     )
 }
 GUIDE_RESOURCES = {f"minecraft-codex-bridge://agent-guides/{topic}": topic for topic in GUIDE_FILES}

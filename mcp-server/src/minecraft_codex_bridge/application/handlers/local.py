@@ -76,6 +76,17 @@ async def handle_packdata(adapter, name, arguments, started_at):
     return _result({"ok": True, "data": data})
 
 
+async def handle_plan_production(adapter, name, arguments, started_at):
+    from ...packdata import bound_database
+    from ...production_planner import plan_production
+    path = bound_database(getattr(adapter.client, "configuration", None))
+    try:
+        data = await anyio.to_thread.run_sync(plan_production, path, arguments)
+    except (OSError, sqlite3.Error, ValueError) as error:
+        raise BridgeError("PLANNER_UNAVAILABLE", "The local planning input could not be read or solved. See mcb_help(topic=planner).") from error
+    return _result({"ok": True, "data": data})
+
+
 async def handle_help(adapter, name, arguments, started_at):
     if arguments.get("topic") == "tools":
         from ...dynamic_catalog import describe_catalog

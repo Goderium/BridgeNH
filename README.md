@@ -36,6 +36,6 @@ See the [installation guide](INSTALL.md), [player permissions and operation poli
 
 Agent rules, including documentation language, are in [AGENTS.md](AGENTS.md). The [Chinese workspace guide](mcp-server/src/minecraft_codex_bridge/guides/workspace_zh.md) provides the agent startup template and recordkeeping conventions. An [English edition](mcp-server/src/minecraft_codex_bridge/guides/workspace.md) is available for reference.
 
-Capture, compare and query quests, manuals and recipes with the [execution database](mcp-server/src/minecraft_codex_bridge/guides/packdata.md).
+Capture, compare and query quests, manuals and recipes with the [execution database](mcp-server/src/minecraft_codex_bridge/guides/packdata.md). Use the [production planner](mcp-server/src/minecraft_codex_bridge/guides/planner.md) to turn a target quantity, available machines and stock into an ordered material and capacity plan.
 
 Find every public tool in the [capability index](mcp-server/src/minecraft_codex_bridge/guides/capabilities.md), also available offline with `mcb_help({"topic":"capabilities"})`. The [maintenance guide](mcp-server/src/minecraft_codex_bridge/guides/maintenance.md), `mcb_help({"topic":"maintenance"})`, explains hot restart, tool-directory refresh and reconnection. Query `mcb_help({"topic":"tools","tool":"mcb_nei_bookmark_action"})` for an exact current worker-tool schema.

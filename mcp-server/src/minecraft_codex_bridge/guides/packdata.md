@@ -6,7 +6,7 @@
 
 | Task | Source |
 | --- | --- |
-| Survival materials, recipe discovery, quest definitions and manuals | Query the published catalog and record its revision with the results. |
+| Survival materials, recipe discovery, quest definitions and manuals | Read the published catalog. Repeat planning against the recorded revision. For a finite order, supply the observed inventory and machine pools to [the production planner](planner.md). |
 | A player's current progress, available items, energy, machine formation or delivery | Read the bound client or authorized server. Check actual consumption and output before advancing the order. |
 | A changed recipe, GUI handler, modifier tooltip or discrepancy | Inspect [live NEI](nei.md) on the affected client with its actual scripts, display language and handler. Capture a new version for future offline work. |
 | Creative and mod development | Compare exports before and after the change and test the affected behavior in the designated world. Creative supply and test fixtures use their existing explicit policy and actor requirements. |
@@ -52,6 +52,8 @@ python scripts/update_packdata.py update --instance "<instance>" --nei "<workspa
 ```
 
 `fetch-nei` also accepts repeated `--tooltip-item` options in the same launch. `fetch-tooltips` enriches a complete baseline whose instance and installation inputs still match. Select up to 32 registry names with metadata. The default samples normal, Shift and Ctrl views in the client language and reports unavailable views. Other sampled items and modes are retained. Structure, carving and block exports are indexed when supplied. If launch acknowledgement is uncertain, retain the output directory. After the selected process exits, use `finish-nei --instance <instance> --out <output> --no-publish` to verify and finalize a completed run. For an incomplete run, `cleanup-nei` with the same selectors restores that run’s temporary files.
+
+The temporary export world runs while the window is unfocused. The runner may close its initial vanilla pause menu once if the window has stayed in the background. Bringing the window to the foreground leaves any subsequent pause menu under player control. On exit the runner restores the focus setting. After an interruption, `cleanup-nei` restores the backed-up options and window mode once the selected client has stopped.
 
 For an independent [RecEx](https://github.com/GTNewHorizons/RecEx) export, install the adapter's `recex` extra and supply the completed JSON file.
 

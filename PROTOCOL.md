@@ -82,6 +82,8 @@ Survival mining uses `player.mine` against the observed crosshair block with the
 
 `mcb_survival_order` stores the caller's material order in the bound instance. `open` fixes an exact item, a quantity and physical endpoints. `advance` requires the current session, lifecycle target, dimension and order revision. Before a material action the worker commits its intent, then records the verified quantity in a separate transaction. `status` reads the durable revision. `reconcile` binds the same actor and save, inspects the recorded operation and leaves inconclusive effects pending. For replenish orders, `remaining` is the destination deficit. For gather orders, it is the quantity yet to be delivered. See [survival orders](mcp-server/src/minecraft_codex_bridge/guides/survival.md).
 
+`mcb_plan_production` reads the bound instance's NEI index and runs the local solver with the declared target, inventory, machine pools and time horizon. An optional `expectedRevision` pins the NEI dataset. The result reports ordered batches, intermediate and returned materials, shortages, heat requirements and power estimates. `productionVerified` and `liveStateObserved` remain false for an offline plan. See the [planner guide](mcp-server/src/minecraft_codex_bridge/guides/planner.md).
+
 `mcb_action_recovery` is a worker-local recovery interface, not a new HTTP
 mutation. `list` reads retained action IDs without game calls; `inspect` and
 `reconcile` use existing guarded `baubles.inspect` and `world.inspect_many`

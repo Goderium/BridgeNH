@@ -24,7 +24,8 @@ STABLE_FILES = ("__init__.py", "_version.py", "frontend.py", "backend_supervisor
 def source_files(root):
     result, total = {}, 0
     for path in sorted(root.rglob("*")):
-        if not (path.suffix == ".py" or path.suffix == ".md" and path.parent.name == "guides"):
+        if not (path.suffix == ".py" or path.suffix == ".md" and path.parent.name == "guides"
+                or path == root / "factory_flow_runner.cjs"):
             continue
         if path.is_symlink() or not path.is_file():
             raise BackendError("BACKEND_SOURCE_INVALID")

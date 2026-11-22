@@ -35,7 +35,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-minecraft_codex_bridge = ["guides/*.md"]
+minecraft_codex_bridge = ["guides/*.md", "factory_flow_runner.cjs"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

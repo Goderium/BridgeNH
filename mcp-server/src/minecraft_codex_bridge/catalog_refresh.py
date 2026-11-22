@@ -359,7 +359,7 @@ class ToolCatalogRefresh:
         # Include nested packages and detect additions/removals, not just edits
         # to files that happened to exist when this process started.
         root = Path(__file__).parent
-        return sorted(path for path in root.rglob("*.py") if path not in self._source_paths)
+        return sorted(path for path in (*root.rglob("*.py"), *root.glob("factory_flow_runner.cjs")) if path not in self._source_paths)
 
     def remember_session(self, session) -> None:
         if session not in self._sessions:

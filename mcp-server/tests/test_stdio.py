@@ -255,6 +255,8 @@ async def test_actual_mcp_initialize_list_and_call_all_tools(http_bridge, tmp_pa
         "mcb_mouse": {"enabled": True}, "mcb_unfocused": {"enabled": True},
         "mcb_wait_for": {"condition": {"path": "player.health", "operator": "equals", "value": 20}, "timeout_ms": 1_000},
         "mcb_launch": {},
+        "mcb_plan_production": {"target": {"resource": "minecraft:stone@0", "amount": 1},
+                                "inventory": [], "machines": [], "horizonTicks": 100},
         "mcb_help": {}, "mcb_packdata": {"action": "status"}, "mcb_logs": {}, "mcb_capture": {"include_screenshot": True, "positions": [{"x": 0, "y": 64, "z": 0}]},
         "mcb_machine_watch": {"x": 0, "y": 64, "z": 0, "duration_ms": 100, "interval_ms": 200},
         "mcb_sequence": {"expectedSessionId": "mock-session", "steps": [{"id": "gui", "kind": "read", "tool": "mcb_gui", "fields": ["screenId"]}]},
@@ -347,6 +349,10 @@ async def test_actual_mcp_initialize_list_and_call_all_tools(http_bridge, tmp_pa
         for name, arguments in examples.items():
             calls_before = len(state["calls"])
             result = await session.call_tool(name, arguments)
+            if name == "mcb_plan_production":
+                assert result.isError and result.structuredContent["error"]["code"] == "PACKDATA_MISSING"
+                assert state["calls"][calls_before:] == []
+                continue
             if name == "mcb_launch":
                 # This SDK fixture is deliberately not a configured Prism instance; never launch a real GUI.
                 assert result.isError and result.structuredContent["error"]["code"] == "LAUNCH_CONFIGURATION"

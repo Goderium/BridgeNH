@@ -46,6 +46,8 @@ Forge 握手通过 `spatialObservationVersion=1` 声明支持 `world.spatial`，
 
 `mcb_survival_order` 在绑定实例中保存当前对话的物料工单。`open` 指定精确物品、数量和仓位。`advance` 校验当前会话、世界、维度和工单修订号。worker 在变动物品前写入意向，按实物回执另行提交数量。`status` 读取持久化修订。`reconcile` 核对同一角色、存档及待确认操作；证据不足时保留待核对状态。补料时 `remaining` 为目标仓的库存差额，采集时为尚待交付的数量。见[生存物料工单](mcp-server/src/minecraft_codex_bridge/guides/survival_zh.md)。
 
+`mcb_plan_production` 读取绑定实例的 NEI 索引，根据目标、库存、机台配置和时间窗口调用本地求解器。可通过 `expectedRevision` 固定 NEI 修订。结果包含批次顺序、中间产物、回流物料、缺口、炉温要求和用电估算。离线规划的 `productionVerified` 和 `liveStateObserved` 均为 false。见[产线规划指南](mcp-server/src/minecraft_codex_bridge/guides/planner_zh.md)。
+
 `mcb_action_recovery` 是 worker 本地恢复接口，不是新的 HTTP 修改操作。`list` 离线读取保留的动作 ID；`inspect` 和 `reconcile` 复用已有的受保护 `baubles.inspect`、`world.inspect_many` 读取。核对要求当前会话、原始准确存档目录参数及维度、重复一致的客户端/服务器完整 NBT 背包与方块证据，以及明确确认。回执只解除所选创造模式放置的重放保护，历史结果仍为未知，新放置必须另行请求，其他未知动作继续受保护。详见[适用范围和流程](mcp-server/src/minecraft_codex_bridge/guides/maintenance_zh.md#核对已有回执的创造模式放置)。
 
 观察、序列、条件等待、接近、建造、配方及 AE 等组合复用既有原语、锁、当前身份和统一期限。详细字段、白名单和具体上限保留在英文协议和当前工具 schema。组合不意味着跨 tick 原子快照，也不意味着后续动作失败时能撤回先前效果。

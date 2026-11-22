@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 import sqlite3
 import importlib.util
+import base64
+import shutil
+import subprocess
+from types import SimpleNamespace
+import zipfile
 
 import pytest
 
@@ -227,6 +232,187 @@ def native_module():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def test_native_export_focus_scope_and_pause_recovery(tmp_path):
+    if not shutil.which("javac") or not shutil.which("java"):
+        pytest.skip("Native export runner tests require a JDK")
+    source = Path(__file__).resolve().parents[2] / "scripts/packdata_runner/ExportFocus.java"
+    backends = []
+    for namespace in ("lwjglx", "lwjgl"):
+        path = tmp_path / "org" / namespace / "opengl" / "Display.java"
+        path.parent.mkdir(parents=True)
+        path.write_text("package org." + namespace + """.opengl;
+public class Display {
+    public static boolean active, unsupported;
+    public static int calls;
+    public static boolean isActive() {
+        calls++;
+        if (unsupported) throw new UnsupportedOperationException("stub");
+        return active;
+    }
+}
+""", encoding="utf-8")
+        backends.append(str(path))
+    test = tmp_path / "FocusCheck.java"
+    test.write_text("""
+package com.Goderium.BridgeNH.packtools;
+public class FocusCheck {
+    public static class Settings { public boolean field_82881_y; }
+    private static void check(boolean actual) { if (!actual) throw new AssertionError(); }
+    private static ClassLoader legacy(final boolean available) {
+        return new ClassLoader(FocusCheck.class.getClassLoader()) {
+            @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                if (name.equals("org.lwjglx.opengl.Display") || (!available && name.equals("org.lwjgl.opengl.Display")))
+                    throw new ClassNotFoundException(name);
+                return super.loadClass(name, resolve);
+            }
+        };
+    }
+    public static void main(String[] args) throws Exception {
+        Settings settings = new Settings();
+        String menu = "net.minecraft.client.gui.GuiIngameMenu";
+        org.lwjgl.opengl.Display.unsupported = true;
+        ExportFocus.WindowProbe modern = ExportFocus.WindowProbe.find(FocusCheck.class.getClassLoader());
+        check(Boolean.FALSE.equals(modern.foreground()));
+        org.lwjglx.opengl.Display.active = true;
+        check(Boolean.TRUE.equals(modern.foreground()) && org.lwjgl.opengl.Display.calls == 0);
+        org.lwjglx.opengl.Display.unsupported = true;
+        check(modern.foreground() == null && modern.foreground() == null);
+        check(org.lwjglx.opengl.Display.calls == 3 && org.lwjgl.opengl.Display.calls == 0);
+        org.lwjgl.opengl.Display.unsupported = false;
+        ExportFocus.WindowProbe vanilla = ExportFocus.WindowProbe.find(legacy(true));
+        check(Boolean.FALSE.equals(vanilla.foreground()));
+        org.lwjgl.opengl.Display.unsupported = true;
+        check(vanilla.foreground() == null);
+        check(ExportFocus.WindowProbe.find(legacy(false)).foreground() == null);
+        for (boolean original : new boolean[]{true, false}) {
+            settings.field_82881_y = original;
+            try (ExportFocus focus = new ExportFocus(settings, "export", modern.foreground())) {
+                check(!settings.field_82881_y && !focus.claimInitialPause("export", false, menu));
+            }
+            try (ExportFocus focus = new ExportFocus(settings, "export", false)) {
+                check(!focus.claimInitialPause("export", modern.foreground(), menu));
+                check(!focus.claimInitialPause("export", false, menu));
+            }
+            try (ExportFocus focus = new ExportFocus(settings, "export", false)) {
+                check(!settings.field_82881_y);
+                check(!focus.claimInitialPause("player-world", false, menu));
+                check(!focus.claimInitialPause("export", false, "another.screen"));
+                check(focus.claimInitialPause("export", false, menu));
+                check(!focus.claimInitialPause("export", false, menu));
+            }
+            check(settings.field_82881_y == original);
+            try (ExportFocus focus = new ExportFocus(settings, "export", false)) {
+                focus.observeForeground(true);
+                check(!focus.claimInitialPause("export", false, menu));
+                throw new IllegalStateException("fixture export failed");
+            } catch (IllegalStateException expected) { check(settings.field_82881_y == original); }
+            try (ExportFocus focus = new ExportFocus(settings, "export", true)) {
+                check(!focus.claimInitialPause("export", false, menu));
+            }
+        }
+    }
+}
+""", encoding="utf-8")
+    subprocess.run(["javac", "--release", "8", "-d", str(tmp_path), str(source), str(test), *backends], check=True)
+    subprocess.run(["java", "-cp", str(tmp_path), "com.Goderium.BridgeNH.packtools.FocusCheck"], check=True)
+
+
+def test_failed_native_export_preserves_run_scoped_exception_chain(tmp_path):
+    mod = native_module()
+    failure = tmp_path / "export.failed"
+    failure.write_text("current\njava.lang.reflect.InvocationTargetException\n"
+                       "\tat runner.ExportRun.tick(ExportRun.java:50)\n"
+                       "Caused by: java.lang.UnsupportedOperationException: stub Display\n", encoding="utf-8")
+    with pytest.raises(ValueError, match=r"InvocationTargetException.*Caused by:.*UnsupportedOperationException: stub Display"):
+        mod._verify(tmp_path, "current")
+    with pytest.raises(ValueError, match="no matching successful exporter") as stale:
+        mod._verify(tmp_path, "other")
+    assert "stub Display" not in str(stale.value)
+
+
+@pytest.mark.parametrize("outcome", ["success", "failure", "interrupted", "player_launch", "archive_error"])
+@pytest.mark.parametrize("existing_options", [True, False])
+def test_export_preserves_original_settings_across_launch_and_cleanup(tmp_path, monkeypatch, outcome, existing_options):
+    mod = native_module()
+    instance, out = tmp_path/"instance", tmp_path/"capture"
+    game = instance/".minecraft"
+    (game/"mods").mkdir(parents=True)
+    (game/"config/codexbridge").mkdir(parents=True)
+    options, window_mode = (game/path for path in mod.SETTINGS)
+    original = b"someModOption:original\r\npauseOnLostFocus:true\r\n"
+    if existing_options:
+        options.write_bytes(original)
+    else:
+        window_mode.write_bytes(b"normal\r\n")
+    provider = tmp_path/"provider.jar"
+    provider.touch()
+    platform = SimpleNamespace(processes=lambda: [])
+    monkeypatch.setattr(mod, "_configuration", lambda *a: (None, SimpleNamespace(prism_exe=tmp_path/"prism.exe")))
+    monkeypatch.setattr(mod.launcher, "WindowsBackend", lambda: platform)
+    monkeypatch.setattr(mod.launcher, "_target_java", lambda *a: None)
+    monkeypatch.setattr(mod.packdata_inputs, "capture_inputs", lambda *a: {"datasets":{"nei":{}}})
+    live = [outcome == "player_launch"]
+    monkeypatch.setattr(mod, "_running", lambda *a: live[0])
+    real_archive = mod._archive_world
+    if outcome == "archive_error":
+        def archive_error(*args):
+            raise OSError("Fixture world archive failed")
+        monkeypatch.setattr(mod, "_archive_world", archive_error)
+
+    def runner(prism, provider, state, settings):
+        path = state/mod.RUNNER
+        with zipfile.ZipFile(path, "w") as jar:
+            jar.writestr("mcb-export.properties", "".join(
+                f"{key}={base64.b64encode(str(value).encode()).decode()}\n" for key,value in settings.items()))
+        return path
+    monkeypatch.setattr(mod, "_build_runner", runner)
+
+    async def launch(*a, **kw):
+        assert (game/"mods"/mod.RUNNER).is_file() and options.exists() == existing_options
+        if existing_options:
+            assert options.read_bytes() == original
+        window_mode.write_bytes(b"minimized\n")
+        options.write_bytes(b"someModOption:original\npauseOnLostFocus:false\n")
+        return {"status":"scheduled"}
+    monkeypatch.setattr(mod.launcher, "launch_client", launch)
+
+    def await_exit(*a):
+        if outcome == "interrupted":
+            live[0] = True
+            raise TimeoutError("Export client still active")
+        if outcome == "failure":
+            raise RuntimeError("Export failed before completion")
+    monkeypatch.setattr(mod, "_await_exit", await_exit)
+    monkeypatch.setattr(mod, "finish", lambda *a, **kw: "finalized")
+    if outcome == "success":
+        assert mod.acquire(instance, out, provider, {}) == "finalized"
+    elif outcome == "player_launch":
+        with pytest.raises(ValueError, match="started during preparation"):
+            mod.acquire(instance, out, provider, {})
+    elif outcome == "failure":
+        with pytest.raises(RuntimeError, match="Export failed"):
+            mod.acquire(instance, out, provider, {})
+    elif outcome == "archive_error":
+        with pytest.raises(OSError, match="archive failed"):
+            mod.acquire(instance, out, provider, {})
+    else:
+        with pytest.raises(RuntimeError, match="Close only the selected export client"):
+            mod.acquire(instance, out, provider, {})
+        assert (game/"mods"/mod.RUNNER).exists() and window_mode.is_file()
+        live[0] = False
+        assert mod.cleanup(instance, out)["cleanup"] == "completed"
+    assert not (game/"mods"/mod.RUNNER).exists()
+    if existing_options:
+        assert options.read_bytes() == original and not window_mode.exists()
+    else:
+        assert not options.exists() and window_mode.read_bytes() == b"normal\r\n"
+    if outcome == "archive_error":
+        monkeypatch.setattr(mod, "_archive_world", real_archive)
+        assert mod.cleanup(instance, out)["cleanup"] == "completed"
+    if outcome != "player_launch":
+        assert mod.cleanup(instance, out)["cleanup"] == "already_completed"
 
 
 def test_native_completion_binds_new_request_totals_and_handler_counts(sample):

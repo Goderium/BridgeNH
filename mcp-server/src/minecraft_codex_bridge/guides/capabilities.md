@@ -213,6 +213,7 @@ These tools require the advertised QA integration and appropriate policy/authori
 | `mcb_recording` | Review passive player history using summary/list/events or current live recording state. Disk history works offline; gaps and missing stop markers remain unknown, with no replay. |
 | `mcb_run_log` | Read/configure the selected instance's agent journal; report, resolve, defer or export bounded findings. History and agent summaries do not prove game effects. |
 | `mcb_packdata` | Search the bound instance’s offline quest book, GuideNH pages, item and recipe exports. Read [packdata](packdata.md) for preparation and coverage. |
+| `mcb_plan_production` | Expand a finite order against the selected instance’s offline recipes and available machines. Factory Flow computes loads, supply and power. See [production planning](planner.md). |
 | `mcb_knowledge` | Query/review/record local operating lessons with real evidence and compatibility context. Separate hypotheses from verified findings. |
 
 ## Completion and missing coverage

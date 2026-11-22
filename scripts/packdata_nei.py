@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from uuid import uuid4
 import zipfile
@@ -166,19 +167,33 @@ def cleanup(instance, output, prism=None):
         active.unlink()
     elif not phase.is_file() or phase.read_text(encoding="ascii") != run:
         raise ValueError("The installed runner is missing, without an earlier cleanup receipt")
-    _archive_world(game, state, spec["world"])
     for relative, expected in permissions.items():
         target = game/relative
         if expected is None:
             target.unlink(missing_ok=True)
         elif not target.is_file() or digest(target) != expected:
-            shutil.copyfile(state/target.name, target)
+            with tempfile.NamedTemporaryFile(dir=target.parent, delete=False) as tmp:
+                staging = Path(tmp.name)
+            try:
+                shutil.copyfile(state/target.name, staging)
+                os.replace(staging, target)
+            finally:
+                staging.unlink(missing_ok=True)
+    _archive_world(game, state, spec["world"])
     (state/"cleanup.ok").write_text(run, encoding="ascii")
     return {"runId":run, "cleanup":"completed"}
 
 
 def _verify(out, run):
-    if (out / "export.failed").exists() or not (out/"export.ok").is_file() or (out / "export.ok").read_text(encoding="utf-8") != run:
+    failure = out / "export.failed"
+    if failure.is_file():
+        with failure.open(encoding="utf-8", errors="replace") as marker:
+            if marker.readline(128).rstrip("\r\n") == run:
+                trace = marker.read(65536).splitlines()
+                causes = [line.strip()[:350] for line in trace[1:] if line.startswith("Caused by:")]
+                detail = " | ".join([*trace[:1], *causes])[:2400]
+                raise ValueError(f"Native NEI capture failed ({failure}): {detail}")
+    if failure.exists() or not (out/"export.ok").is_file() or (out / "export.ok").read_text(encoding="utf-8") != run:
         raise ValueError("This acquisition has no matching successful exporter completion")
     meta = packdata._read(out / "meta.json")["nei"]
     if type(meta.get("format")) is not int or meta["format"] != 1:
@@ -314,6 +329,9 @@ def acquire(instance, output, provider, env, *, prism=None, timeout=1800, benchm
         spec["providerSha256"] = digest(provider)
     packdata_inputs._write_json(state / "run.json", spec)
     started = time.monotonic()
+    # Compiling the runner and hashing installed mods can take long enough for a player to launch the instance.
+    if _running(platform, setting, out):
+        raise ValueError("The selected export client started during preparation; no runner was installed")
     with runner.open("rb") as original, active.open("xb") as destination:
         try:
             shutil.copyfileobj(original, destination)

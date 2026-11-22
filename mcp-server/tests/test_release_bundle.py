@@ -30,11 +30,12 @@ def test_portable_bundle_contains_license_and_detects_tampering(tmp_path, monkey
         names = archive.namelist()
         assert 'BridgeNH/LICENSE' in names and 'BridgeNH/mcp-server/LICENSE' in names
         assert {f"BridgeNH/{part}" for part in (
-            "scripts/update_packdata.py", "scripts/packdata_nei.py",
+            "scripts/update_packdata.py", "scripts/plan_production.py", "scripts/packdata_nei.py",
             "scripts/packdata_runner/AiPlayerMod.java", "scripts/packdata_runner/ExportRun.java",
+            "scripts/packdata_runner/ExportFocus.java",
             "scripts/packdata_runner/SelectedTooltips.java", "scripts/packdata_runner/TooltipKeys.java",
-            "mcp-server/src/minecraft_codex_bridge/guides/packdata.md",
-            "mcp-server/src/minecraft_codex_bridge/guides/packdata_zh.md",
+            "mcp-server/src/minecraft_codex_bridge/factory_flow_runner.cjs",
+            "mcp-server/src/minecraft_codex_bridge/guides/planner.md",
         )} <= set(names)
         expected_runner = {"BridgeNH/scripts/packdata_runner/" + path.name
                            for path in (ROOT / "scripts/packdata_runner").glob("*.java")}

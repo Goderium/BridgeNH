@@ -24,6 +24,7 @@ Paths below are relative to `mcp-server/src/minecraft_codex_bridge/`.
 | Presentation | `application/results.py`, `application/descriptions.py` | MCP result/image rendering and advertised tool/resource descriptions |
 | Domain handlers | `application/handlers/local.py`, `observations.py`, `tasks.py` | Local files/knowledge/lifecycle, compound reads, and composed actions |
 | Execution database | `packdata.py`, `packdata_inputs.py`, `packdata_updates.py`, `packdata_links.py`, `recex_packdata.py` | Per-instance snapshots, installation checks, semantic differences and linked records. [Capture and lookup](../mcp-server/src/minecraft_codex_bridge/guides/packdata.md) |
+| Production planning | `production_planner.py`, `factory_flow_runner.cjs` | Resolve finite inventories and recipe routes, then send the graph to the pinned local solver. [Inputs and verification](../mcp-server/src/minecraft_codex_bridge/guides/planner.md) |
 | Survival material orders | `survival_order.py`, `survival_order_store.py`, `survival_gather.py`, `survival_storage.py` | Bound collection, exact storage transfers and durable reconciliation by order and conversation |
 | Domain implementation | Existing task/planning modules listed below | State machines, geometric calculations and domain acceptance |
 | Evidence | `knowledge.py`, `operation_knowledge.py`, `run_log.py`, `player_recordings.py`, `call_timing.py`, `feedback.py` | Historical evidence, bounded records and diagnostics |

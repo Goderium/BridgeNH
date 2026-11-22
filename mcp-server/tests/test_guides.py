@@ -153,5 +153,5 @@ def test_bundled_chinese_help_and_english_reference_share_executable_examples(to
     assert guides.json_size({**result, "markdown": windows_markdown}) <= guides.MAX_GUIDE_BYTES
     primary = primary.replace("\r\n", "\n")
     assert _json_examples(companion) == _json_examples(primary)
-    if topic == "packdata":
+    if topic in {"packdata", "planner"}:
         assert re.findall(r"^python .+$", companion, re.M) == re.findall(r"^python .+$", primary, re.M)

@@ -36,6 +36,6 @@ Prism 目录：<实际 Prism 目录>
 
 Agent 约定及文档语言规则见英文 [AGENTS.md](AGENTS.md)；[中文工作目录指南](mcp-server/src/minecraft_codex_bridge/guides/workspace_zh.md)提供可复制的启动模板和记录规范，另有[英文版](mcp-server/src/minecraft_codex_bridge/guides/workspace.md)供查阅。
 
-任务书、指南和配方的采集、比对与检索见[执行数据库](mcp-server/src/minecraft_codex_bridge/guides/packdata_zh.md)。
+任务书、指南和配方的采集、比对与检索见[执行数据库](mcp-server/src/minecraft_codex_bridge/guides/packdata_zh.md)。[产线规划器](mcp-server/src/minecraft_codex_bridge/guides/planner_zh.md)按目标数量、可用机器和库存给出工序、用料及产能计划。
 
 全部公开工具见[能力索引](mcp-server/src/minecraft_codex_bridge/guides/capabilities_zh.md)，对应离线入口为 `mcb_help({"topic":"capabilities"})`。[维护指南](mcp-server/src/minecraft_codex_bridge/guides/maintenance_zh.md)说明热重启、工具目录刷新和重连，对应 `mcb_help({"topic":"maintenance"})`。准确的当前 worker 工具 schema 可用 `mcb_help({"topic":"tools","tool":"mcb_nei_bookmark_action"})` 查询。

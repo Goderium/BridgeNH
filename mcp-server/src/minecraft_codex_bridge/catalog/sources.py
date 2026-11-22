@@ -13,6 +13,7 @@ DECLARATION_FILES = (
     'catalog/survival.py',
     'catalog/survival_food.py',
     'catalog/references.py',
+    'catalog/planner.py',
     'catalog/native.py',
     'tools.py',
 )
